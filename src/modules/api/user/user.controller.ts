@@ -6,6 +6,7 @@ import {
   UseGuards,
   Req,
   Patch,
+  Get,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -21,6 +22,8 @@ import { extname } from 'path';
 import { AuthGuard } from '@nestjs/passport';
 import { UserService } from './user.service';
 import { RequestWithUser } from './request-with-user.interface';
+import { CurrentUser } from 'modules/common/decorator/current-user.decorator';
+import { User } from './user.entity';
 
 const MAX_FILE_SIZE = 1 * 1024 * 1024;
 
@@ -94,5 +97,15 @@ export class UserController {
       filename: file ? file.filename : null,
       fullName,
     };
+  }
+  
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
+  @ApiOperation({ summary: 'Get the logged in user' })
+  @Get('me')
+  @ApiResponse({ status: 200, description: 'Successful Response', type: User })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getLoggedInUser(@CurrentUser() user: User): Promise<User> {
+    return user;
   }
 }

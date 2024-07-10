@@ -1,14 +1,7 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService, LoginDTO, RegisterDTO, TokenDTO } from '..';
-import { CurrentUser } from '../../../common/decorator/current-user.decorator';
-import { User, UserService } from '../../user';
+import { UserService } from '../../user';
 
 @Controller('api/auth')
 @ApiTags('authentication')
@@ -40,16 +33,6 @@ export class AuthController {
   async register(@Body() payload: RegisterDTO): Promise<any> {
     const user = await this.userService.createSecured(payload);
     return await this.authService.createToken(user);
-  }
-
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard())
-  @ApiOperation({ summary: 'Get the logged in user' })
-  @Get('me')
-  @ApiResponse({ status: 200, description: 'Successful Response', type: User })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getLoggedInUser(@CurrentUser() user: User): Promise<User> {
-    return user;
   }
 
   @Get('mock-login')
