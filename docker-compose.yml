@@ -1,0 +1,13 @@
+version: '2'
+services:
+  db:
+    container_name: dp-db
+    image: postgres
+    volumes:
+      - '${DB_PATH}:/var/lib/postgresql/data'
+    ports:
+      - '${DB_PORT}:5432'
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
