@@ -5,6 +5,7 @@ import { CommonModule } from './../common';
 import { ConfigModule, ConfigService } from './../config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { VaultModule } from '../api/vault/vault.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { AppService } from './app.service';
     ConfigModule,
     AuthModule,
     CommonModule,
+    VaultModule,
   ],
   controllers: [AppController],
   providers: [AppService],
