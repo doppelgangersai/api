@@ -47,7 +47,9 @@ export class UserController {
       }),
       limits: { fileSize: MAX_FILE_SIZE },
       fileFilter: (req, file, callback) => {
-        if (file && !file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+        console.log(file.mimetype)
+        if (file && !file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+          console.log('Unsupported');
           callback(new BadRequestException('Unsupported file type'), false);
         } else {
           callback(null, true);
@@ -98,7 +100,7 @@ export class UserController {
       fullName,
     };
   }
-  
+
   @ApiBearerAuth()
   @UseGuards(AuthGuard())
   @ApiOperation({ summary: 'Get the logged in user' })
