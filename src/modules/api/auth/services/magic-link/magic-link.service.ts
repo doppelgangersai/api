@@ -73,7 +73,7 @@ export class MagicLinkService {
   async authenticate({ token, code }: ITokenCode): Promise<any> {
     const email = await this.verifyCode({ token, code });
     let user = await this.userService.getByEmail(email);
-    let redirectTo = '/dashboard';
+    let redirectTo = '/dashboard/vault';
     if (!user) {
       user = await this.userService.create({ email });
       redirectTo = '/start/register';

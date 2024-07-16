@@ -80,6 +80,7 @@ export class GoogleAuthController {
         expiresIn: jwt.expiresIn,
         user: jwt.user,
         googleUserInfo: userInfo,
+        redirectTo: '/dashboard/vault',
       };
     } catch (error) {
       throw new UnauthorizedException(error.message);
