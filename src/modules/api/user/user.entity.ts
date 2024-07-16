@@ -32,18 +32,18 @@ export class User {
   @Column({ nullable: true })
   googleId: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   googleAccessToken: string;
 
   @Column({ nullable: true })
   appleId: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   appleAccessToken: string;
 
   toJSON() {
     const { password, ...self } = this;
-    return self;
+    return { ...self, avatar: avatarTransformer(self.avatar) };
   }
 }
 
@@ -51,4 +51,9 @@ export class UserFillableFields {
   email: string;
   fullName: string;
   password: string;
+}
+
+
+const avatarTransformer = (avatar?: string) => {
+  return avatar ? avatar.includes('http') ? avatar : `${process.env.APP_URL}/uploads/${avatar}` : null;
 }
