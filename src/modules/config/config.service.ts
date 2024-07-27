@@ -8,8 +8,16 @@ export class ConfigService {
     this.envConfig = dotenv.parse(fs.readFileSync(filePath));
   }
 
-  get(key: string): string {
-    return this.envConfig[key];
+  get<T = string>(key: string): T {
+    return this.envConfig[key] as T;
+  }
+
+  getInt(key: string): number {
+    return parseInt(this.envConfig[key], 10);
+  }
+
+  getBoolean(key: string): boolean {
+    return this.envConfig[key] === 'true';
   }
 
   isEnv(env: string) {
