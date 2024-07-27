@@ -19,7 +19,7 @@ export class MandrillEmailService implements EmailService {
       template_name: DEFAULT_TEMPLATE_ID,
       template_content: [],
       message: {
-        from_email: options.from || 'tmp@vvm.space', // Значение по умолчанию, если from не указан
+        from_email: options.from || 'tmp@vvm.space',
         to: [{ email: options.to, type: 'to' }],
         subject: options.subject,
         global_merge_vars: this.generateMergeVars({

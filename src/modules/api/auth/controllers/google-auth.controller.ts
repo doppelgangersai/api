@@ -3,7 +3,6 @@ import {
   Get,
   Query,
   Redirect,
-  Res,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from 'modules/config';
