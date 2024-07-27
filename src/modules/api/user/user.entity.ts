@@ -41,9 +41,36 @@ export class User {
   @Column({ nullable: true, select: false })
   appleAccessToken: string;
 
+  @Column({ nullable: true })
+  instagramFile: string;
+
+  @Column({ nullable: true })
+  linkedInFile: string;
+
+  @Column({ nullable: true })
+  whatsAppFile: string;
+
+  @Column({ nullable: true })
+  facebookFile: string;
+
+  @Column({ nullable: true })
+  messengerFile: string;
+
+  @Column({ nullable: true })
+  telegramFile: string;
+
+  @Column({ nullable: true })
+  xUsername: string;
+
+  @Column({ nullable: true })
+  tikTokUsername: string;
+
+  @Column({ nullable: true, default: 0 })
+  points: number;
+
   toJSON() {
     const { password, ...self } = this;
-    return { ...self, avatar: avatarTransformer(self.avatar) };
+    return { ...self, avatar: avatarTransformer(this) };
   }
 }
 
@@ -53,7 +80,10 @@ export class UserFillableFields {
   password: string;
 }
 
-
-const avatarTransformer = (avatar?: string) => {
-  return avatar ? avatar.includes('http') ? avatar : `${process.env.APP_URL}/uploads/${avatar}` : null;
-}
+const avatarTransformer = (self: User) => {
+  return self?.avatar
+    ? self.avatar.includes('http')
+      ? self.avatar
+      : `/avatars/${self.avatar}`
+    : null;
+};

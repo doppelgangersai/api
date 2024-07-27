@@ -55,4 +55,8 @@ export class UserService {
   async update(id, user: Partial<User>) {
     return await this.userRepository.update(id, { ...user });
   }
+
+  async reward(id: number, points: number = 20) {
+    return await this.userRepository.increment({ id }, 'points', points)
+  }
 }

@@ -6,12 +6,11 @@ import { AppModule } from './modules/main/app.module';
 import { setupSwagger } from './swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
-import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create<
     NestExpressApplication & INestApplication
-  >(AppModule); // Указываем тип приложения
+  >(AppModule);
 
   setupSwagger(app);
   app.enableCors();
@@ -20,9 +19,8 @@ async function bootstrap() {
   app.useGlobalPipes(new TrimStringsPipe(), new ValidationPipe());
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
-  // Настройка статических файлов
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
-    prefix: '/uploads/',
+  app.useStaticAssets(join(__dirname, '..', 'uploads/avatars'), {
+    prefix: '/uploads/avatars',
   });
 
   await app.listen(3000);

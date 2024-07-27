@@ -1,6 +1,6 @@
 import {
   Controller,
-  UploadedFile,
+  UploadedFiles,
   UseInterceptors,
   BadRequestException,
   UseGuards,
@@ -8,8 +8,6 @@ import {
   Patch,
   Get,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
 import {
   ApiConsumes,
   ApiBody,
@@ -18,14 +16,17 @@ import {
   ApiTags,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { extname } from 'path';
 import { AuthGuard } from '@nestjs/passport';
 import { UserService } from './user.service';
 import { RequestWithUser } from './request-with-user.interface';
 import { CurrentUser } from 'modules/common/decorator/current-user.decorator';
 import { User } from './user.entity';
+import { createS3FileInterceptor } from 'modules/storage/s3-file.interceptor';
 
-const MAX_FILE_SIZE = 1 * 1024 * 1024;
+const S3AvatarFileInterceptor = createS3FileInterceptor({
+  allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+  bucket: 'avatars',
+});
 
 @ApiTags('user')
 @Controller('/api/user')
@@ -35,28 +36,7 @@ export class UserController {
   @Patch('form')
   @ApiBearerAuth()
   @UseGuards(AuthGuard())
-  @UseInterceptors(
-    FileInterceptor('avatar', {
-      storage: diskStorage({
-        destination: './uploads',
-        filename: (req: RequestWithUser, file, callback) => {
-          const userId = req.user.id;
-          const ext = extname(file.originalname);
-          callback(null, `${userId}${ext}`);
-        },
-      }),
-      limits: { fileSize: MAX_FILE_SIZE },
-      fileFilter: (req, file, callback) => {
-        console.log(file.mimetype)
-        if (file && !file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
-          console.log('Unsupported');
-          callback(new BadRequestException('Unsupported file type'), false);
-        } else {
-          callback(null, true);
-        }
-      },
-    }),
-  )
+  @UseInterceptors(S3AvatarFileInterceptor)
   @ApiOperation({ summary: 'Upload avatar and update name' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -80,23 +60,23 @@ export class UserController {
   @ApiResponse({ status: 201, description: 'The data has been updated.' })
   @ApiResponse({ status: 400, description: 'Invalid file or file too large.' })
   async uploadAvatar(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles() files: Express.Multer.File[],
     @Req() req: RequestWithUser,
   ) {
     const fullName = req.body.name;
-    console.log('avatar upload', req.user.id, fullName, req.body);
 
     if (!fullName) {
       throw new BadRequestException('Name is required');
     }
 
     const updateData: any = { fullName };
-    if (file) {
-      updateData.avatar = file.filename;
+    if (files && files.length > 0) {
+      const fileNames = files.map((file) => file.filename);
+      updateData.avatar = fileNames[0];
     }
     await this.userService.update(req.user.id, updateData);
     return {
-      filename: file ? file.filename : null,
+      filenames: files ? files.map((file) => file.filename) : null,
       fullName,
     };
   }
