@@ -26,3 +26,4 @@ build/config\.gypi
 sqlite-example.sql
 
 db
+uploads/*

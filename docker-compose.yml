@@ -1,4 +1,3 @@
-version: '2'
 services:
   db:
     container_name: dp-db
@@ -11,3 +10,26 @@ services:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_DATABASE}
+
+  minio:
+    container_name: dp-minio
+    image: minio/minio
+    volumes:
+      - './uploads:/data'
+    ports:
+      - '9000:9000'
+      - '9001:9001' # Minio Console
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/minio server /data --console-address :9001 & 
+      sleep 15;
+      mc alias set myminio http://localhost:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
+      mc mb myminio/avatars;
+      mc anonymous set public myminio/avatars;
+      mc mb myminio/uploads;
+      mc anonymous set public myminio/uploads;
+      tail -f /dev/null
+      "
