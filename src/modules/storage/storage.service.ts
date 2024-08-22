@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { createWriteStream, existsSync, mkdirSync } from 'fs';
 import { Client } from 'minio';
-import { extname } from 'path';
+import { extname, join, dirname } from 'path';
 import { Readable } from 'stream';
-import { ConfigService } from 'modules/config';
+import { ConfigService } from '../config';
 
 @Injectable()
 export class StorageService {
@@ -55,5 +56,53 @@ export class StorageService {
     console.log('Put', fileName, 'V');
 
     return fileName;
+  }
+
+  /**
+   * Downloads a file from the specified bucket and saves it locally.
+   * Ensures the destination directory exists, creating it if necessary.
+   * @param bucketName The name of the bucket where the file is stored.
+   * @param objectName The name of the file in the bucket.
+   * @param destinationPath The local path to save the file to.
+   */
+  async downloadFile(
+    bucketName: string,
+    objectName: string,
+    destinationPath: string,
+  ): Promise<void> {
+    console.log('Downloading', objectName, 'from bucket', bucketName);
+
+    // Ensure the directory for the file exists, not the file itself
+    const destinationDir = dirname(destinationPath);
+    if (!existsSync(destinationDir)) {
+      console.log('Destination directory does not exist, creating...');
+      mkdirSync(destinationDir, { recursive: true });
+      console.log('Directory created:', destinationDir);
+    }
+
+    const fileStream = createWriteStream(destinationPath);
+
+    try {
+      const dataStream = await this.minioClient.getObject(
+        bucketName,
+        objectName,
+      );
+      dataStream.pipe(fileStream);
+      console.log('File downloaded successfully to', destinationPath);
+    } catch (e) {
+      console.log('Download error:', e);
+      throw e; // rethrow the error after logging
+    }
+  }
+
+  /**
+   * Deletes a file from the specified bucket.
+   * @param bucketName The name of the bucket where the file is stored.
+   * @param objectName The name of the file to delete.
+   */
+  async deleteFile(bucketName: string, objectName: string): Promise<void> {
+    console.log('Deleting', objectName, 'from bucket', bucketName);
+    await this.minioClient.removeObject(bucketName, objectName);
+    console.log('File deleted successfully');
   }
 }

@@ -5,11 +5,11 @@ import {
   Redirect,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from 'modules/config';
 import { UserService } from '../../user';
 import { AuthService } from '../services';
 import axios from 'axios';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ConfigService } from '../../../config';
 
 @ApiTags('google')
 @Controller('api/auth/google')

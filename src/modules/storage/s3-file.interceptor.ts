@@ -1,4 +1,11 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler, BadRequestException, Type } from '@nestjs/common';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+  BadRequestException,
+  Type,
+} from '@nestjs/common';
 import { Observable, from } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { StorageService } from './storage.service';
@@ -13,13 +20,11 @@ interface ICreateFileInterceptorInterface {
   bucket?: string;
 }
 
-function createS3FileInterceptor(
-  {
-    allowedMimeTypes,
-    maxFileSize,
-    bucket
-  }: ICreateFileInterceptorInterface
-): Type<NestInterceptor> {
+function createS3FileInterceptor({
+  allowedMimeTypes,
+  maxFileSize,
+  bucket,
+}: ICreateFileInterceptorInterface): Type<NestInterceptor> {
   @Injectable()
   class S3FileInterceptor implements NestInterceptor {
     constructor(private readonly storageService: StorageService) {}
@@ -29,9 +34,13 @@ function createS3FileInterceptor(
 
       const upload = multer({
         storage,
-        limits: { fileSize: maxFileSize || 1024 * 1024 },
+        limits: { fileSize: maxFileSize || 256 * 1024 * 1024 },
         fileFilter: (req, file, callback) => {
-          if (file && allowedMimeTypes && !allowedMimeTypes.includes(file.mimetype)) {
+          if (
+            file &&
+            allowedMimeTypes &&
+            !allowedMimeTypes.includes(file.mimetype)
+          ) {
             callback(null, false);
             throw new BadRequestException('Invalid file type');
           } else {
@@ -40,7 +49,7 @@ function createS3FileInterceptor(
         },
       }).any();
 
-      return new Observable(observer => {
+      return new Observable((observer) => {
         upload(request, null, async (err) => {
           if (err) {
             observer.error(new BadRequestException(err.message));
@@ -55,7 +64,14 @@ function createS3FileInterceptor(
               const userId = request.user.id;
               const originalName = file.originalname;
 
-              const fileName = await this.storageService.uploadFile(fileStream, fileSize, mimeType, userId, originalName, bucket);
+              const fileName = await this.storageService.uploadFile(
+                fileStream,
+                fileSize,
+                mimeType,
+                userId,
+                originalName,
+                bucket,
+              );
               file.filename = fileName;
               return fileName;
             });
@@ -73,9 +89,9 @@ function createS3FileInterceptor(
         });
       }).pipe(
         switchMap(() => next.handle()),
-        catchError(err => {
+        catchError((err) => {
           throw new BadRequestException(err.message);
-        })
+        }),
       );
     }
   }

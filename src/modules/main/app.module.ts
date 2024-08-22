@@ -6,9 +6,14 @@ import { ConfigModule, ConfigService } from './../config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { VaultModule } from '../api/vault/vault.module';
+import { ChatModule } from '../api/chat';
+import { ProcessModule } from '../process/process.module';
+import { InstagramParserModule } from '../parsers/instagram/instagram-parser.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -29,6 +34,9 @@ import { VaultModule } from '../api/vault/vault.module';
     AuthModule,
     CommonModule,
     VaultModule,
+    ChatModule,
+    ProcessModule,
+    InstagramParserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

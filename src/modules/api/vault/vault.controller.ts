@@ -18,10 +18,12 @@ import {
   ApiProperty,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { createS3FileInterceptor } from 'modules/storage/s3-file.interceptor';
 import { RequestWithUser } from '../user/request-with-user.interface';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
 import { User, UserService } from '../user';
+import { createS3FileInterceptor } from '../../storage/s3-file.interceptor';
+import { InstagramParserService } from '../../parsers/instagram/services/instagram-parser.service';
+import { VaultEmitter } from './vault.emitter';
 
 const S3FileInterceptor = createS3FileInterceptor({
   allowedMimeTypes: ['application/zip', 'application/x-zip-compressed'],
@@ -36,7 +38,11 @@ class UsernameDTO {
 @ApiBearerAuth()
 @Controller('/api/vault')
 export class VaultController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly instagramParserService: InstagramParserService,
+    private readonly vaultEmitter: VaultEmitter,
+  ) {}
 
   @Post('instagram')
   @UseGuards(AuthGuard())
@@ -73,6 +79,7 @@ export class VaultController {
     if (!req.user.instagramFile) {
       await this.userService.reward(req.user.id, 20);
     }
+    this.vaultEmitter.emitInstagramUploaded(req.user.id);
     return {
       message: 'Instagram archive uploaded successfully',
       filenames: files.map((file) => file.filename),

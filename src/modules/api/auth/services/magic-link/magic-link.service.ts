@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from 'modules/config';
 import { MandrillEmailService } from '../../../../mail/mandrill-email.service';
-import { UserService } from 'modules/api/user';
 import { AuthService } from '../auth';
+import { ConfigService } from '../../../../config';
+import { UserService } from '../../../user';
 
 interface ITokenCode {
   token: string;

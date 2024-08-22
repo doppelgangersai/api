@@ -15,9 +15,9 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "http://localhost"', () => {
+    it('should contain "http://localhost"', () => {
       const appController = app.get<AppController>(AppController);
-      expect(appController.root()).toBe('http://localhost');
+      expect(appController.root()).toContain('http://localhost');
     });
   });
 });

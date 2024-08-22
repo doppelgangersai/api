@@ -19,9 +19,9 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { UserService } from './user.service';
 import { RequestWithUser } from './request-with-user.interface';
-import { CurrentUser } from 'modules/common/decorator/current-user.decorator';
+import { CurrentUser } from '../../common/decorator/current-user.decorator';
 import { User } from './user.entity';
-import { createS3FileInterceptor } from 'modules/storage/s3-file.interceptor';
+import { createS3FileInterceptor } from '../../storage/s3-file.interceptor';
 
 const S3AvatarFileInterceptor = createS3FileInterceptor({
   allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],

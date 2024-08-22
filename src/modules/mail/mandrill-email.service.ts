@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { EmailOptions, EmailService } from './email-service.interface';
 import axios from 'axios';
-import { ConfigService } from 'modules/config';
+import { ConfigService } from '../config';
 
 const DEFAULT_TEMPLATE_ID = 'template-with-button';
 
