@@ -68,6 +68,9 @@ export class User {
   @Column({ nullable: true, default: 0 })
   points: number;
 
+  @Column({ nullable: true, type: 'text' })
+  backstory: string;
+
   toJSON() {
     const { password, ...self } = this;
     return { ...self, avatar: avatarTransformer(this) };

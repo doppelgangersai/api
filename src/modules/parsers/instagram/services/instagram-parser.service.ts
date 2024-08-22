@@ -53,14 +53,16 @@ export class InstagramParserService {
       const reelsComments = await this.parseReelsComments(outputDir);
       const inbox = await this.parseInbox(outputDir);
 
-      const description = await this.aiService.getProfileDescription(
+      const backstory = await this.aiService.getProfileDescription(
         personalInfo,
         posts,
         comments,
         reelsComments,
         inbox,
       );
-      console.log('AI generated description:', description);
+      user.backstory = backstory;
+      await this.userService.update(userId, user);
+      console.log('AI generated description:', backstory);
     } catch (error) {
       console.error('Error processing user data:', error);
     } finally {
