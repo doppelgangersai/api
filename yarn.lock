@@ -329,6 +329,22 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
+"@chatbotkit/fetch@1.8.0":
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/@chatbotkit/fetch/-/fetch-1.8.0.tgz#483ba6a63100987b65016cd48a4cc967788a8352"
+  integrity sha512-wdY1zbgB/4JQH6jP9if60oP/e7tOHheH+DkbdBUOlOckHY1e4CHJUqIhij9iIkPt/D2yrENcvLWtvO+HBOsLUQ==
+  dependencies:
+    node-fetch-native "^1.2.0"
+    tslib "^2.6.2"
+
+"@chatbotkit/sdk@^1.11.0":
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/@chatbotkit/sdk/-/sdk-1.11.0.tgz#3c292bd439be2fb5b89bbb015359518cdb7c44f7"
+  integrity sha512-I3cNR6QRbUBYLDzmT1RjgWgkpYVQIL1H4GbHYhCY0VySt74kJ+o/smO9yB0Ahn3y+PDWHs8B12FtbH5SjP5EjQ==
+  dependencies:
+    "@chatbotkit/fetch" "1.8.0"
+    tslib "^2.6.2"
+
 "@colors/colors@1.5.0":
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
@@ -4617,6 +4633,11 @@ node-emoji@1.11.0:
   dependencies:
     lodash "^4.17.21"
 
+node-fetch-native@^1.2.0:
+  version "1.6.4"
+  resolved "https://registry.yarnpkg.com/node-fetch-native/-/node-fetch-native-1.6.4.tgz#679fc8fd8111266d47d7e72c379f1bed9acff06e"
+  integrity sha512-IhOigYzAKHd244OC0JIMIUrjzctirCmPkaIfhDeGcEETWof5zKYUW7e7MYvChGWh/4CJeXEgsRyGzuF334rOOQ==
+
 node-fetch@^2.6.1, node-fetch@^2.6.7:
   version "2.7.0"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.7.0.tgz#d0f0fa6e3e2dc1d27efcd8ad99d550bda94d187d"
@@ -5971,6 +5992,11 @@ tslib@^1.8.1:
   version "1.14.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
   integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
+
+tslib@^2.6.2:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.7.0.tgz#d9b40c5c40ab59e8738f297df3087bf1a2690c01"
+  integrity sha512-gLXCKdN1/j47AiHiOkJN69hJmcbGTHI0ImLmbYLHykhgeN0jVGola9yVjFgzCUklsZQMW55o+dW7IXv3RCXDzA==
 
 tsutils@^3.21.0:
   version "3.21.0"

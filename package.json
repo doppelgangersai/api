@@ -24,6 +24,7 @@
     "migration:generate": "yarn ts-typeorm migration:generate -d src/migrations"
   },
   "dependencies": {
+    "@chatbotkit/sdk": "^1.11.0",
     "@nestjs/cli": "^10.4.4",
     "@nestjs/common": "^8.4.1",
     "@nestjs/core": "^8.4.1",

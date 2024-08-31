@@ -9,50 +9,21 @@ import {
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { ChatDto, ChatMessageDto, ChatMessageWithUserDto } from './chat.dtos';
+import { ChatService } from './chat.service';
+import { User } from '../user';
+import { CurrentUser } from '../../common/decorator/current-user.decorator';
 
 @ApiTags('chat')
 @Controller('api/chat')
 export class ChatController {
+  constructor(private readonly chatService: ChatService) {}
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get chat list' })
   @ApiResponse({ status: 200, description: 'List of chats', type: [ChatDto] })
   @UseGuards(AuthGuard('jwt'))
   @Get()
-  async getChatList(): Promise<ChatDto[]> {
-    return [
-      {
-        id: 1,
-        title: 'Chat 1',
-        messages: [
-          {
-            id: 1,
-            text: 'Hello',
-            from: {
-              id: 1,
-              fullName: 'John Doe',
-              avatar: 'https://example.com/avatar.jpg',
-            },
-            createdAt: new Date(),
-          },
-        ],
-      },
-      {
-        id: 2,
-        title: 'Chat 2',
-        messages: [
-          {
-            id: 1,
-            text: 'Hello',
-            from: {
-              id: 1,
-              fullName: 'John Doe',
-              avatar: 'https://example.com/avatar.jpg',
-            },
-            createdAt: new Date(),
-          },
-        ],
-      },
-    ];
+  async getChatList(@CurrentUser() user: User): Promise<ChatDto[]> {
+    return this.chatService.getChatList(user.id);
   }
 
   @ApiBearerAuth()
@@ -68,28 +39,7 @@ export class ChatController {
   async getChatMessages(
     @Param('chatId') chatId: string,
   ): Promise<ChatMessageWithUserDto[]> {
-    return [
-      {
-        id: 1,
-        text: 'Hello',
-        from: {
-          id: 1,
-          fullName: 'John Doe',
-          avatar: 'https://example.com/avatar.jpg',
-        },
-        createdAt: new Date(),
-      },
-      {
-        id: 2,
-        text: 'Hello',
-        from: {
-          id: 1,
-          fullName: 'John Doe',
-          avatar: 'https://example.com/avatar.jpg',
-        },
-        createdAt: new Date(),
-      },
-    ];
+    return this.chatService.getChatMessages(chatId);
   }
 
   @ApiBearerAuth()
@@ -104,18 +54,16 @@ export class ChatController {
   @UseGuards(AuthGuard('jwt'))
   @Post(':chatId/message')
   async sendMessage(
-    @Param('chatId') chatId: string,
+    @Param('chatId') chatId: number,
     @Body() message: ChatMessageDto,
   ): Promise<ChatMessageWithUserDto> {
-    return {
-      id: 1,
-      text: message.text,
-      from: {
-        id: 1,
-        fullName: 'John Doe',
-        avatar: 'https://example.com/avatar.jpg',
-      },
-      createdAt: new Date(),
-    };
+    return this.chatService.processMessage(chatId, message.text);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':userId/init')
+  async initChat(@Param('userId') userId: string, @CurrentUser() user: User) {
+    return this.chatService.initChat(parseInt(userId), user.id);
   }
 }
