@@ -62,7 +62,7 @@ export class ChatController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
-  @Post(':userId/init')
+  @Post('legacy/:userId/init')
   async initChat(@Param('userId') userId: string, @CurrentUser() user: User) {
     return this.chatService.initChat(parseInt(userId), user.id);
   }
