@@ -34,7 +34,7 @@ function createS3FileInterceptor({
 
       const upload = multer({
         storage,
-        limits: { fileSize: maxFileSize || 256 * 1024 * 1024 },
+        limits: { fileSize: maxFileSize || 2048 * 1024 * 1024 },
         fileFilter: (req, file, callback) => {
           if (
             file &&

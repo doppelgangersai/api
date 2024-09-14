@@ -33,10 +33,10 @@ export class InstagramParserService {
     }
 
     console.log(`Parsing Instagram user: ${userId} - User: ${user.fullName}`);
-    const uniqueIdentifier = uuidv4(); // Уникальный идентификатор для избежания коллизий в названиях файлов
-    const zipFileName = `${uniqueIdentifier}_instagram_data.zip`; // Уникальное имя файла
-    const zipFilePath = path.join('/tmp', zipFileName); // Путь к файлу архива
-    const outputDir = path.join('/tmp', `${uniqueIdentifier}_instagram_data`); // Уникальная директория для распаковки
+    const uniqueIdentifier = uuidv4();
+    const zipFileName = `${uniqueIdentifier}_instagram_data.zip`;
+    const zipFilePath = path.join('/tmp', zipFileName);
+    let outputDir = path.join('/tmp', `${uniqueIdentifier}_instagram_data`);
 
     try {
       await this.storageService.downloadFile(
@@ -45,7 +45,18 @@ export class InstagramParserService {
         zipFilePath,
       );
       console.log('Download complete, starting to extract ZIP...');
-      await this.zipUtils.extractZip(zipFilePath, outputDir); // Убедитесь, что метод корректно обрабатывает путь
+      await this.zipUtils.extractZip(zipFilePath, outputDir);
+
+      const topLevelItems = fs.readdirSync(outputDir);
+      if (
+        topLevelItems.length === 1 &&
+        fs.statSync(path.join(outputDir, topLevelItems[0])).isDirectory()
+      ) {
+        outputDir = path.join(outputDir, topLevelItems[0]);
+        console.log(
+          `Detected single top-level directory, new outputDir: ${outputDir}`,
+        );
+      }
 
       const personalInfo = await this.parsePersonalInfo(outputDir);
       const posts = await this.parsePosts(outputDir);
@@ -122,17 +133,21 @@ export class InstagramParserService {
       'your_instagram_activity/messages/inbox',
     );
     const allMessages: Message[] = [];
+
     this.fileUtils.processDirectory(inboxDir, (filePath) => {
-      const conversation = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-      if (conversation && conversation.messages) {
-        conversation.messages.forEach((msg) => {
-          allMessages.push({
-            conversationId: uuidv4(),
-            timestampMs: msg.timestamp_ms,
-            senderName: msg.sender_name,
-            content: this.decode(msg.content),
+      // Only process JSON files and skip others like audio, images, etc.
+      if (path.extname(filePath) === '.json') {
+        const conversation = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        if (conversation && conversation.messages) {
+          conversation.messages.forEach((msg) => {
+            allMessages.push({
+              conversationId: uuidv4(),
+              timestampMs: msg.timestamp_ms,
+              senderName: msg.sender_name,
+              content: this.decode(msg.content),
+            });
           });
-        });
+        }
       }
     });
 
