@@ -8,7 +8,12 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { ChatDto, ChatMessageDto, ChatMessageWithUserDto } from './chat.dtos';
+import {
+  ChatDto,
+  ChatMessageDto,
+  ChatMessagesResponseDto,
+  ChatMessageWithUserDto,
+} from './chat.dtos';
 import { ChatService } from './chat.service';
 import { User } from '../user';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
@@ -27,6 +32,15 @@ export class ChatController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get available chats list' })
+  @ApiResponse({ status: 200, description: 'List of chats', type: [ChatDto] })
+  @UseGuards(AuthGuard('jwt'))
+  @Get('available')
+  async getAvailableChatList(@CurrentUser() user: User): Promise<User[]> {
+    return this.chatService.getAvailableChatList();
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get chat messages' })
   @ApiParam({ name: 'chatId', description: 'ID of the chat' })
   @ApiResponse({
@@ -37,9 +51,10 @@ export class ChatController {
   @UseGuards(AuthGuard('jwt'))
   @Get(':chatId')
   async getChatMessages(
-    @Param('chatId') chatId: string,
-  ): Promise<ChatMessageWithUserDto[]> {
-    return this.chatService.getChatMessages(chatId);
+    @Param('chatId') twinUserId: number,
+    @CurrentUser() user: User,
+  ): Promise<ChatMessagesResponseDto> {
+    return this.chatService.getChatMessages(twinUserId, user.id);
   }
 
   @ApiBearerAuth()
@@ -52,12 +67,13 @@ export class ChatController {
     type: ChatMessageWithUserDto,
   })
   @UseGuards(AuthGuard('jwt'))
-  @Post(':chatId/message')
+  @Post(':twinUserId/message')
   async sendMessage(
-    @Param('chatId') chatId: number,
+    @Param('twinUserId') twinUserId: number,
     @Body() message: ChatMessageDto,
+    @CurrentUser() user: User,
   ): Promise<ChatMessageWithUserDto> {
-    return this.chatService.processMessage(chatId, message.text);
+    return this.chatService.processMessage(twinUserId, user.id, message.text);
   }
 
   @ApiBearerAuth()

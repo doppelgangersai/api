@@ -24,6 +24,14 @@ export class ChatMessageWithUserDto
   from: Partial<User>;
 }
 
+export class ChatMessagesResponseDto {
+  @ApiProperty({
+    description: 'List of messages in the chat',
+    type: [ChatMessageWithUserDto],
+  })
+  messages: IChatMessageWithUser[];
+}
+
 export class ChatDto implements IChat {
   @ApiProperty({ description: 'Unique identifier of the chat' })
   id: number;

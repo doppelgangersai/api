@@ -1,6 +1,6 @@
 import { Injectable, NotAcceptableException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 
 import { User, UserFillableFields } from './user.entity';
 
@@ -17,6 +17,14 @@ export class UserService {
 
   async getByEmail(email: string) {
     return await this.userRepository.findOne({ email });
+  }
+
+  async getUsersWithBackstory() {
+    return this.userRepository.find({
+      where: {
+        backstory: Not(IsNull()),
+      },
+    });
   }
 
   async getOrCreateByEmail(email: string) {
@@ -57,6 +65,6 @@ export class UserService {
   }
 
   async reward(id: number, points: number = 20) {
-    return await this.userRepository.increment({ id }, 'points', points)
+    return await this.userRepository.increment({ id }, 'points', points);
   }
 }

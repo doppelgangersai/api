@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { UserService } from '../user';
+import { User, UserService } from '../user';
 import { ChatBotKit } from '@chatbotkit/sdk';
 import { IChat } from './chat.interfaces';
 import { ConfigService } from '../../config';
@@ -49,10 +49,13 @@ You are the main one in this dialogue. Follow users lexical style.
     };
   }
 
-  async processMessage(conversationId: number, message: string) {
-    const chat = await this.chatRepository.findOne({ id: conversationId });
+  async processMessage(twinUserId: number, userId: number, message: string) {
+    let chat = await this.chatRepository.findOne({
+      with_user_id: twinUserId,
+      from_user_id: userId,
+    });
     if (!chat) {
-      throw NotFoundException;
+      chat = await this.initChat(twinUserId, userId);
     }
 
     const secret = this.configService.get('CHATBOTKIT_SECRET');
@@ -90,12 +93,33 @@ You are the main one in this dialogue. Follow users lexical style.
     }));
   }
 
-  async getChatMessages(chatId: string) {
-    const chat = await this.chatRepository.findOne(chatId);
+  async getAvailableChatList(): Promise<User[]> {
+    return this.userService.getUsersWithBackstory();
+  }
+
+  async getChatMessages(
+    twinUserId: number,
+    userId: number,
+  ): Promise<{
+    messages: any[];
+  }> {
+    const chat = await this.chatRepository.findOne({
+      with_user_id: twinUserId,
+      from_user_id: userId,
+    });
+
+    if (!chat) {
+      return {
+        messages: [],
+      };
+    }
+
     const { provider_name, provider_internal_id } = chat;
 
     if (provider_name === 'gemini') {
-      return [];
+      return {
+        messages: [],
+      };
     }
 
     const secret = this.configService.get('CHATBOTKIT_SECRET');
@@ -108,7 +132,8 @@ You are the main one in this dialogue. Follow users lexical style.
           accept: 'application/json',
         },
       });
-      return response.data; // You can modify as needed, e.g., return specific fields only
+      const { items } = response.data;
+      return { messages: items };
     } catch (error) {
       throw error;
     }
