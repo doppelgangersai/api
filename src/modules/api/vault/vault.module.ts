@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { VaultController } from './vault.controller';
+import { TelegramController } from './telegram/telegram.controller'; // Import TelegramController
 import { ConfigModule } from '../../config';
 import { StorageModule } from '../../storage/storage.module';
 import { PassportModule } from '@nestjs/passport';
 import { UserModule } from '../user';
 import { InstagramParserModule } from '../../parsers/instagram/instagram-parser.module';
 import { VaultEmitter } from './vault.emitter';
+import { TelegramService } from './telegram/telegram.service'; // Import TelegramService
 
 @Module({
   imports: [
@@ -15,8 +17,8 @@ import { VaultEmitter } from './vault.emitter';
     UserModule,
     InstagramParserModule,
   ],
-  controllers: [VaultController],
-  providers: [VaultEmitter],
+  controllers: [VaultController, TelegramController], // Add TelegramController
+  providers: [VaultEmitter, TelegramService], // Add TelegramService
   exports: [],
 })
 export class VaultModule {}

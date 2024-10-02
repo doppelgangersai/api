@@ -15,24 +15,14 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiProperty,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { RequestWithUser } from '../user/request-with-user.interface';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
 import { User, UserService } from '../user';
-import { createS3FileInterceptor } from '../../storage/s3-file.interceptor';
-import { InstagramParserService } from '../../parsers/instagram/services/instagram-parser.service';
 import { VaultEmitter } from './vault.emitter';
-
-const S3FileInterceptor = createS3FileInterceptor({
-  allowedMimeTypes: ['application/zip', 'application/x-zip-compressed'],
-});
-
-class UsernameDTO {
-  @ApiProperty({ required: true, example: 'johndoe' })
-  username: string;
-}
+import { UsernameDTO } from './vault.dtos';
+import { VaultFileInterceptor } from './vault.interceptors';
 
 @ApiTags('vault')
 @ApiBearerAuth()
@@ -40,13 +30,12 @@ class UsernameDTO {
 export class VaultController {
   constructor(
     private readonly userService: UserService,
-    private readonly instagramParserService: InstagramParserService,
     private readonly vaultEmitter: VaultEmitter,
   ) {}
 
   @Post('instagram')
   @UseGuards(AuthGuard())
-  @UseInterceptors(S3FileInterceptor)
+  @UseInterceptors(VaultFileInterceptor)
   @ApiOperation({ summary: 'Upload Instagram archive' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -88,7 +77,7 @@ export class VaultController {
 
   @Post('linkedin')
   @UseGuards(AuthGuard())
-  @UseInterceptors(S3FileInterceptor)
+  @UseInterceptors(VaultFileInterceptor)
   @ApiOperation({ summary: 'Upload LinkedIn archive' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -129,7 +118,7 @@ export class VaultController {
 
   @Post('whatsapp')
   @UseGuards(AuthGuard())
-  @UseInterceptors(S3FileInterceptor)
+  @UseInterceptors(VaultFileInterceptor)
   @ApiOperation({ summary: 'Upload WhatsApp archive' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -170,7 +159,7 @@ export class VaultController {
 
   @Post('facebook')
   @UseGuards(AuthGuard())
-  @UseInterceptors(S3FileInterceptor)
+  @UseInterceptors(VaultFileInterceptor)
   @ApiOperation({ summary: 'Upload Facebook archive' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -211,7 +200,7 @@ export class VaultController {
 
   @Post('messenger')
   @UseGuards(AuthGuard())
-  @UseInterceptors(S3FileInterceptor)
+  @UseInterceptors(VaultFileInterceptor)
   @ApiOperation({ summary: 'Upload Messenger archive' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -266,7 +255,7 @@ export class VaultController {
 
   @Post('telegram')
   @UseGuards(AuthGuard())
-  @UseInterceptors(S3FileInterceptor)
+  @UseInterceptors(VaultFileInterceptor)
   @ApiOperation({ summary: 'Upload Telegram archive' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
