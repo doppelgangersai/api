@@ -24,32 +24,27 @@ export function getUniqueStrings(
   const frequencies: Record<string, number> = {};
   const candidates: StringFrequency[] = [];
 
-  // Подсчитываем частоту каждой строки и проверяем на уникальность
   input
     .filter((s) => !!s)
     .forEach((str) => {
       const currentCount = (frequencies[str] || 0) + 1;
       frequencies[str] = currentCount;
 
-      // Проверяем текущую строку на уникальность
       if (currentCount === 1 && isUnique(str, candidates, minDistance)) {
         candidates.push({ value: str, count: 0 });
       }
     });
 
-  // Обновляем частоты только для уникальных строк
   candidates.forEach((candidate) => {
     candidate.count = frequencies[candidate.value];
   });
 
-  // Сортируем по частоте и отбираем топ-N
   return candidates
     .sort((a, b) => b.count - a.count)
     .slice(0, topN)
     .map((item) => item.value);
 }
 
-// Вспомогательная функция для проверки уникальности строки
 function isUnique(
   value: string,
   candidates: StringFrequency[],

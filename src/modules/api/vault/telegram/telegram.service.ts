@@ -36,12 +36,10 @@ export class TelegramService {
   }
 
   async sendAuthCode(phone: string): Promise<{ phoneCodeHash: string }> {
-    // Если клиент уже существует для данного телефона, отключаем его и удаляем
     if (this.clients[phone]) {
       await this.removeClient(phone);
     }
 
-    // Создаем нового клиента и сохраняем его в глобальном хранилище
     const client = this.createClient(phone);
     await client.connect();
 
@@ -68,13 +66,10 @@ export class TelegramService {
 
     const client = this.clients[phone]; // используем существующего клиента
     if (!client) {
-      throw new BadRequestException(
-        'Клиент для данного номера телефона не найден.',
-      );
+      throw new BadRequestException('Phone number not found');
     }
 
     try {
-      // Пытаемся выполнить вход с помощью кода
       console.log('Trying to sign in with code');
 
       const signInParams = {
@@ -89,7 +84,6 @@ export class TelegramService {
     } catch (err) {
       if (err.errorMessage === 'SESSION_PASSWORD_NEEDED' && password) {
         console.log('Trying to sign in with password');
-        // Завершаем авторизацию с использованием пароля
         await client.signInWithPassword(
           {
             apiId: this.apiId,
@@ -107,7 +101,6 @@ export class TelegramService {
       }
     }
 
-    // Сохраняем сессию
     const sessionString = `${client.session.save()}`;
 
     this.removeClient(phone); // удаляем клиента из хранилища после авторизации
@@ -126,11 +119,11 @@ export class TelegramService {
       const messages = await client.iterMessages(dialog.id, { reverse: true });
 
       for await (const message of messages) {
-        if (message.out) {
+        if (message.out && message.message) {
           const chatName = dialog.title || 'Unknown Chat/User';
-          const formattedMessage = `To ${chatName}: ${
-            message.message || 'Сообщение пустое'
-          }`;
+          const formattedMessage = `To ${chatName}: ${message.message}`;
+          msgn = msgn + 1;
+          console.log(msgn, formattedMessage);
           chats.push(formattedMessage);
         }
       }
@@ -141,7 +134,6 @@ export class TelegramService {
     return chats;
   }
 
-  // Метод для удаления клиента и обработки ошибок при disconnect
   private async removeClient(phone: string) {
     const client = this.clients[phone];
     if (client) {
@@ -153,7 +145,7 @@ export class TelegramService {
           `Error during disconnect for phone ${phone}: ${error.message}`,
         );
       } finally {
-        delete this.clients[phone]; // удаляем клиента
+        delete this.clients[phone];
         this.logger.log(`Client for phone ${phone} removed from cache.`);
       }
     } else {

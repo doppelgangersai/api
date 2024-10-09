@@ -13,13 +13,12 @@ export class AIService {
     reelsComments: string[],
     inbox: string[],
   ): Promise<string> {
-    // Constructing a detailed prompt from the parsed data
     const prompt = this.createPrompt(
       personalInfo,
-      getUniqueStrings(posts, 5, 0.7),
-      getUniqueStrings(comments, 5, 0.7),
+      getUniqueStrings(posts, 10, 0.7),
+      getUniqueStrings(comments, 15, 0.7),
       getUniqueStrings(reelsComments, 5, 0.7),
-      getUniqueStrings(inbox, 5, 0.4),
+      getUniqueStrings(inbox, 15, 0.4),
     );
     return this.openAIService.getResponse(prompt);
   }
