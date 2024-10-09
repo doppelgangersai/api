@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { createWriteStream, existsSync, mkdirSync } from 'fs';
+import { createWriteStream, existsSync, mkdirSync, createReadStream } from 'fs';
 import { Client } from 'minio';
 import { extname, join, dirname } from 'path';
 import { Readable } from 'stream';
@@ -29,7 +29,7 @@ export class StorageService {
     }
   }
 
-  async uploadFile(
+  async uploadFileStream(
     stream: Readable,
     fileSize: number,
     mimeType: string,
@@ -91,6 +91,47 @@ export class StorageService {
       console.log('File downloaded successfully to', destinationPath);
     } catch (e) {
       console.log('Download error:', e);
+      throw e; // rethrow the error after logging
+    }
+  }
+
+  /**
+   * Uploads a local file to the specified bucket in MinIO.
+   * @param filePath The local path of the file to upload.
+   * @param userId The user ID to associate the file with.
+   * @param bucket The optional bucket name; if not provided, a user-specific bucket will be used.
+   * @returns The name of the uploaded file.
+   */
+  async uploadFile(
+    filePath: string,
+    userId: string,
+    bucket?: string,
+  ): Promise<string> {
+    const fileName = bucket
+      ? `${userId}_${Date.now()}${extname(filePath)}`
+      : `${Date.now()}${extname(filePath)}`;
+    const bucketName = bucket || `user-${userId}`;
+
+    await this.createBucketIfNotExists(bucketName)
+      .then(() => console.log(`Bucket ${bucketName} created`))
+      .catch((e) => {
+        console.log('Creation error:', e);
+      });
+
+    try {
+      const fileStream = createReadStream(filePath);
+
+      await this.minioClient.putObject(bucketName, fileName, fileStream);
+
+      console.log(
+        'File',
+        fileName,
+        'uploaded successfully to bucket',
+        bucketName,
+      );
+      return fileName;
+    } catch (e) {
+      console.log('Upload error:', e.message);
       throw e; // rethrow the error after logging
     }
   }

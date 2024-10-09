@@ -64,7 +64,7 @@ function createS3FileInterceptor({
               const userId = request.user.id;
               const originalName = file.originalname;
 
-              const fileName = await this.storageService.uploadFile(
+              const fileName = await this.storageService.uploadFileStream(
                 fileStream,
                 fileSize,
                 mimeType,

@@ -25,6 +25,82 @@ export class InstagramParserService {
     private readonly aiService: AIService,
   ) {}
 
+  async removePhotos(userId: number): Promise<void> {
+    const user = await this.userService.get(userId);
+    if (!user) {
+      console.log('User not found');
+      return;
+    }
+
+    const uniqueIdentifier = uuidv4();
+    const zipFileName = `${uniqueIdentifier}_instagram_data.zip`;
+    const zipFilePath = path.join('/tmp', zipFileName);
+    let outputDir = path.join('/tmp', `${uniqueIdentifier}_instagram_data`);
+
+    try {
+      // Скачиваем zip архив с данными
+      await this.storageService.downloadFile(
+        `user-${userId}`,
+        user.instagramFile,
+        zipFilePath,
+      );
+      console.log('Download complete, starting to extract ZIP...');
+      await this.zipUtils.extractZip(zipFilePath, outputDir);
+
+      // Проверяем наличие вложенных директорий
+      const topLevelItems = fs.readdirSync(outputDir);
+      if (
+        topLevelItems.length === 1 &&
+        fs.statSync(path.join(outputDir, topLevelItems[0])).isDirectory()
+      ) {
+        outputDir = path.join(outputDir, topLevelItems[0]);
+        console.log(
+          `Detected single top-level directory, new outputDir: ${outputDir}`,
+        );
+      }
+
+      // Удаляем изображения и видео
+      this.fileUtils.processDirectory(outputDir, (filePath) => {
+        const ext = path.extname(filePath).toLowerCase();
+        if (
+          ['.jpg', '.jpeg', '.png', '.gif', '.mp4', '.mov', '.avi'].includes(
+            ext,
+          )
+        ) {
+          console.log(`Deleting file: ${filePath}`);
+          fs.unlinkSync(filePath);
+        }
+      });
+
+      // Создаём новый архив
+      const newZipFileName = `${uniqueIdentifier}_filtered_instagram_data.zip`;
+      const newZipFilePath = path.join('/tmp', newZipFileName);
+      await this.zipUtils.createZip(outputDir, newZipFilePath);
+
+      // Загружаем новый архив
+      const uploadedFileName = await this.storageService.uploadFile(
+        newZipFilePath,
+        userId.toString(),
+        `user-${userId}`,
+      );
+
+      console.log(`Uploaded file name: ${uploadedFileName}`);
+
+      // Проверяем, что файл успешно загружен
+      if (uploadedFileName) {
+        user.instagramFile = uploadedFileName;
+        await this.userService.update(userId, user);
+        console.log('Filtered zip uploaded successfully and user data updated');
+      } else {
+        console.error('File upload failed, user data was not updated.');
+      }
+    } catch (error) {
+      console.error('Error processing Instagram data:', error);
+    } finally {
+      this.cleanup(outputDir, zipFilePath);
+    }
+  }
+
   async parseUser(userId: number): Promise<void> {
     const user = await this.userService.get(userId);
     if (!user) {
