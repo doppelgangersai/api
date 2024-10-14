@@ -28,4 +28,4 @@ sqlite-example.sql
 db
 uploads/*
 
-src/modules/**/*.zip
+*.zip
