@@ -1,19 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { FileUtils } from './utils/file-utils';
-import { ZipUtils } from './utils/zip-utils';
+import { FileUtils, ZipUtils } from '../../../utils';
 import * as path from 'path';
 import { UserService } from '../../../api/user';
 import { StorageService } from '../../../storage/storage.service';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
-import { AIService } from '../../../ai/ai/ai.service';
-
-interface Message {
-  conversationId: string;
-  timestampMs: number;
-  senderName: string;
-  content: string;
-}
+import { AIService } from '../../../ai/ai.service';
+import { InstagramMessage } from '../instagram-parser.types';
 
 @Injectable()
 export class InstagramParserService {

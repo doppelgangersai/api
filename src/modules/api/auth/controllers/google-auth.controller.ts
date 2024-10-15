@@ -53,9 +53,9 @@ export class GoogleAuthController {
   async googleAuthRedirect(@Query('code') code: string) {
     try {
       const { data } = await axios.post('https://oauth2.googleapis.com/token', {
-        client_id: this.configService.get('GOOGLE_CLIENT_ID'),
-        client_secret: this.configService.get('GOOGLE_CLIENT_SECRET'),
-        redirect_uri: this.configService.get('GOOGLE_REDIRECT_URI'),
+        client_id: this.configService.get(GOOGLE_CLIENT_ID),
+        client_secret: this.configService.get(GOOGLE_CLIENT_SECRET),
+        redirect_uri: this.configService.get(GOOGLE_REDIRECT_URI),
         grant_type: 'authorization_code',
         code,
       });

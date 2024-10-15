@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { OpenAIService } from '../openai/openai.service';
-import { getUniqueStrings } from '../../../utils/unique';
+import { OpenAIService } from './openai/openai.service';
+import { getUniqueStrings } from '../../utils/unique';
 
 @Injectable()
 export class AIService {
@@ -38,6 +38,29 @@ export class AIService {
     const commentsString = comments.join('\n');
     const reelsCommentsString = reelsComments.join('\n');
     const inboxString = inbox.join('\n');
+
+    const some = [
+      {
+        type: 'Personal Information',
+        messages: [],
+      },
+      {
+        type: 'Top Posts',
+        messages: [],
+      },
+      {
+        type: 'Top Comments',
+        messages: [],
+      },
+      {
+        type: 'Top Reels Comments',
+        messages: [],
+      },
+      {
+        type: 'Top Inbox Messages',
+        messages: [],
+      },
+    ];
 
     return `Generate a comprehensive profile description using the following information:
 Personal Information:
