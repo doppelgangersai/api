@@ -4,7 +4,7 @@ import {
   INSTAGRAM_PREPROCESSED_EVENT,
   INSTAGRAM_UPLOADED_EVENT,
   TELEGRAM_UPLOADED_EVENT,
-} from '../../../constants/event-emitter.constants';
+} from '../../../core/constants';
 
 @Injectable()
 export class VaultEmitter {
