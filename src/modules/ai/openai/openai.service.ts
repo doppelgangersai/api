@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
 import { ConfigService } from '../../config';
+import { OPENAI_API_KEY } from '../../../core/constants/environment.constants';
 
 @Injectable()
 export class OpenAIService {
@@ -8,7 +9,7 @@ export class OpenAIService {
 
   async getResponse(prompt: string, model: string = 'gpt4o'): Promise<string> {
     const openai = new OpenAI({
-      apiKey: this.configService.get('OPENAI_API_KEY'),
+      apiKey: this.configService.get(OPENAI_API_KEY),
     });
 
     const completion = await openai.chat.completions.create({

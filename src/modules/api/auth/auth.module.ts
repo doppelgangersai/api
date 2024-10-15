@@ -11,6 +11,10 @@ import {
   MagicLinkAuthController,
 } from './controllers';
 import { MandrillEmailService } from '../../mail/mandrill-email.service';
+import {
+  JWT_EXPIRATION_TIME,
+  JWT_SECRET_KEY,
+} from '../../../core/constants/environment.constants';
 
 @Module({
   imports: [
@@ -21,11 +25,11 @@ import { MandrillEmailService } from '../../mail/mandrill-email.service';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
         return {
-          secret: configService.get('JWT_SECRET_KEY'),
+          secret: configService.get(JWT_SECRET_KEY),
           signOptions: {
-            ...(configService.get('JWT_EXPIRATION_TIME')
+            ...(configService.get(JWT_EXPIRATION_TIME)
               ? {
-                  expiresIn: Number(configService.get('JWT_EXPIRATION_TIME')),
+                  expiresIn: Number(configService.get(JWT_EXPIRATION_TIME)),
                 }
               : {}),
           },

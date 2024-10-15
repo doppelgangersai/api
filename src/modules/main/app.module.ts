@@ -10,6 +10,15 @@ import { ChatModule } from '../api/chat';
 import { ProcessModule } from '../process/process.module';
 import { InstagramParserModule } from '../parsers/instagram/instagram-parser.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import {
+  DB_DATABASE,
+  DB_HOST,
+  DB_PASSWORD,
+  DB_PORT,
+  DB_SYNC,
+  DB_TYPE,
+  DB_USERNAME,
+} from '../../core/constants/environment.constants';
 
 @Module({
   imports: [
@@ -19,14 +28,14 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         return {
-          type: configService.get('DB_TYPE'),
-          host: configService.get('DB_HOST'),
-          port: configService.get('DB_PORT'),
-          username: configService.get('DB_USERNAME'),
-          password: configService.get('DB_PASSWORD'),
-          database: configService.get('DB_DATABASE'),
+          type: configService.get(DB_TYPE),
+          host: configService.get(DB_HOST),
+          port: configService.get(DB_PORT),
+          username: configService.get(DB_USERNAME),
+          password: configService.get(DB_PASSWORD),
+          database: configService.get(DB_DATABASE),
           entities: [__dirname + './../**/**.entity{.ts,.js}'],
-          synchronize: configService.get('DB_SYNC') === 'true',
+          synchronize: configService.get(DB_SYNC) === 'true',
         } as TypeOrmModuleAsyncOptions;
       },
     }),

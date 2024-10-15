@@ -3,7 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import {
   INSTAGRAM_UPLOADED_EVENT,
   INSTAGRAM_PREPROCESSED_EVENT,
-} from '../../../../constants/event-emitter.constants';
+} from '../../../../core/constants';
 import { InstagramParserService } from '../services/instagram-parser.service';
 import { VaultEmitter } from '../../../api/vault/vault.emitter';
 

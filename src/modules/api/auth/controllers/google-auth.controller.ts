@@ -10,6 +10,11 @@ import { AuthService } from '../services';
 import axios from 'axios';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ConfigService } from '../../../config';
+import {
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  GOOGLE_REDIRECT_URI,
+} from '../../../../core/constants/environment.constants';
 
 @ApiTags('google')
 @Controller('api/auth/google')
@@ -25,9 +30,9 @@ export class GoogleAuthController {
   @ApiQuery({ name: 'redirect', required: false })
   @Redirect()
   async googleAuth(@Query('redirect') redirect?: string) {
-    const googleClientId = this.configService.get('GOOGLE_CLIENT_ID');
+    const googleClientId = this.configService.get(GOOGLE_CLIENT_ID);
     const googleRedirectUrl =
-      redirect || this.configService.get('GOOGLE_REDIRECT_URI');
+      redirect || this.configService.get(GOOGLE_REDIRECT_URI);
     const scopes = encodeURIComponent('email profile');
 
     const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(

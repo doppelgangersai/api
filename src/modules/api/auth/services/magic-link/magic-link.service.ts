@@ -4,6 +4,7 @@ import { MandrillEmailService } from '../../../../mail/mandrill-email.service';
 import { AuthService } from '../auth';
 import { ConfigService } from '../../../../config';
 import { UserService } from '../../../user';
+import { APP_URL } from '../../../../../core/constants/environment.constants';
 
 interface ITokenCode {
   token: string;
@@ -55,7 +56,7 @@ export class MagicLinkService {
     token,
     code,
   }: IEmailCode & ITokenCode): Promise<void> {
-    const appUrl = this.configService.get('APP_URL');
+    const appUrl = this.configService.get(APP_URL);
     const magicLink = `${appUrl}/auth/mail?token=${token}`;
     console.log(`Sending magic link to ${email}: ${magicLink}`);
     await this.emailService.sendEmail({

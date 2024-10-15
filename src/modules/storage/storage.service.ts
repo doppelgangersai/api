@@ -4,6 +4,13 @@ import { Client } from 'minio';
 import { extname, join, dirname } from 'path';
 import { Readable } from 'stream';
 import { ConfigService } from '../config';
+import {
+  MINIO_ACCESS_KEY,
+  MINIO_ENDPOINT,
+  MINIO_PORT,
+  MINIO_SECRET_KEY,
+  MINIO_USE_SSL,
+} from '../../core/constants/environment.constants';
 
 @Injectable()
 export class StorageService {
@@ -11,11 +18,11 @@ export class StorageService {
 
   constructor(private readonly configService: ConfigService) {
     this.minioClient = new Client({
-      endPoint: this.configService.get('MINIO_ENDPOINT'),
-      port: this.configService.getInt('MINIO_PORT'),
-      useSSL: this.configService.getBoolean('MINIO_USE_SSL'),
-      accessKey: this.configService.get('MINIO_ACCESS_KEY'),
-      secretKey: this.configService.get('MINIO_SECRET_KEY'),
+      endPoint: this.configService.get(MINIO_ENDPOINT),
+      port: this.configService.getInt(MINIO_PORT),
+      useSSL: this.configService.getBoolean(MINIO_USE_SSL),
+      accessKey: this.configService.get(MINIO_ACCESS_KEY),
+      secretKey: this.configService.get(MINIO_SECRET_KEY),
     });
   }
 

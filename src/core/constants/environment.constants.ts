@@ -1,0 +1,29 @@
+export const JWT_EXPIRATION_TIME = 'JWT_EXPIRATION_TIME';
+export const JWT_SECRET_KEY = 'JWT_SECRET_KEY';
+export const NODE_ENV = 'NODE_ENV';
+export const APP_URL = 'APP_URL';
+export const CHATBOTKIT_SECRET = 'CHATBOTKIT_SECRET';
+export const TWITTER_REDIRECT_URI = 'TWITTER_REDIRECT_URI';
+export const TWITTER_CLIENT_ID = 'TWITTER_CLIENT_ID';
+
+export const GOOGLE_CLIENT_ID = 'GOOGLE_CLIENT_ID';
+export const GOOGLE_CLIENT_SECRET = 'GOOGLE_CLIENT_SECRET';
+export const TELEGRAM_API_ID = 'TELEGRAM_API_ID';
+export const TELEGRAM_API_HASH = 'TELEGRAM_API_HASH';
+export const GOOGLE_REDIRECT_URI = 'GOOGLE_REDIRECT_URI';
+export const MANDRILL_API_KEY = 'MANDRILL_API_KEY';
+export const DB_TYPE = 'DB_TYPE';
+export const DB_HOST = 'DB_HOST';
+export const DB_PORT = 'DB_PORT';
+export const DB_USERNAME = 'DB_USERNAME';
+export const DB_PASSWORD = 'DB_PASSWORD';
+export const DB_DATABASE = 'DB_DATABASE';
+export const DB_SYNC = 'DB_SYNC';
+
+export const MINIO_ENDPOINT = 'MINIO_ENDPOINT';
+export const MINIO_PORT = 'MINIO_PORT';
+export const MINIO_USE_SSL = 'MINIO_USE_SSL';
+export const MINIO_ACCESS_KEY = 'MINIO_ACCESS_KEY';
+export const MINIO_SECRET_KEY = 'MINIO_SECRET_KEY';
+
+export const OPENAI_API_KEY = 'OPENAI_API_KEY';

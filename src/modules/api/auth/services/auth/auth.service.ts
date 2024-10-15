@@ -4,6 +4,10 @@ import { Hash } from '../../../../../utils/Hash';
 import { ConfigService } from '../../../../config';
 import { User, UserService } from '../../../user';
 import { LoginDTO } from '../../auth.dtos';
+import {
+  JWT_EXPIRATION_TIME,
+  NODE_ENV,
+} from '../../../../../core/constants/environment.constants';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +19,7 @@ export class AuthService {
 
   async createToken(user: User) {
     return {
-      expiresIn: this.configService.get('JWT_EXPIRATION_TIME'),
+      expiresIn: this.configService.get(JWT_EXPIRATION_TIME),
       accessToken: this.jwtService.sign({ id: user.id }),
       user,
     };
@@ -31,7 +35,7 @@ export class AuthService {
 
   async mockLogin(user_id = 1) {
     const isNotProd = ['test', 'local', 'development'].includes(
-      this.configService.get('NODE_ENV'),
+      this.configService.get(NODE_ENV),
     );
 
     if (isNotProd) {

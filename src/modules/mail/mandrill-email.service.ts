@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { EmailOptions, EmailService } from './email-service.interface';
 import axios from 'axios';
 import { ConfigService } from '../config';
+import { MANDRILL_API_KEY } from '../../core/constants/environment.constants';
 
 const DEFAULT_TEMPLATE_ID = 'template-with-button';
 
@@ -12,7 +13,7 @@ export class MandrillEmailService implements EmailService {
     'https://mandrillapp.com/api/1.0/messages/send-template.json';
 
   async sendEmail(options: EmailOptions): Promise<any> {
-    const key = this.configService.get('MANDRILL_API_KEY');
+    const key = this.configService.get(MANDRILL_API_KEY);
     console.log('key', key);
     const payload = {
       key,

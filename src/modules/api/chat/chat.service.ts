@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { Chat } from './chat.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
+import { CHATBOTKIT_SECRET } from '../../../core/constants/environment.constants';
 
 @Injectable()
 export class ChatService {
@@ -23,7 +24,7 @@ export class ChatService {
   }> {
     const user = await this.userService.get(userId);
     const { id, backstory } = user;
-    const secret = this.configService.get('CHATBOTKIT_SECRET');
+    const secret = this.configService.get(CHATBOTKIT_SECRET);
 
     // @ts-ignore
     const chatBotKit = new ChatBotKit({
@@ -58,7 +59,7 @@ Now another user will write to you. You are not his digital twin, but the digita
       chat = await this.initChat(twinUserId, userId);
     }
 
-    const secret = this.configService.get('CHATBOTKIT_SECRET');
+    const secret = this.configService.get(CHATBOTKIT_SECRET);
     const apiUrl = `https://api.chatbotkit.com/v1/conversation/${chat.provider_internal_id}/complete`;
     console.log('Processing message:', message);
     console.log('Conversation ID:', chat.provider_internal_id);
@@ -122,7 +123,7 @@ Now another user will write to you. You are not his digital twin, but the digita
       };
     }
 
-    const secret = this.configService.get('CHATBOTKIT_SECRET');
+    const secret = this.configService.get(CHATBOTKIT_SECRET);
     const apiUrl = `https://api.chatbotkit.com/v1/conversation/${provider_internal_id}/message/list?order=desc`;
 
     try {
