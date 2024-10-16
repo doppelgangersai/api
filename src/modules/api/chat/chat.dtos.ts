@@ -44,4 +44,10 @@ export class ChatDto implements IChat {
     type: [ChatMessageWithUserDto],
   })
   messages: IChatMessageWithUser[];
+
+  @ApiProperty({
+    description: 'User who sent the message',
+    type: () => User,
+  })
+  user: Partial<User>;
 }

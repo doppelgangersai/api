@@ -82,14 +82,16 @@ Now another user will write to you. You are not his digital twin, but the digita
     }
   }
 
-  async getChatList(userId): Promise<IChat[]> {
+  async getChatList(userId: number): Promise<IChat[]> {
+    const user = await this.userService.get(userId);
     const chats = await this.chatRepository.find({
-      where: [{ with_user_id: userId }, { from_user_id: userId }],
+      where: [{ with_user_id: userId }],
     });
 
     return chats.map((chat) => ({
       id: chat.id,
       title: chat.name,
+      user,
       messages: [],
     }));
   }
@@ -101,16 +103,19 @@ Now another user will write to you. You are not his digital twin, but the digita
   async getChatMessages(
     twinUserId: number,
     userId: number,
-  ): Promise<{
-    messages: any[];
-  }> {
+  ): Promise<{ messages: any[]; user: User }> {
+    console.log('Getting chat messages:', twinUserId, userId);
     const chat = await this.chatRepository.findOne({
       with_user_id: twinUserId,
       from_user_id: userId,
     });
 
+    const twin = await this.userService.get(twinUserId);
+    const user = await this.userService.get(userId);
     if (!chat) {
+      console.log('Chat not found');
       return {
+        user: twin,
         messages: [],
       };
     }
@@ -119,6 +124,7 @@ Now another user will write to you. You are not his digital twin, but the digita
 
     if (provider_name === 'gemini') {
       return {
+        user: twin,
         messages: [],
       };
     }
@@ -134,8 +140,15 @@ Now another user will write to you. You are not his digital twin, but the digita
         },
       });
       const { items } = response.data;
-      return { messages: items };
+      return {
+        user: twin,
+        messages: items.map((i) => ({
+          ...i,
+          from: i.type === 'user' ? user : twin,
+        })),
+      };
     } catch (error) {
+      console.error('Error fetching messages:', error);
       throw error;
     }
   }

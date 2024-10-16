@@ -14,4 +14,5 @@ export interface IChat {
   id: number;
   title: string;
   messages: IChatMessageWithUser[];
+  user: Partial<User>;
 }

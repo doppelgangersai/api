@@ -75,6 +75,10 @@ export class User {
     const { password, ...self } = this;
     return { ...self, avatar: avatarTransformer(this) };
   }
+
+  isTelegramConnected() {
+    return !!this.telegramAuthSession;
+  }
 }
 
 export class UserFillableFields {
