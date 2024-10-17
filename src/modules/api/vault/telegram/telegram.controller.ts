@@ -1,14 +1,18 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBody,
   ApiProperty,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { TelegramService } from './telegram.service';
 import * as process from 'node:process';
 import { configDotenv } from 'dotenv';
+import { AuthGuard } from '@nestjs/passport';
+import { CurrentUser } from '../../../common/decorator/current-user.decorator';
+import { User } from '../../user';
 configDotenv();
 
 export class TelegramAuthInitDTO {
@@ -36,6 +40,7 @@ export class TelegramAuthCompleteDTO {
   phoneCodeHash: string;
 }
 
+@ApiBearerAuth()
 @ApiTags('Telegram')
 @Controller('api/vault/telegram')
 export class TelegramController {
@@ -49,12 +54,14 @@ export class TelegramController {
   })
   @ApiResponse({ status: 201, description: 'Auth code sent successfully' })
   @ApiResponse({ status: 400, description: 'Invalid request' })
+  @UseGuards(AuthGuard())
   async authInit(
     @Body() dto: TelegramAuthInitDTO,
   ): Promise<{ phoneCodeHash: string }> {
     return this.telegramService.sendAuthCode(dto.phone);
   }
 
+  @ApiBearerAuth()
   @Post('complete')
   @ApiOperation({ summary: 'Complete Telegram Authentication' })
   @ApiBody({
@@ -67,12 +74,26 @@ export class TelegramController {
       'Authentication completed successfully, returns session string',
   })
   @ApiResponse({ status: 400, description: 'Invalid request' })
-  async authComplete(@Body() dto: TelegramAuthCompleteDTO): Promise<string> {
+  @UseGuards(AuthGuard())
+  async authComplete(
+    @Body() dto: TelegramAuthCompleteDTO,
+    @CurrentUser() user: User,
+  ): Promise<string> {
     return this.telegramService.completeAuth(
+      // @ts-ignore
+      user.id as number,
       dto.code,
       dto.phone,
       dto.phoneCodeHash,
       dto.password,
     );
+  }
+
+  // trigger: emit for current user
+  @ApiBearerAuth()
+  @Post('trigger')
+  @ApiOperation({ summary: 'Trigger Telegram parser: for dev purpose only' })
+  async trigger(@CurrentUser() user: User) {
+    return this.telegramService.parseChats(user.id);
   }
 }

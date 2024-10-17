@@ -1,6 +1,14 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { TelegramClient, sessions, Api } from 'telegram';
 import { ConfigService } from '../../../config';
+import { UserService } from '../../user';
+import { VaultEmitter } from '../vault.emitter';
+import { OnEvent } from '@nestjs/event-emitter';
+import { TELEGRAM_UPLOADED_EVENT } from '../../../../core/constants/event-emitter.constants';
+import {
+  TELEGRAM_API_HASH,
+  TELEGRAM_API_ID,
+} from '../../../../core/constants/environment.constants';
 
 const { StringSession } = sessions;
 
@@ -8,15 +16,16 @@ const { StringSession } = sessions;
 export class TelegramService {
   private apiId: number;
   private apiHash: string;
-  private clients: { [phone: string]: TelegramClient } = {}; // глобальное хранилище клиентов
+  private clients: { [phone: string]: TelegramClient } = {};
   private readonly logger = new Logger(TelegramService.name);
 
-  constructor(private configService: ConfigService) {
-    this.apiId = parseInt(
-      this.configService.get<string>('TELEGRAM_API_ID'),
-      10,
-    );
-    this.apiHash = this.configService.get<string>('TELEGRAM_API_HASH');
+  constructor(
+    private configService: ConfigService,
+    private userService: UserService,
+    private vaultEmitter: VaultEmitter,
+  ) {
+    this.apiId = parseInt(this.configService.get<string>(TELEGRAM_API_ID), 10);
+    this.apiHash = this.configService.get<string>(TELEGRAM_API_HASH);
   }
 
   private createClient(
@@ -52,6 +61,7 @@ export class TelegramService {
   }
 
   async completeAuth(
+    userId: number,
     code: string,
     phone: string,
     phoneCodeHash: string,
@@ -64,7 +74,7 @@ export class TelegramService {
       password,
     });
 
-    const client = this.clients[phone]; // используем существующего клиента
+    const client = this.clients[phone];
     if (!client) {
       throw new BadRequestException('Phone number not found');
     }
@@ -103,18 +113,32 @@ export class TelegramService {
 
     const sessionString = `${client.session.save()}`;
 
-    this.removeClient(phone); // удаляем клиента из хранилища после авторизации
+    this.removeClient(phone);
+    await this.userService.update(userId, {
+      telegramAuthSession: sessionString,
+    });
+
+    await this.vaultEmitter.emitTelegramConnected(userId);
 
     return sessionString;
   }
 
-  async parseChats(sessionString: string): Promise<string[]> {
-    const client = this.createClient('parse', sessionString);
+  @OnEvent(TELEGRAM_UPLOADED_EVENT)
+  async parseChats(userId: number): Promise<string[]> {
+    const user = await this.userService.get(userId);
+    if (!user.telegramAuthSession) {
+      return;
+    }
+    const client = this.createClient('parse', user.telegramAuthSession);
     await client.connect();
 
     const dialogs = await client.getDialogs();
     const chats = [];
 
+    const sleep = (n) =>
+      new Promise((resolve) => setTimeout(resolve, n * 1000));
+
+    let msgn = 0;
     for (const dialog of dialogs) {
       const messages = await client.iterMessages(dialog.id, { reverse: true });
 
@@ -125,11 +149,18 @@ export class TelegramService {
           msgn = msgn + 1;
           console.log(msgn, formattedMessage);
           chats.push(formattedMessage);
+
+          if (msgn % 100 === 0) {
+            break;
+          }
         }
       }
+
+      await sleep(5);
     }
 
     await client.disconnect();
+
     this.removeClient('parse');
     return chats;
   }
