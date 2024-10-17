@@ -19,6 +19,6 @@ import { TelegramService } from './telegram/telegram.service'; // Import Telegra
   ],
   controllers: [VaultController, TelegramController], // Add TelegramController
   providers: [VaultEmitter, TelegramService], // Add TelegramService
-  exports: [],
+  exports: [VaultEmitter],
 })
 export class VaultModule {}
