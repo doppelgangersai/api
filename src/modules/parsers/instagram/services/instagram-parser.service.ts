@@ -185,7 +185,7 @@ export class InstagramParserService {
     }
   }
 
-  private getMostFrequentSender(messages: Message[]): string {
+  private getMostFrequentSender(messages: InstagramMessage[]): string {
     const senderFrequency = messages.reduce((acc, message) => {
       acc[message.senderName] = (acc[message.senderName] || 0) + 1;
       return acc;
@@ -201,7 +201,7 @@ export class InstagramParserService {
       outputDir,
       'your_instagram_activity/messages/inbox',
     );
-    const allMessages: Message[] = [];
+    const allMessages: InstagramMessage[] = [];
 
     this.fileUtils.processDirectory(inboxDir, (filePath) => {
       // Only process JSON files and skip others like audio, images, etc.
