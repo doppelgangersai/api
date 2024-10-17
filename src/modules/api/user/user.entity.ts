@@ -71,6 +71,12 @@ export class User {
   @Column({ nullable: true, type: 'text' })
   backstory: string;
 
+  @Column({ nullable: true })
+  phone: string;
+
+  @Column({ nullable: true })
+  telegramAuthSession: string;
+
   toJSON() {
     const { password, ...self } = this;
     return { ...self, avatar: avatarTransformer(this) };
