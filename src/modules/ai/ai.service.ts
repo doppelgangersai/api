@@ -2,9 +2,36 @@ import { Injectable } from '@nestjs/common';
 import { OpenAIService } from './openai/openai.service';
 import { getUniqueStrings } from '../../utils/unique';
 
+export interface MessagesWithTitle {
+  title: string;
+  messages: string[];
+}
+
 @Injectable()
 export class AIService {
   constructor(private readonly openAIService: OpenAIService) {}
+
+  async getBackstoryByMessagesPack(
+    messages: MessagesWithTitle[],
+    maxForBlock = 15,
+    minDistance = 0.7,
+  ): Promise<string> {
+    const filteredMessages = messages.map((m) => ({
+      title: m.title,
+      messages: getUniqueStrings(m.messages, maxForBlock, minDistance),
+    }));
+    const prefix =
+      'Generate a comprehensive profile description using the following information:';
+    const suffix =
+      // eslint-disable-next-line max-len
+      '\nPlease provide a detailed summary and analysis based on the above data. \nCommunication examples are matter.\nBe careful with sensitive information and make sure the output is suitable for public consumption.\nResult should be an instruction for users digital twin chatbot.\n';
+    const prompt = `${prefix}
+    ${filteredMessages
+      .map((m) => `${m.title}:\n${m.messages.join('\n')}`)
+      .join('\n\n')}}
+    ${suffix}`;
+    return this.openAIService.getResponse(prompt);
+  }
 
   async getProfileDescription(
     personalInfo: { [key: string]: string },
@@ -38,29 +65,6 @@ export class AIService {
     const commentsString = comments.join('\n');
     const reelsCommentsString = reelsComments.join('\n');
     const inboxString = inbox.join('\n');
-
-    const some = [
-      {
-        type: 'Personal Information',
-        messages: [],
-      },
-      {
-        type: 'Top Posts',
-        messages: [],
-      },
-      {
-        type: 'Top Comments',
-        messages: [],
-      },
-      {
-        type: 'Top Reels Comments',
-        messages: [],
-      },
-      {
-        type: 'Top Inbox Messages',
-        messages: [],
-      },
-    ];
 
     return `Generate a comprehensive profile description using the following information:
 Personal Information:
