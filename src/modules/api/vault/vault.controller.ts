@@ -7,6 +7,7 @@ import {
   UseGuards,
   Req,
   Body,
+  Get,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -72,6 +73,26 @@ export class VaultController {
     return {
       message: 'Instagram archive uploaded successfully',
       filenames: files.map((file) => file.filename),
+    };
+  }
+
+  @Get('instagram/trigger/uploaded')
+  @UseGuards(AuthGuard())
+  @ApiOperation({ summary: 'Trigger Instagram archive processing' })
+  triggerInstagram(@CurrentUser() user: User) {
+    this.vaultEmitter.emitInstagramUploaded(user.id);
+    return {
+      message: 'Instagram archive processing triggered',
+    };
+  }
+
+  @Get('instagram/trigger/preprocessed')
+  @UseGuards(AuthGuard())
+  @ApiOperation({ summary: 'Trigger Instagram archive preprocessed' })
+  triggerInstagramPreprocessed(@CurrentUser() user: User) {
+    this.vaultEmitter.emitInstagramPreprocessed(user.id);
+    return {
+      message: 'Instagram archive preprocessed triggered',
     };
   }
 

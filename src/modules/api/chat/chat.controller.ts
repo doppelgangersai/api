@@ -17,6 +17,7 @@ import {
 import { ChatService } from './chat.service';
 import { User } from '../user';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
+import { Chatbot } from '../../chatbot/chatbot.entity';
 
 @ApiTags('chat')
 @Controller('api/chat')
@@ -33,11 +34,11 @@ export class ChatController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get available chats list' })
-  @ApiResponse({ status: 200, description: 'List of chats', type: [ChatDto] })
+  @ApiResponse({ status: 200, description: 'List of chats', type: [Chatbot] })
   @UseGuards(AuthGuard('jwt'))
   @Get('available')
-  async getAvailableChatList(@CurrentUser() user: User): Promise<User[]> {
-    return this.chatService.getAvailableChatList();
+  async getAvailableChatList(@CurrentUser() user: User): Promise<Chatbot[]> {
+    return this.chatService.getAvailableChatList(user.id);
   }
 
   @ApiBearerAuth()
@@ -59,7 +60,7 @@ export class ChatController {
 
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Send message' })
-  @ApiParam({ name: 'chatId', description: 'ID of the chat' })
+  @ApiParam({ name: 'chatbotId', description: 'ID of the chat' })
   @ApiBody({ type: ChatMessageDto, description: 'Message content' })
   @ApiResponse({
     status: 201,
@@ -69,11 +70,12 @@ export class ChatController {
   @UseGuards(AuthGuard('jwt'))
   @Post(':twinUserId/message')
   async sendMessage(
-    @Param('twinUserId') twinUserId: number,
+    @Param('twinUserId') chatbotId: number,
     @Body() message: ChatMessageDto,
     @CurrentUser() user: User,
   ): Promise<ChatMessageWithUserDto> {
-    return this.chatService.processMessage(twinUserId, user.id, message.text);
+    console.log('Sending message:', chatbotId, message.text, user.id);
+    return this.chatService.processMessage(chatbotId, user.id, message.text);
   }
 
   @ApiBearerAuth()

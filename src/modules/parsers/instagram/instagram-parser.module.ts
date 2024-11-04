@@ -6,6 +6,7 @@ import { StorageModule } from '../../storage/storage.module';
 import { InstagramParserHandler } from './handlers/instagram-parser.handler';
 import { AIModule } from '../../ai/ai.module';
 import { VaultModule } from '../../api/vault/vault.module';
+import { ChatbotModule } from '../../chatbot/chatbot.module';
 
 @Module({
   providers: [
@@ -15,6 +16,12 @@ import { VaultModule } from '../../api/vault/vault.module';
     InstagramParserHandler,
   ],
   exports: [InstagramParserService],
-  imports: [UserModule, StorageModule, AIModule, forwardRef(() => VaultModule)],
+  imports: [
+    UserModule,
+    StorageModule,
+    AIModule,
+    ChatbotModule,
+    forwardRef(() => VaultModule),
+  ],
 })
 export class InstagramParserModule {}

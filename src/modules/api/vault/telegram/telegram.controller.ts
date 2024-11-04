@@ -93,6 +93,7 @@ export class TelegramController {
   @ApiBearerAuth()
   @Post('trigger')
   @ApiOperation({ summary: 'Trigger Telegram parser: for dev purpose only' })
+  @UseGuards(AuthGuard())
   async trigger(@CurrentUser() user: User) {
     return this.telegramService.parseChats(user.id);
   }

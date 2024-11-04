@@ -7,8 +7,9 @@ import { UserService } from '../../../api/user';
 import { StorageService } from '../../../storage/storage.service';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
-import { AIService, MessagesWithTitle } from '../../../ai/ai.service';
+import { MessagesWithTitle } from '../../../ai/ai.service';
 import { InstagramMessage } from '../instagram-parser.types';
+import { ChatbotService } from '../../../chatbot/chatbot.service';
 
 @Injectable()
 export class InstagramParserService {
@@ -17,7 +18,7 @@ export class InstagramParserService {
     private readonly zipUtils: ZipUtils,
     private readonly userService: UserService,
     private readonly storageService: StorageService,
-    private readonly aiService: AIService,
+    private readonly chatbotService: ChatbotService,
   ) {}
 
   async removePhotos(userId: number): Promise<void> {
@@ -124,15 +125,25 @@ export class InstagramParserService {
       //   inbox,
       // );
 
-      const backstory = await this.aiService.getBackstoryByMessagesPack([
-        this.mapPersonalInfo(personalInfo),
-        { title: 'Posts', messages: posts },
-        { title: 'Comments', messages: comments },
-        { title: 'Reels Comments', messages: reelsComments },
-        { title: 'Inbox', messages: inbox },
-      ]);
-      user.backstory = backstory;
-      await this.userService.update(userId, user);
+      // const backstory = await this.aiService.getBackstoryByMessagesPack([
+      //   this.mapPersonalInfo(personalInfo),
+      //   { title: 'Posts', messages: posts },
+      //   { title: 'Comments', messages: comments },
+      //   { title: 'Reels Comments', messages: reelsComments },
+      //   { title: 'Inbox', messages: inbox },
+      // ]);
+      // user.backstory = backstory;
+      // await this.userService.update(userId, user);
+      const { backstory } = await this.chatbotService.createChatbot(
+        [
+          this.mapPersonalInfo(personalInfo),
+          { title: 'Posts', messages: posts },
+          { title: 'Comments', messages: comments },
+          { title: 'Reels Comments', messages: reelsComments },
+          { title: 'Inbox', messages: inbox },
+        ],
+        userId,
+      );
       console.log('AI generated description:', backstory);
     } catch (error) {
       console.error('Error processing user data:', error);
@@ -181,7 +192,7 @@ export class InstagramParserService {
       return decodeURIComponent(escape(text));
     } catch (e) {
       console.error('Decode error:', e);
-      return text; // Return original text if decoding fails
+      return text;
     }
   }
 
@@ -204,7 +215,6 @@ export class InstagramParserService {
     const allMessages: InstagramMessage[] = [];
 
     this.fileUtils.processDirectory(inboxDir, (filePath) => {
-      // Only process JSON files and skip others like audio, images, etc.
       if (path.extname(filePath) === '.json') {
         const conversation = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
         if (conversation && conversation.messages) {

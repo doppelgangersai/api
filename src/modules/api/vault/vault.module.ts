@@ -7,7 +7,9 @@ import { PassportModule } from '@nestjs/passport';
 import { UserModule } from '../user';
 import { InstagramParserModule } from '../../parsers/instagram/instagram-parser.module';
 import { VaultEmitter } from './vault.emitter';
-import { TelegramService } from './telegram/telegram.service'; // Import TelegramService
+import { TelegramService } from './telegram/telegram.service';
+import { AIModule } from '../../ai/ai.module';
+import { ChatbotModule } from '../../chatbot/chatbot.module'; // Import TelegramService
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { TelegramService } from './telegram/telegram.service'; // Import Telegra
     PassportModule.register({ defaultStrategy: 'jwt' }),
     UserModule,
     InstagramParserModule,
+    AIModule,
+    ChatbotModule,
   ],
   controllers: [VaultController, TelegramController], // Add TelegramController
   providers: [VaultEmitter, TelegramService], // Add TelegramService

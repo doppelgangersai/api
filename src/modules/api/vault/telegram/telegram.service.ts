@@ -9,6 +9,8 @@ import {
   TELEGRAM_API_HASH,
   TELEGRAM_API_ID,
 } from '../../../../core/constants/environment.constants';
+import { AIService, MessagesWithTitle } from '../../../ai/ai.service';
+import { ChatbotService } from '../../../chatbot/chatbot.service';
 
 const { StringSession } = sessions;
 
@@ -23,6 +25,8 @@ export class TelegramService {
     private configService: ConfigService,
     private userService: UserService,
     private vaultEmitter: VaultEmitter,
+    private aiService: AIService,
+    private chatbotService: ChatbotService,
   ) {
     this.apiId = parseInt(this.configService.get<string>(TELEGRAM_API_ID), 10);
     this.apiHash = this.configService.get<string>(TELEGRAM_API_HASH);
@@ -129,8 +133,11 @@ export class TelegramService {
     if (!user.telegramAuthSession) {
       return;
     }
-    const client = this.createClient('parse', user.telegramAuthSession);
+    const clientId = user.telegramAuthSession;
+    const client = this.createClient(clientId, user.telegramAuthSession);
     await client.connect();
+
+    const telegramUser = await client.getMe();
 
     const dialogs = await client.getDialogs();
     const chats = [];
@@ -138,30 +145,62 @@ export class TelegramService {
     const sleep = (n) =>
       new Promise((resolve) => setTimeout(resolve, n * 1000));
 
+    const messagesWithTitle: MessagesWithTitle = {
+      title: 'Telegram messages',
+      messages: [],
+    };
+
+    let dn = 0;
     let msgn = 0;
-    for (const dialog of dialogs) {
-      const messages = await client.iterMessages(dialog.id, { reverse: true });
+    const shuffledDialogs = dialogs.sort(() => Math.random() - 0.5);
+    for (const dialog of shuffledDialogs) {
+      dn++;
+      const messages = await client.iterMessages(dialog.id, {
+        reverse: true,
+        limit: 100,
+        fromUser: telegramUser,
+      });
 
       for await (const message of messages) {
+        msgn = msgn + 1;
         if (message.out && message.message) {
           const chatName = dialog.title || 'Unknown Chat/User';
           const formattedMessage = `To ${chatName}: ${message.message}`;
-          msgn = msgn + 1;
           console.log(msgn, formattedMessage);
           chats.push(formattedMessage);
+          if (formattedMessage.length > 200) {
+            console.log(message);
+          }
+
+          messagesWithTitle.messages.push(formattedMessage);
 
           if (msgn % 100 === 0) {
+            console.log('100 messages reached, breaking');
             break;
           }
         }
       }
 
+      if (msgn > 500 || dn > 20) {
+        console.log('500 messages reached, breaking');
+        break;
+      }
+      console.log('Dialog:', dialog.id);
       await sleep(5);
     }
-
     await client.disconnect();
 
-    this.removeClient('parse');
+    await this.removeClient(clientId);
+
+    const backstory = await this.aiService.getBackstoryByMessagesPack([
+      messagesWithTitle,
+    ]);
+
+    await this.chatbotService.createChatbot([messagesWithTitle], userId);
+
+    user.backstory = backstory;
+    await this.userService.update(userId, user);
+    // console.log(backstory);
     return chats;
   }
 

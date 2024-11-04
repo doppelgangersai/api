@@ -8,22 +8,25 @@ import { Chat } from './chat.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { CHATBOTKIT_SECRET } from '../../../core/constants/environment.constants';
+import { ChatbotService } from '../../chatbot/chatbot.service';
+import { Chatbot } from '../../chatbot/chatbot.entity';
 
 @Injectable()
 export class ChatService {
   constructor(
     private readonly userService: UserService,
     private readonly configService: ConfigService,
+    private readonly chatbotService: ChatbotService,
     @InjectRepository(Chat)
     private readonly chatRepository: Repository<Chat>,
   ) {}
-  async createOrGetConversationByUserId(userId: number): Promise<{
+  async createOrGetConversationByChatbotId(chatbotId: number): Promise<{
     conversationId: string;
     conversationToken?: string;
-    userId: number;
+    chatbotId: number;
   }> {
-    const user = await this.userService.get(userId);
-    const { id, backstory } = user;
+    const chatbot = await this.chatbotService.getChatbotById(chatbotId);
+    const { backstory } = chatbot;
     const secret = this.configService.get(CHATBOTKIT_SECRET);
 
     // @ts-ignore
@@ -46,17 +49,17 @@ Now another user will write to you. You are not his digital twin, but the digita
     });
     return {
       conversationId: conversation.id,
-      userId,
+      chatbotId,
     };
   }
 
-  async processMessage(twinUserId: number, userId: number, message: string) {
+  async processMessage(chatbotId: number, userId: number, message: string) {
     let chat = await this.chatRepository.findOne({
-      with_user_id: twinUserId,
+      with_user_id: chatbotId,
       from_user_id: userId,
     });
     if (!chat) {
-      chat = await this.initChat(twinUserId, userId);
+      chat = await this.initChat(chatbotId, userId);
     }
 
     const secret = this.configService.get(CHATBOTKIT_SECRET);
@@ -96,21 +99,21 @@ Now another user will write to you. You are not his digital twin, but the digita
     }));
   }
 
-  async getAvailableChatList(): Promise<User[]> {
-    return this.userService.getUsersWithBackstory();
+  async getAvailableChatList(userId: number): Promise<Chatbot[]> {
+    return this.chatbotService.getAvailableChatbots(userId);
   }
 
   async getChatMessages(
-    twinUserId: number,
+    chatbotId: number,
     userId: number,
   ): Promise<{ messages: any[]; user: User }> {
-    console.log('Getting chat messages:', twinUserId, userId);
+    console.log('Getting chat messages:', chatbotId, userId);
     const chat = await this.chatRepository.findOne({
-      with_user_id: twinUserId,
+      with_user_id: chatbotId,
       from_user_id: userId,
     });
 
-    const twin = await this.userService.get(twinUserId);
+    const twin = await this.userService.get(chatbotId);
     const user = await this.userService.get(userId);
     if (!chat) {
       console.log('Chat not found');
@@ -164,7 +167,7 @@ Now another user will write to you. You are not his digital twin, but the digita
 
     if (providerName !== 'gemini') {
       chat.provider_name = providerName;
-      const { conversationId } = await this.createOrGetConversationByUserId(
+      const { conversationId } = await this.createOrGetConversationByChatbotId(
         withUserId,
       );
       chat.provider_internal_id = conversationId;
