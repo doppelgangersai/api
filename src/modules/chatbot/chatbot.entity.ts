@@ -1,23 +1,31 @@
 import { Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 import { Column } from 'typeorm';
+import { ApiResponseProperty } from '@nestjs/swagger';
 
 @Entity()
 export class Chatbot {
+  @ApiResponseProperty()
   @PrimaryGeneratedColumn()
   id: number;
+  @ApiResponseProperty()
   @Column()
   fullName: string;
+  @ApiResponseProperty()
   @Column()
   description: string;
   @Column()
   backstory: string;
+  @ApiResponseProperty()
   @Column()
   avatar: string;
+  @ApiResponseProperty()
   @Column()
   isPublic: boolean;
+  @ApiResponseProperty()
   @Column()
   creatorId: number;
+  @ApiResponseProperty()
   @Column()
   ownerId: number;
 
