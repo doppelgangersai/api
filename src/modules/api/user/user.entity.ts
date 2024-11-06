@@ -98,6 +98,11 @@ export class User {
       avatar: avatarTransformer(this),
     };
   }
+
+  @Column({
+    nullable: true,
+  })
+  referrerId?: number;
 }
 
 export class UserFillableFields {
