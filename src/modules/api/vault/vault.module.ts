@@ -9,7 +9,8 @@ import { InstagramParserModule } from '../../parsers/instagram/instagram-parser.
 import { VaultEmitter } from './vault.emitter';
 import { TelegramService } from './telegram/telegram.service';
 import { AIModule } from '../../ai/ai.module';
-import { ChatbotModule } from '../../chatbot/chatbot.module'; // Import TelegramService
+import { ChatbotModule } from '../../chatbot/chatbot.module';
+import { PointsModule } from '../../points/points.module'; // Import TelegramService
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ChatbotModule } from '../../chatbot/chatbot.module'; // Import Telegram
     InstagramParserModule,
     AIModule,
     ChatbotModule,
+    PointsModule,
   ],
   controllers: [VaultController, TelegramController], // Add TelegramController
   providers: [VaultEmitter, TelegramService], // Add TelegramService

@@ -24,6 +24,7 @@ import { User, UserService } from '../user';
 import { VaultEmitter } from './vault.emitter';
 import { UsernameDTO } from './vault.dtos';
 import { VaultFileInterceptor } from './vault.interceptors';
+import { PointsService } from '../../points/points.service';
 
 @ApiTags('vault')
 @ApiBearerAuth()
@@ -32,6 +33,7 @@ export class VaultController {
   constructor(
     private readonly userService: UserService,
     private readonly vaultEmitter: VaultEmitter,
+    private readonly pointsService: PointsService,
   ) {}
 
   @Post('instagram')

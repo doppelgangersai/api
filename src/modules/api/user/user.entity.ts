@@ -42,6 +42,7 @@ export class User {
   @Column({ nullable: true, select: false })
   appleAccessToken: string;
 
+  @ApiResponseProperty()
   @Column({ nullable: true })
   instagramFile: string;
 
@@ -66,6 +67,7 @@ export class User {
   @Column({ nullable: true })
   tikTokUsername: string;
 
+  @ApiResponseProperty()
   @Column({ nullable: true, default: 0 })
   points: number;
 
@@ -79,12 +81,22 @@ export class User {
   telegramAuthSession: string;
 
   toJSON() {
-    const { password, ...self } = this;
-    return { ...self, avatar: avatarTransformer(this) };
-  }
-
-  isTelegramConnected() {
-    return !!this.telegramAuthSession;
+    const {
+      password,
+      googleAccessToken,
+      appleAccessToken,
+      // telegramAuthSession,
+      // telegramFile,
+      // instagramFile,
+      // backstory,
+      ...self
+    } = this;
+    return {
+      ...self,
+      isTelegramConnected: !!this.telegramAuthSession,
+      isInstagramConnected: !!this.instagramFile,
+      avatar: avatarTransformer(this),
+    };
   }
 }
 
@@ -101,3 +113,10 @@ const avatarTransformer = (self: User) => {
       : `/avatars/${self.avatar}`
     : null;
 };
+
+export class MappedUserDTO extends User {
+  @ApiResponseProperty()
+  isTelegramConnected: boolean;
+  @ApiResponseProperty()
+  isInstagramConnected: boolean;
+}

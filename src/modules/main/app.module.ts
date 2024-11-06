@@ -19,6 +19,8 @@ import {
   DB_TYPE,
   DB_USERNAME,
 } from '../../core/constants/environment.constants';
+import { MissionModule } from '../api/mission/mission.module';
+import { PointsModule } from '../points/points.module';
 
 @Module({
   imports: [
@@ -46,6 +48,8 @@ import {
     ChatModule,
     ProcessModule,
     InstagramParserModule,
+    PointsModule,
+    MissionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
