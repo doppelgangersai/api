@@ -3,8 +3,12 @@ import {
   ApiTags,
   ApiResponse,
   ApiProperty,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { CurrentUser } from '../../common/decorator/current-user.decorator';
+import { User } from '../user';
 
 class Mission {
   @ApiProperty({ example: 1, description: 'Unique identifier for the mission' })
@@ -55,6 +59,8 @@ export class MissionResponse {
 @Controller('api/missions')
 @ApiTags('api/missions')
 export class MissionController {
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Retrieve all missions and total points' })
   @ApiResponse({
     status: 200,
@@ -62,7 +68,7 @@ export class MissionController {
     type: MissionResponse,
   })
   @Get()
-  getMissions(): MissionResponse {
+  getMissions(@CurrentUser() user: User): MissionResponse {
     return {
       missions: [
         {
@@ -70,7 +76,7 @@ export class MissionController {
           title: 'Refer a friend',
           description: 'Some description',
           action: 'refer',
-          done: true,
+          done: false,
           points: 20,
         },
         {
@@ -78,11 +84,11 @@ export class MissionController {
           title: 'Connect Data in Vault',
           description: 'Some description',
           action: 'connect',
-          done: false,
+          done: !!user.instagramFile || !!user.telegramAuthSession,
           points: 10,
         },
       ],
-      points: 140,
+      points: user.points,
     };
   }
 }
