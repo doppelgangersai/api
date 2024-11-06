@@ -8,7 +8,7 @@ import {
 import { UserService } from '../../user';
 import { AuthService } from '../services';
 import axios from 'axios';
-import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ConfigService } from '../../../config';
 import {
   GOOGLE_CLIENT_ID,
@@ -49,8 +49,26 @@ export class GoogleAuthController {
   @ApiOperation({
     summary: 'Google Auth: Create or authenticate user with Google OAuth',
   })
+  @ApiQuery({
+    name: 'code',
+    required: true,
+    description: 'Authorization code received from Google OAuth',
+  })
+  @ApiQuery({
+    name: 'ref',
+    required: false,
+    description: 'Optional referral code for tracking the origin of signup',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully authenticated and created user if needed.',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @Get('auth')
-  async googleAuthRedirect(@Query('code') code: string) {
+  async googleAuthRedirect(
+    @Query('code') code: string,
+    @Query('ref') ref?: string,
+  ) {
     try {
       const { data } = await axios.post('https://oauth2.googleapis.com/token', {
         client_id: this.configService.get(GOOGLE_CLIENT_ID),
@@ -63,6 +81,7 @@ export class GoogleAuthController {
       const { data: userInfo } = await axios.get(
         `https://www.googleapis.com/oauth2/v3/userinfo?access_token=${data.access_token}`,
       );
+
       let user = await this.userService.getByEmail(userInfo.email);
       if (!user) {
         user = await this.userService.create({
@@ -71,6 +90,7 @@ export class GoogleAuthController {
           googleId: userInfo.sub,
           fullName: userInfo.name,
           avatar: userInfo.picture,
+          // referralCode: ref, // Use ref here if needed
         });
       } else {
         await this.userService.update(user.id, {

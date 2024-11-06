@@ -20,4 +20,10 @@ export class MagicLinkVerifyDTO {
     example: '123456',
   })
   code: string;
+
+  @ApiProperty({
+    description: 'Referrer id (userId)',
+    example: 1,
+  })
+  ref: string;
 }
