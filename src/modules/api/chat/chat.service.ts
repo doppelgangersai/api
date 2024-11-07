@@ -103,6 +103,10 @@ Now another user will write to you. You are not his digital twin, but the digita
     return this.chatbotService.getAvailableChatbots(userId);
   }
 
+  async getFriendsChatList(userId: number): Promise<Chatbot[]> {
+    return this.chatbotService.getFriendsChatbots(userId);
+  }
+
   async getChatMessages(
     chatbotId: number,
     userId: number,

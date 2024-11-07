@@ -46,20 +46,57 @@ export class ChatbotService {
     return chatbot;
   }
 
+  /**
+   * Get chatbots available to the user.
+   * Includes public chatbots, user's own chatbots, and friends' chatbots.
+   * @param userId - ID of the user
+   * @returns Array of available chatbots
+   */
   async getAvailableChatbots(userId: number): Promise<Chatbot[]> {
-    const friends = await this.usersService.getFriends(userId);
-    const friendIds = friends.map((friend) => friend.id);
-    const query = this.chatbotRepository
+    // Get chatbots owned by friends
+    const friendsChatbots = await this.getFriendsChatbots(userId);
+
+    // Get public and user's own chatbots
+    const publicAndOwnChatbots = await this.chatbotRepository
       .createQueryBuilder('chatbot')
       .where('chatbot.isPublic = :isPublic', { isPublic: true })
-      .orWhere('chatbot.ownerId = :userId', { userId });
+      .orWhere('chatbot.ownerId = :userId', { userId })
+      .getMany();
 
-    if (friendIds.length > 0) {
-      query.orWhere('chatbot.ownerId IN (:...friendIds)', { friendIds });
+    // Combine results and remove duplicates
+    const allChatbotsMap = new Map<number, Chatbot>();
+    publicAndOwnChatbots.forEach((chatbot) =>
+      allChatbotsMap.set(chatbot.id, chatbot),
+    );
+    friendsChatbots.forEach((chatbot) =>
+      allChatbotsMap.set(chatbot.id, chatbot),
+    );
+
+    return Array.from(allChatbotsMap.values());
+  }
+
+  /**
+   * Get chatbots where the owner is a friend of the user.
+   * @param userId - ID of the user
+   * @returns Array of friends' chatbots
+   */
+  async getFriendsChatbots(userId: number): Promise<Chatbot[]> {
+    const friends = await this.usersService.getFriends(userId);
+
+    const friendIds = friends.map((friend) => friend.id);
+
+    // If the user has no friends, return an empty array
+    if (friendIds.length === 0) {
+      return [];
     }
 
-    const chatbots = await query.getMany();
-    return chatbots;
+    // Step 2: Retrieve chatbots where ownerId is in friendIds
+    const friendsChatbots = await this.chatbotRepository
+      .createQueryBuilder('chatbot')
+      .where('chatbot.ownerId IN (:...friendIds)', { friendIds })
+      .getMany();
+
+    return friendsChatbots;
   }
 
   async getChatbotById(chatbotId: number): Promise<Chatbot> {

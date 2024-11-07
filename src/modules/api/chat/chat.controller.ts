@@ -33,12 +33,26 @@ export class ChatController {
   }
 
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get available chats list' })
+  @ApiOperation({ summary: 'Discover chats' })
   @ApiResponse({ status: 200, description: 'List of chats', type: [Chatbot] })
   @UseGuards(AuthGuard('jwt'))
   @Get('available')
   async getAvailableChatList(@CurrentUser() user: User): Promise<Chatbot[]> {
     return this.chatService.getAvailableChatList(user.id);
+  }
+
+  // same for friends
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Friends' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of friends chatbots',
+    type: [Chatbot],
+  })
+  @UseGuards(AuthGuard('jwt'))
+  @Get('friends')
+  async getFriendsChatList(@CurrentUser() user: User): Promise<Chatbot[]> {
+    return this.chatService.getFriendsChatList(user.id);
   }
 
   @ApiBearerAuth()

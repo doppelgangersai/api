@@ -54,7 +54,7 @@ export class UserController {
         },
         username: {
           type: 'string',
-          required: false,
+          nullable: true,
         },
         avatar: {
           type: 'string',
