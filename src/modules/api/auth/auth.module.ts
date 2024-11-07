@@ -4,7 +4,7 @@ import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '../../config';
 import { UserModule } from '../user';
 import { AuthService, MagicLinkService } from './services';
-import { JwtStrategy } from './services/auth/jwt.strategy';
+import { JwtStrategy } from './services';
 import {
   AuthController,
   GoogleAuthController,
@@ -15,12 +15,14 @@ import {
   JWT_EXPIRATION_TIME,
   JWT_SECRET_KEY,
 } from '../../../core/constants/environment.constants';
+import { PointsModule } from '../../points/points.module';
 
 @Module({
   imports: [
     UserModule,
     ConfigModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
+    PointsModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {

@@ -15,6 +15,7 @@ import {
   GOOGLE_CLIENT_SECRET,
   GOOGLE_REDIRECT_URI,
 } from '../../../../core/constants/environment.constants';
+import { PointsService } from '../../../points/points.service';
 
 @ApiTags('google')
 @Controller('api/auth/google')
@@ -23,6 +24,7 @@ export class GoogleAuthController {
     private readonly configService: ConfigService,
     private readonly userService: UserService,
     private readonly authService: AuthService,
+    private readonly pointsService: PointsService,
   ) {}
 
   @ApiOperation({ summary: 'Google Auth: Redirect to Google OAuth' })
@@ -69,6 +71,7 @@ export class GoogleAuthController {
     @Query('code') code: string,
     @Query('ref') ref?: string,
   ) {
+    const referrerId = ref ? parseInt(ref, 10) : null;
     try {
       const { data } = await axios.post('https://oauth2.googleapis.com/token', {
         client_id: this.configService.get(GOOGLE_CLIENT_ID),
@@ -90,7 +93,7 @@ export class GoogleAuthController {
           googleId: userInfo.sub,
           fullName: userInfo.name,
           avatar: userInfo.picture,
-          // referralCode: ref, // Use ref here if needed
+          referrerId,
         });
       } else {
         await this.userService.update(user.id, {
@@ -98,7 +101,15 @@ export class GoogleAuthController {
         });
       }
 
-      const jwt = await this.authService.createToken(user);
+      const jwt = this.authService.createToken(user);
+
+      if (!user.referrerId && ref) {
+        await this.pointsService.reward(referrerId, 20, 'Referral signup');
+        await this.userService.update(user.id, {
+          referrerId,
+        });
+        await this.userService.addFriend(user.id, referrerId);
+      }
       return {
         accessToken: jwt.accessToken,
         expiresIn: jwt.expiresIn,

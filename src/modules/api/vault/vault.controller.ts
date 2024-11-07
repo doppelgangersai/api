@@ -69,7 +69,7 @@ export class VaultController {
       instagramFile: files[0].filename,
     });
     if (!req.user.instagramFile) {
-      await this.userService.reward(req.user.id, 20);
+      await this.pointsService.reward(req.user.id, 20);
     }
     this.vaultEmitter.emitInstagramUploaded(req.user.id);
     return {
@@ -131,7 +131,7 @@ export class VaultController {
       linkedInFile: files[0].filename,
     });
     if (!req.user.linkedInFile) {
-      await this.userService.reward(req.user.id, 20);
+      await this.pointsService.reward(req.user.id, 20);
     }
     return {
       message: 'LinkedIn archive uploaded successfully',
@@ -172,7 +172,7 @@ export class VaultController {
       whatsAppFile: files[0].filename,
     });
     if (!req.user.whatsAppFile) {
-      await this.userService.reward(req.user.id, 20);
+      await this.pointsService.reward(req.user.id, 20);
     }
     return {
       message: 'WhatsApp archive uploaded successfully',
@@ -213,7 +213,7 @@ export class VaultController {
       facebookFile: files[0].filename,
     });
     if (!req.user.facebookFile) {
-      await this.userService.reward(req.user.id, 20);
+      await this.pointsService.reward(req.user.id, 20);
     }
     return {
       message: 'Facebook archive uploaded successfully',
@@ -254,7 +254,7 @@ export class VaultController {
       messengerFile: files[0].filename,
     });
     if (!req.user.messengerFile) {
-      await this.userService.reward(req.user.id, 20);
+      await this.pointsService.reward(req.user.id, 20);
     }
     return {
       message: 'Messenger archive uploaded successfully',
@@ -268,7 +268,7 @@ export class VaultController {
   async x(@Body() { username }: UsernameDTO, @CurrentUser() user: User) {
     await this.userService.update(user.id, { xUsername: username });
     if (!user.xUsername) {
-      await this.userService.reward(user.id, 20);
+      await this.pointsService.reward(user.id, 20);
     }
     return {
       username,
@@ -276,46 +276,46 @@ export class VaultController {
     };
   }
 
-  @Post('telegram')
-  @UseGuards(AuthGuard())
-  @UseInterceptors(VaultFileInterceptor)
-  @ApiOperation({ summary: 'Upload Telegram archive' })
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    description: 'Telegram archive',
-    type: 'multipart/form-data',
-    required: true,
-    schema: {
-      type: 'object',
-      properties: {
-        archive: {
-          type: 'string',
-          format: 'binary',
-          nullable: false,
-        },
-      },
-    },
-  })
-  @ApiResponse({ status: 201, description: 'The archive has been uploaded.' })
-  @ApiResponse({ status: 400, description: 'Invalid file or file too large.' })
-  async telegram(
-    @UploadedFiles() files: Express.Multer.File[],
-    @Req() req: RequestWithUser,
-  ) {
-    if (!files || files.length === 0) {
-      throw new BadRequestException('No file uploaded');
-    }
-    await this.userService.update(req.user.id, {
-      telegramFile: files[0].filename,
-    });
-    if (!req.user.telegramFile) {
-      await this.userService.reward(req.user.id, 20);
-    }
-    return {
-      message: 'Telegram archive uploaded successfully',
-      filenames: files.map((file) => file.filename),
-    };
-  }
+  // @Post('telegram')
+  // @UseGuards(AuthGuard())
+  // @UseInterceptors(VaultFileInterceptor)
+  // @ApiOperation({ summary: 'Upload Telegram archive' })
+  // @ApiConsumes('multipart/form-data')
+  // @ApiBody({
+  //   description: 'Telegram archive',
+  //   type: 'multipart/form-data',
+  //   required: true,
+  //   schema: {
+  //     type: 'object',
+  //     properties: {
+  //       archive: {
+  //         type: 'string',
+  //         format: 'binary',
+  //         nullable: false,
+  //       },
+  //     },
+  //   },
+  // })
+  // @ApiResponse({ status: 201, description: 'The archive has been uploaded.' })
+  // @ApiResponse({ status: 400, description: 'Invalid file or file too large.' })
+  // async telegram(
+  //   @UploadedFiles() files: Express.Multer.File[],
+  //   @Req() req: RequestWithUser,
+  // ) {
+  //   if (!files || files.length === 0) {
+  //     throw new BadRequestException('No file uploaded');
+  //   }
+  //   await this.userService.update(req.user.id, {
+  //     telegramFile: files[0].filename,
+  //   });
+  //   if (!req.user.telegramFile) {
+  //     await this.pointsService.reward(req.user.id, 20);
+  //   }
+  //   return {
+  //     message: 'Telegram archive uploaded successfully',
+  //     filenames: files.map((file) => file.filename),
+  //   };
+  // }
 
   @Post('slack')
   @UseGuards(AuthGuard())
@@ -332,7 +332,7 @@ export class VaultController {
   async tiktok(@Body() { username }: UsernameDTO, @CurrentUser() user: User) {
     await this.userService.update(user.id, { tikTokUsername: username });
     if (!user.tikTokUsername) {
-      await this.userService.reward(user.id, 20);
+      await this.pointsService.reward(user.id, 20);
     }
     return {
       username,

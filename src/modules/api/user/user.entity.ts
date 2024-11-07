@@ -1,4 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  JoinTable,
+  ManyToMany,
+} from 'typeorm';
 import { PasswordTransformer } from './password.transformer';
 import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
 
@@ -79,6 +85,10 @@ export class User {
 
   @Column({ nullable: true })
   telegramAuthSession: string;
+
+  @ManyToMany(() => User, (user) => user.friends)
+  @JoinTable()
+  friends: User[];
 
   toJSON() {
     const {

@@ -12,7 +12,7 @@ export class PointsService {
     private readonly userService: UserService,
   ) {}
 
-  async rewardPoints(userId: number, amount: number, message?: string) {
+  async reward(userId: number, amount: number, message?: string) {
     const rewardTransaction = await this.pointsRepository.save({
       fromUserId: null,
       toUserId: userId,

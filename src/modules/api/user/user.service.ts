@@ -8,19 +8,23 @@ import { User, UserFillableFields } from './user.entity';
 export class UserService {
   constructor(
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    private readonly usersRepository: Repository<User>,
   ) {}
 
   async get(id: number) {
-    return this.userRepository.findOne({ id });
+    return this.usersRepository.findOne({ id });
+  }
+
+  async countReferrals(id: number) {
+    return this.usersRepository.count({ referrerId: id });
   }
 
   async getByEmail(email: string) {
-    return await this.userRepository.findOne({ email });
+    return await this.usersRepository.findOne({ email });
   }
 
   async getUsersWithBackstory() {
-    return this.userRepository.find({
+    return this.usersRepository.find({
       where: {
         backstory: Not(IsNull()),
       },
@@ -45,7 +49,7 @@ export class UserService {
       );
     }
 
-    return await this.userRepository.save(payload);
+    return await this.usersRepository.save(payload);
   }
 
   async create(payload: Partial<User>) {
@@ -57,14 +61,34 @@ export class UserService {
       );
     }
 
-    return await this.userRepository.save(payload);
+    return await this.usersRepository.save(payload);
   }
 
   async update(id, user: Partial<User>) {
-    return await this.userRepository.update(id, { ...user });
+    console.log('Updating user', id, user);
+    return await this.usersRepository.update(id, { ...user });
+  }
+
+  async addFriend(userId: number, friendId: number): Promise<void> {
+    const user = await this.usersRepository.findOne(userId, {
+      relations: ['friends'],
+    });
+    const friend = await this.usersRepository.findOne(friendId);
+
+    if (user && friend) {
+      user.friends.push(friend);
+      await this.usersRepository.save(user);
+    }
+  }
+
+  async getFriends(userId: number): Promise<User[]> {
+    const user = await this.usersRepository.findOne(userId, {
+      relations: ['friends'],
+    });
+    return user?.friends || [];
   }
 
   async reward(id: number, points: number = 20) {
-    return await this.userRepository.increment({ id }, 'points', points);
+    return await this.usersRepository.increment({ id }, 'points', points);
   }
 }

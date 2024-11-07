@@ -7,6 +7,8 @@ import {
   Req,
   Patch,
   Get,
+  Param,
+  Post,
 } from '@nestjs/common';
 import {
   ApiConsumes,
@@ -15,6 +17,7 @@ import {
   ApiResponse,
   ApiTags,
   ApiBearerAuth,
+  ApiParam,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { UserService } from './user.service';
@@ -31,7 +34,7 @@ const S3AvatarFileInterceptor = createS3FileInterceptor({
 @ApiTags('user')
 @Controller('/api/user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly usersService: UserService) {}
 
   @Patch('form')
   @ApiBearerAuth()
@@ -74,7 +77,7 @@ export class UserController {
       const fileNames = files.map((file) => file.filename);
       updateData.avatar = fileNames[0];
     }
-    await this.userService.update(req.user.id, updateData);
+    await this.usersService.update(req.user.id, updateData);
     return {
       filenames: files ? files.map((file) => file.filename) : null,
       fullName,
@@ -89,5 +92,43 @@ export class UserController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getLoggedInUser(@CurrentUser() user: User): Promise<User> {
     return user;
+  }
+
+  /**
+   * Add a friend to the current user's friend list.
+   * @param user - The current authenticated user.
+   * @param friendId - The ID of the user to add as a friend.
+   * @returns A success message.
+   */
+  @ApiOperation({ summary: 'Add a friend' })
+  @ApiResponse({ status: 201, description: 'Friend successfully added.' })
+  @ApiParam({
+    name: 'friendId',
+    type: 'number',
+    description: 'ID of the friend to add',
+  })
+  @Post('friends/:friendId')
+  async addFriend(
+    @CurrentUser() user: Partial<User>,
+    @Param('friendId') friendId: number,
+  ) {
+    await this.usersService.addFriend(user.id, friendId);
+    return { message: 'Friend successfully added' };
+  }
+
+  /**
+   * Retrieve the current user's list of friends.
+   * @param user - The current authenticated user.
+   * @returns An array of the user's friends.
+   */
+  @ApiOperation({ summary: 'Get friends list' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of friends retrieved successfully.',
+  })
+  @Get('friends')
+  async getFriends(@CurrentUser() user: Partial<User>) {
+    const friends = await this.usersService.getFriends(user.id);
+    return friends;
   }
 }

@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { MissionController } from './mission.controller';
+import { UserModule } from '../user';
 
 @Module({
-  imports: [],
+  imports: [UserModule],
   controllers: [MissionController],
   providers: [],
   exports: [],

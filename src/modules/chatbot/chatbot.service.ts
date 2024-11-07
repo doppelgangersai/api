@@ -14,7 +14,7 @@ interface MessagesWithTitle {
 export class ChatbotService {
   constructor(
     private aiService: AIService,
-    private userService: UserService,
+    private usersService: UserService,
     @InjectRepository(Chatbot)
     private readonly chatbotRepository: Repository<Chatbot>,
   ) {}
@@ -28,7 +28,7 @@ export class ChatbotService {
       maxForBlock,
     );
 
-    const user = await this.userService.get(userId);
+    const user = await this.usersService.get(userId);
 
     const chatbot = await this.chatbotRepository.save({
       backstory,
@@ -47,10 +47,19 @@ export class ChatbotService {
   }
 
   async getAvailableChatbots(userId: number): Promise<Chatbot[]> {
-    // isPublic or ownerId === userId
-    return this.chatbotRepository.find({
-      where: [{ isPublic: true }, { ownerId: userId }],
-    });
+    const friends = await this.usersService.getFriends(userId);
+    const friendIds = friends.map((friend) => friend.id);
+    const query = this.chatbotRepository
+      .createQueryBuilder('chatbot')
+      .where('chatbot.isPublic = :isPublic', { isPublic: true })
+      .orWhere('chatbot.ownerId = :userId', { userId });
+
+    if (friendIds.length > 0) {
+      query.orWhere('chatbot.ownerId IN (:...friendIds)', { friendIds });
+    }
+
+    const chatbots = await query.getMany();
+    return chatbots;
   }
 
   async getChatbotById(chatbotId: number): Promise<Chatbot> {

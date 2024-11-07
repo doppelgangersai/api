@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { MandrillEmailService } from '../../../../mail/mandrill-email.service';
 import { AuthService } from '../auth';
 import { ConfigService } from '../../../../config';
-import { UserService } from '../../../user';
+import { User, UserService } from '../../../user';
 import { APP_URL } from '../../../../../core/constants/environment.constants';
 
 interface ITokenCode {
@@ -26,18 +26,18 @@ export class MagicLinkService {
     private readonly emailService: MandrillEmailService,
   ) {}
 
-  async generateToken(payload: IEmailCode): Promise<string> {
+  generateToken(payload: IEmailCode): string {
     return this.jwtService.sign(payload, {
       secret: process.env.JWT_SECRET,
       expiresIn: '15m',
     });
   }
 
-  async generateCode(): Promise<string> {
+  generateCode(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  async verifyCode({ token, code }: ITokenCode): Promise<string> {
+  verifyCode({ token, code }: ITokenCode): Promise<string> {
     try {
       const decoded = this.jwtService.verify(token, {
         secret: process.env.JWT_SECRET,
@@ -71,7 +71,12 @@ export class MagicLinkService {
     });
   }
 
-  async authenticate({ token, code }: ITokenCode): Promise<any> {
+  async authenticate({ token, code }: ITokenCode): Promise<{
+    user: Partial<User>;
+    redirectTo: string;
+    expiresIn: string;
+    accessToken: string;
+  }> {
     const email = await this.verifyCode({ token, code });
     let user = await this.userService.getByEmail(email);
     let redirectTo = '/dashboard/vault';
@@ -80,7 +85,7 @@ export class MagicLinkService {
       redirectTo = '/start/register';
     }
     return {
-      ...(await this.authService.createToken(user)),
+      ...this.authService.createToken(user),
       redirectTo,
     };
   }

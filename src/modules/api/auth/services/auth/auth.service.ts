@@ -17,7 +17,11 @@ export class AuthService {
     private readonly userService: UserService,
   ) {}
 
-  async createToken(user: User) {
+  createToken(user: User): {
+    expiresIn: string;
+    accessToken: string;
+    user: User;
+  } {
     return {
       expiresIn: this.configService.get(JWT_EXPIRATION_TIME),
       accessToken: this.jwtService.sign({ id: user.id }),
@@ -45,6 +49,6 @@ export class AuthService {
     }
 
     const user = await this.userService.get(user_id);
-    return await this.createToken(user);
+    return this.createToken(user);
   }
 }

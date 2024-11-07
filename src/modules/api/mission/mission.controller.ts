@@ -8,7 +8,7 @@ import {
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
-import { User } from '../user';
+import { User, UserService } from '../user';
 
 class Mission {
   @ApiProperty({ example: 1, description: 'Unique identifier for the mission' })
@@ -59,6 +59,7 @@ export class MissionResponse {
 @Controller('api/missions')
 @ApiTags('api/missions')
 export class MissionController {
+  constructor(private readonly userService: UserService) {}
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Retrieve all missions and total points' })
@@ -68,7 +69,8 @@ export class MissionController {
     type: MissionResponse,
   })
   @Get()
-  getMissions(@CurrentUser() user: User): MissionResponse {
+  async getMissions(@CurrentUser() user: User): Promise<MissionResponse> {
+    const referralsCount = await this.userService.countReferrals(user.id);
     return {
       missions: [
         {
@@ -76,7 +78,7 @@ export class MissionController {
           title: 'Refer a friend',
           description: 'Some description',
           action: 'refer',
-          done: false,
+          done: referralsCount > 0,
           points: 20,
         },
         {

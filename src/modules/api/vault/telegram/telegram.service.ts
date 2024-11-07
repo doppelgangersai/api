@@ -11,6 +11,7 @@ import {
 } from '../../../../core/constants/environment.constants';
 import { AIService, MessagesWithTitle } from '../../../ai/ai.service';
 import { ChatbotService } from '../../../chatbot/chatbot.service';
+import { PointsService } from '../../../points/points.service';
 
 const { StringSession } = sessions;
 
@@ -27,15 +28,13 @@ export class TelegramService {
     private vaultEmitter: VaultEmitter,
     private aiService: AIService,
     private chatbotService: ChatbotService,
+    private pointsService: PointsService,
   ) {
     this.apiId = parseInt(this.configService.get<string>(TELEGRAM_API_ID), 10);
     this.apiHash = this.configService.get<string>(TELEGRAM_API_HASH);
   }
 
-  private createClient(
-    phone: string,
-    sessionString: string = '',
-  ): TelegramClient {
+  private createClient(phone: string, sessionString = ''): TelegramClient {
     const client = new TelegramClient(
       new StringSession(sessionString),
       this.apiId,
@@ -192,6 +191,10 @@ export class TelegramService {
 
     await this.removeClient(clientId);
 
+    if (msgn < 50) {
+      return chats;
+    }
+
     const backstory = await this.aiService.getBackstoryByMessagesPack([
       messagesWithTitle,
     ]);
@@ -200,7 +203,7 @@ export class TelegramService {
 
     user.backstory = backstory;
     await this.userService.update(userId, user);
-    // console.log(backstory);
+    await this.pointsService.reward(userId, 10);
     return chats;
   }
 
