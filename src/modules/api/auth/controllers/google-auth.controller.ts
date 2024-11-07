@@ -86,6 +86,7 @@ export class GoogleAuthController {
       );
 
       let user = await this.userService.getByEmail(userInfo.email);
+      const newUser = !user;
       if (!user) {
         user = await this.userService.create({
           email: userInfo.email,
@@ -116,6 +117,7 @@ export class GoogleAuthController {
         user: jwt.user,
         googleUserInfo: userInfo,
         redirectTo: '/dashboard/vault',
+        newUser,
       };
     } catch (error) {
       throw new UnauthorizedException(error.message);
