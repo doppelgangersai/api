@@ -1,4 +1,12 @@
-import { Controller, Get, Post, UseGuards, Param, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  UseGuards,
+  Param,
+  Body,
+  HttpCode,
+} from '@nestjs/common';
 import {
   ApiOperation,
   ApiTags,
@@ -6,6 +14,7 @@ import {
   ApiParam,
   ApiBody,
   ApiBearerAuth,
+  ApiResponseProperty,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -19,10 +28,45 @@ import { User } from '../user';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
 import { Chatbot } from '../../chatbot/chatbot.entity';
 
+export class MergeChatbotDto {
+  @ApiResponseProperty({
+    type: Chatbot,
+  })
+  chatbot: Chatbot;
+}
+
 @ApiTags('chat')
 @Controller('api/chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
+
+  // mock endpoint: POST /api/chat/merge/:chatbotId
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Merge chatbot' })
+  @ApiParam({ name: 'chatbotId', description: 'ID of the chatbot' })
+  @ApiResponse({
+    status: 201,
+    description: 'Merged',
+    type: MergeChatbotDto,
+  })
+  @HttpCode(201)
+  @UseGuards(AuthGuard('jwt'))
+  @Post('merge/:chatbotId')
+  mergeChatbot(
+    @Param('chatbotId') chatbotId: number,
+    @CurrentUser() user: User,
+  ) {
+    return {
+      id: 707,
+      fullName: 'Merged Chatbot',
+      description: 'Chatbot for Merged Chatbot',
+      avatar: 'https://i.pravatar.cc/150?img=1',
+      isPublic: false,
+      creatorId: user.id,
+      ownerId: user.id,
+    };
+  }
+
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get chat list' })
   @ApiResponse({ status: 200, description: 'List of chats', type: [ChatDto] })
