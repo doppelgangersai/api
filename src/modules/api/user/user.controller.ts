@@ -52,6 +52,10 @@ export class UserController {
         name: {
           type: 'string',
         },
+        username: {
+          type: 'string',
+          required: false,
+        },
         avatar: {
           type: 'string',
           format: 'binary',
@@ -77,6 +81,11 @@ export class UserController {
       const fileNames = files.map((file) => file.filename);
       updateData.avatar = fileNames[0];
     }
+
+    if (req.body.username) {
+      updateData.username = req.body.username;
+    }
+
     await this.usersService.update(req.user.id, updateData);
     return {
       filenames: files ? files.map((file) => file.filename) : null,

@@ -20,6 +20,10 @@ export class User {
   @Column({ length: 255, nullable: true })
   fullName: string;
 
+  @ApiProperty({ required: false, example: 'john_doe' })
+  @Column({ length: 255, nullable: true, unique: true })
+  username: string;
+
   @ApiResponseProperty({ example: 'john@do.e' })
   @Column({ length: 255 })
   email: string;
