@@ -9,6 +9,12 @@ import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
 import { User, UserService } from '../user';
+import { InjectRepository } from '@nestjs/typeorm';
+import {
+  MissionStatus,
+  UserMissionEntity,
+} from './entites/user-mission.entity';
+import { Repository } from 'typeorm';
 
 class Mission {
   @ApiProperty({ example: 1, description: 'Unique identifier for the mission' })
@@ -66,7 +72,11 @@ export class StartMissionDto {
 @Controller('api/missions')
 @ApiTags('api/missions')
 export class MissionController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    @InjectRepository(UserMissionEntity)
+    private readonly userMissionRepository: Repository<UserMissionEntity>,
+  ) {}
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Retrieve all missions and total points' })
@@ -111,10 +121,18 @@ export class MissionController {
     @Body() mission: StartMissionDto,
     @CurrentUser() user: User,
   ) {
+    const userMission = this.userMissionRepository.create({
+      missionId: mission.id,
+      userId: user.id,
+      status: MissionStatus.STARTED,
+    });
+    await this.userMissionRepository.save(userMission);
+
     return {
       mission: {
         ...mission,
         userId: user.id,
+        status: userMission.status,
       },
     };
   }
