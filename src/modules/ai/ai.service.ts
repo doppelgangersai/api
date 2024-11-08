@@ -11,6 +11,10 @@ export interface MessagesWithTitle {
 export class AIService {
   constructor(private readonly openAIService: OpenAIService) {}
 
+  async processText(prompt: string) {
+    return this.openAIService.getResponse(prompt);
+  }
+
   async getBackstoryByMessagesPack(
     messages: MessagesWithTitle[],
     maxForBlock = 15,
@@ -86,5 +90,9 @@ Please provide a detailed summary and analysis based on the above data.
 Be careful with sensitive information and make sure the output is suitable for public consumption.
 Result should be an instruction for users digital twin chatbot.
 `;
+  }
+
+  async generateImage(prompt: string) {
+    return this.openAIService.generateImage(prompt);
   }
 }

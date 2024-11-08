@@ -29,6 +29,16 @@ export class Chatbot {
   @Column()
   ownerId: number;
 
+  @Column({
+    nullable: true,
+  })
+  merge1Id?: number;
+
+  @Column({
+    nullable: true,
+  })
+  merge2Id?: number;
+
   toJSON() {
     const mapped = { ...this, avatar: avatarTransformer(this) };
     console.log(mapped, this);

@@ -40,6 +40,11 @@ export class ChatbotService {
       isPublic: false,
     });
 
+    const chatbotId = chatbot.id;
+    await this.usersService.update(userId, {
+      chatbotId,
+    });
+
     console.log(`Chatbot service created with backstory: ${backstory}`);
     console.log(`Chatbot service created by user: ${userId}`);
 
@@ -101,5 +106,46 @@ export class ChatbotService {
 
   async getChatbotById(chatbotId: number): Promise<Chatbot> {
     return this.chatbotRepository.findOne(chatbotId);
+  }
+
+  async mergeChatbots(chatbot1Id: number, chatbot2Id: number, userId: number) {
+    const chatbot1 = await this.getChatbotById(chatbot1Id);
+    const chatbot2 = await this.getChatbotById(chatbot2Id);
+    const backstory1 = chatbot1.backstory;
+    const backstory2 = chatbot2.backstory;
+    const backstory = `Merge two users backstories to one (like a hybrid):
+    Backstory 1:
+    ${backstory1}
+    
+    Backstory 2:
+    ${backstory2}`;
+
+    const imagePrompt = await this.aiService
+      .processText(`Create image generation prompt for a single person face, 500 characters max, based on backstories:
+    Merge two users backstories to one (like a hybrid):
+    Backstory 1:
+    ${backstory1}
+    
+    Backstory 2:
+    ${backstory2}`);
+
+    console.log(imagePrompt);
+
+    const img = await this.aiService.generateImage(`${imagePrompt}`);
+    console.log(img);
+
+    const chatbot = await this.chatbotRepository.save({
+      backstory,
+      ownerId: userId,
+      creatorId: userId,
+      merge1Id: chatbot1Id,
+      merge2Id: chatbot1Id,
+      fullName: `${chatbot1.fullName} & ${chatbot2.fullName}`,
+      description: `Merge of ${chatbot1.fullName} & ${chatbot2.fullName}`,
+      avatar: img,
+      isPublic: false,
+    });
+
+    return chatbot;
   }
 }

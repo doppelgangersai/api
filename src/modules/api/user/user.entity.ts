@@ -90,6 +90,11 @@ export class User {
   @Column({ nullable: true })
   telegramAuthSession: string;
 
+  @Column({
+    nullable: true,
+  })
+  chatbotId: number;
+
   @ManyToMany(() => User, (user) => user.friends)
   @JoinTable()
   friends: User[];

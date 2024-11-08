@@ -6,6 +6,7 @@ import {
   Param,
   Body,
   HttpCode,
+  NotAcceptableException,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -56,15 +57,10 @@ export class ChatController {
     @Param('chatbotId') chatbotId: number,
     @CurrentUser() user: User,
   ) {
-    return {
-      id: 707,
-      fullName: 'Merged Chatbot',
-      description: 'Chatbot for Merged Chatbot',
-      avatar: 'https://i.pravatar.cc/150?img=1',
-      isPublic: false,
-      creatorId: user.id,
-      ownerId: user.id,
-    };
+    if (!user.chatbotId) {
+      throw new NotAcceptableException('User has not chatbot');
+    }
+    return this.chatService.merge(chatbotId, user.chatbotId, user.id);
   }
 
   @ApiBearerAuth()

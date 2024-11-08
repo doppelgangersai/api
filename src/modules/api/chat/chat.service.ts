@@ -163,7 +163,7 @@ Now another user will write to you. You are not his digital twin, but the digita
   async initChat(
     withUserId: number,
     fromUserId: number,
-    providerName: string = 'chatbotkit',
+    providerName = 'chatbotkit',
   ): Promise<Chat> {
     const chat = new Chat();
     chat.with_user_id = withUserId;
@@ -179,5 +179,9 @@ Now another user will write to you. You are not his digital twin, but the digita
 
     await this.chatRepository.save(chat);
     return chat;
+  }
+
+  async merge(chatbot1Id: number, chatbot2Id: number, userId: number) {
+    return this.chatbotService.mergeChatbots(chatbot1Id, chatbot2Id, userId);
   }
 }
