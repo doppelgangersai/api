@@ -107,7 +107,15 @@ export class MissionController {
     summary: 'Start mission',
   })
   @Post('start')
-  async startMission(@Body() mission: StartMissionDto) {
-    return { mission };
+  async startMission(
+    @Body() mission: StartMissionDto,
+    @CurrentUser() user: User,
+  ) {
+    return {
+      mission: {
+        ...mission,
+        userId: user.id,
+      },
+    };
   }
 }
