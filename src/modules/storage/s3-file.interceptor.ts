@@ -42,7 +42,7 @@ function createS3FileInterceptor({
             !allowedMimeTypes.includes(file.mimetype)
           ) {
             callback(null, false);
-            throw new BadRequestException('Invalid file type');
+            // throw new BadRequestException('Invalid file type');
           } else {
             callback(null, true);
           }
