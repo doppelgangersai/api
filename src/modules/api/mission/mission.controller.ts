@@ -5,7 +5,7 @@ import {
   ApiProperty,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
 import { User, UserService } from '../user';
@@ -55,6 +55,13 @@ export class MissionResponse {
   })
   points: number;
 }
+export class StartMissionDto {
+  @ApiProperty({
+    example: 1,
+    description: 'Unique identifier for the mission',
+  })
+  id: number;
+}
 
 @Controller('api/missions')
 @ApiTags('api/missions')
@@ -92,5 +99,15 @@ export class MissionController {
       ],
       points: user.points,
     };
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({
+    summary: 'Start mission',
+  })
+  @Post('start')
+  async startMission(@Body() mission: StartMissionDto) {
+    return { mission };
   }
 }
