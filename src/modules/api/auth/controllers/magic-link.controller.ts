@@ -14,9 +14,16 @@ import {
   MagicLinkSendDTO,
   MagicLinkVerifyDTO,
 } from '../services/magic-link/magic-link.dtos';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponseProperty, ApiTags } from '@nestjs/swagger';
 import { PointsService } from '../../../points/points.service';
 import { UserService } from '../../user';
+
+class SendMagicLinkResponse {
+  @ApiResponseProperty({
+    example: 'gr33t1ngFr0mTa1',
+  })
+  token: string;
+}
 
 @ApiTags('authentication')
 @Controller('api/auth/email')
@@ -34,12 +41,12 @@ export class MagicLinkAuthController {
     @Res() res: Response,
   ) {
     try {
-      const code = await this.magicLinkService.generateCode();
-      const token = await this.magicLinkService.generateToken({ email, code });
+      const code = this.magicLinkService.generateCode();
+      const token = this.magicLinkService.generateToken({ email, code });
       await this.magicLinkService.sendEmail({ email, token, code });
       res
         .status(HttpStatus.OK)
-        .json({ message: 'Magic link sent successfully.' });
+        .json({ message: 'Magic link sent successfully.', token });
     } catch (error) {
       res
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
