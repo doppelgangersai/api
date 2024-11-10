@@ -41,6 +41,8 @@ export class ChatbotService {
     });
 
     const chatbotId = chatbot.id;
+
+    console.log(`Created chatbot with id: ${chatbotId}`);
     await this.usersService.update(userId, {
       chatbotId,
     });

@@ -130,6 +130,7 @@ export class TelegramService {
   async parseChats(userId: number): Promise<string[]> {
     const user = await this.userService.get(userId);
     if (!user.telegramAuthSession) {
+      console.warn('No telegram session found for user', user.id);
       return;
     }
     const clientId = user.telegramAuthSession;
@@ -161,12 +162,12 @@ export class TelegramService {
       });
 
       for await (const message of messages) {
-        msgn = msgn + 1;
-        if (message.out && message.message) {
+        if (message.out && message.message && !message.fwdFrom) {
+          msgn = msgn + 1;
           const chatName = dialog.title || 'Unknown Chat/User';
           const formattedMessage = `To ${chatName}: ${message.message}`;
           console.log(msgn, formattedMessage);
-          chats.push(formattedMessage);
+          chats.push(message.message);
           if (formattedMessage.length > 200) {
             console.log(message);
           }
@@ -199,9 +200,12 @@ export class TelegramService {
       messagesWithTitle,
     ]);
 
-    await this.chatbotService.createChatbot([messagesWithTitle], userId);
+    const charbotId = (
+      await this.chatbotService.createChatbot([messagesWithTitle], userId)
+    ).id;
 
     user.backstory = backstory;
+    user.chatbotId = charbotId;
     await this.userService.update(userId, user);
     await this.pointsService.reward(userId, 10);
     return chats;
