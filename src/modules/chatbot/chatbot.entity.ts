@@ -9,15 +9,21 @@ export class Chatbot {
   @PrimaryGeneratedColumn()
   id: number;
   @ApiResponseProperty()
-  @Column()
+  @Column({
+    nullable: true,
+  })
   fullName: string;
   @ApiResponseProperty()
-  @Column()
+  @Column({
+    nullable: true,
+  })
   description: string;
   @Column()
   backstory: string;
   @ApiResponseProperty()
-  @Column()
+  @Column({
+    nullable: true,
+  })
   avatar: string;
   @ApiResponseProperty()
   @Column()
