@@ -98,7 +98,7 @@ export class StorageService {
       console.log('File downloaded successfully to', destinationPath);
     } catch (e) {
       console.log('Download error:', e);
-      throw e; // rethrow the error after logging
+      console.error(e.message);
     }
   }
 
