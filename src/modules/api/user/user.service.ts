@@ -91,4 +91,18 @@ export class UserService {
   async reward(id: number, points: number = 20) {
     return await this.usersRepository.increment({ id }, 'points', points);
   }
+
+  async getOrCreateByNearAccountId(
+    nearAccountId: string,
+    nearPublicKey: string,
+    referrerId?: number,
+  ) {
+    const user = await this.usersRepository.findOne({
+      where: { nearAccountId },
+    });
+    if (!user) {
+      return await this.create({ nearAccountId, nearPublicKey, referrerId });
+    }
+    return user;
+  }
 }

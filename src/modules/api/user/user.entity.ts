@@ -25,8 +25,21 @@ export class User {
   username: string;
 
   @ApiResponseProperty({ example: 'john@do.e' })
-  @Column({ length: 255 })
+  @Column({ length: 255, nullable: true })
   email: string;
+
+  @ApiProperty({
+    required: false,
+    example: '24be010483dccbb08c972bcb5bbe67f8505d6f8aedd701684a36561a1c83c96b',
+  })
+  @Column({ length: 255, nullable: true })
+  nearAccountId: string;
+  @ApiProperty({
+    required: false,
+    example: 'ed25519:3URid12St7mSsRzwZV6cvDETFmgLvEz7JP8V89HeNsdc',
+  })
+  @Column({ length: 255, nullable: true })
+  nearPublicKey: string;
 
   @ApiProperty({ required: false, example: 'https://example.com/avatar.jpg' })
   @Column({ length: 255, nullable: true })
