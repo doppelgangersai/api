@@ -4,7 +4,7 @@ import { AuthService, LoginDTO, RegisterDTO, TokenDTO } from '..';
 import { UserService } from '../../user';
 
 @Controller('api/auth')
-@ApiTags('authentication')
+@ApiTags('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,

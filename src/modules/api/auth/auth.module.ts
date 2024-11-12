@@ -9,6 +9,7 @@ import {
   AuthController,
   GoogleAuthController,
   MagicLinkAuthController,
+  NearController,
 } from './controllers';
 import { MandrillEmailService } from '../../mail/mandrill-email.service';
 import {
@@ -40,7 +41,12 @@ import { PointsModule } from '../../points/points.module';
       inject: [ConfigService],
     }),
   ],
-  controllers: [AuthController, GoogleAuthController, MagicLinkAuthController],
+  controllers: [
+    AuthController,
+    GoogleAuthController,
+    MagicLinkAuthController,
+    NearController,
+  ],
   providers: [AuthService, JwtStrategy, MagicLinkService, MandrillEmailService],
   exports: [PassportModule.register({ defaultStrategy: 'jwt' })],
 })
