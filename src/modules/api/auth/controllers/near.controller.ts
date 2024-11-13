@@ -12,7 +12,7 @@ export class NearAuthDto {
   account_id: string;
   all_keys?: string;
   public_key?: string;
-  ref?: number;
+  ref?: string;
 }
 
 @ApiTags('auth')
@@ -50,10 +50,11 @@ export class NearController {
   @Get()
   async auth(@Query() query: NearAuthDto) {
     console.log('query', query);
+    const referrerId = (query.ref && parseInt(query.ref, 10)) || null;
     const user = await this.userService.getOrCreateByNearAccountId(
       query.account_id,
       query.all_keys || query.public_key,
-      query.ref,
+      referrerId,
     );
     return this.authService.createToken(user);
   }
