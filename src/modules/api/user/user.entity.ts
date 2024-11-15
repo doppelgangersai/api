@@ -117,16 +117,16 @@ export class User {
       password,
       googleAccessToken,
       appleAccessToken,
-      // telegramAuthSession,
+      telegramAuthSession,
       // telegramFile,
-      // instagramFile,
+      instagramFile,
       // backstory,
       ...self
     } = this;
     return {
       ...self,
-      isTelegramConnected: !!this.telegramAuthSession,
-      isInstagramConnected: !!this.instagramFile,
+      isTelegramConnected: !!telegramAuthSession,
+      isInstagramConnected: !!instagramFile,
       avatar: avatarTransformer(this),
     };
   }
