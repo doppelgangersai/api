@@ -14,9 +14,15 @@ import {
   MagicLinkSendDTO,
   MagicLinkVerifyDTO,
 } from '../services/magic-link/magic-link.dtos';
-import { ApiOperation, ApiResponseProperty, ApiTags } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiResponse,
+  ApiResponseProperty,
+  ApiTags,
+} from '@nestjs/swagger';
 import { PointsService } from '../../../points/points.service';
 import { UserService } from '../../user';
+import { TokenDTO } from '../auth.dtos';
 
 class SendMagicLinkResponse {
   @ApiResponseProperty({
@@ -34,6 +40,11 @@ export class MagicLinkAuthController {
     private readonly userService: UserService,
   ) {}
 
+  @ApiResponse({
+    status: 200,
+    description: 'Magic link sent successfully',
+    type: SendMagicLinkResponse,
+  })
   @ApiOperation({ summary: 'Send magic link with code to email' })
   @Post('send')
   async sendMagicLink(
@@ -54,7 +65,12 @@ export class MagicLinkAuthController {
     }
   }
 
-  @ApiOperation({ summary: 'Verify magic link with code' })
+  @ApiResponse({ status: 201, description: 'Successful Login', type: TokenDTO })
+  @ApiResponse({ status: 401, description: 'Invalid token / code' })
+  @ApiOperation({
+    summary:
+      'Verify magic link with code: post `token` from `send` and code from e-mail',
+  })
   @Post('code')
   async verifyCode(@Body() { code, token, ref }: MagicLinkVerifyDTO) {
     const referrerId = ref ? parseInt(ref, 10) : null;
