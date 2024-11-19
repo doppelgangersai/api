@@ -1,5 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { TokenDTO } from '../auth.dtos';
 import { UserService } from '../../user';
 import { AuthService } from '../services';
@@ -47,6 +47,7 @@ export class NearController {
     required: false,
     description: 'Optional referral code for tracking the origin of signup',
   })
+  @ApiOperation({ summary: 'WIP: Near Auth' })
   @Get()
   async auth(@Query() query: NearAuthDto) {
     console.log('query', query);
