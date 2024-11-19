@@ -89,7 +89,7 @@ export class TelegramController {
     );
   }
 
-  // trigger: emit for current user
+  // TODO: remove this endpoint in production?
   @ApiBearerAuth()
   @Post('trigger')
   @ApiOperation({ summary: 'Trigger Telegram parser: for dev purpose only' })

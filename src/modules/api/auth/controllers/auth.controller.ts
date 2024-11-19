@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService, LoginDTO, RegisterDTO, TokenDTO } from '..';
 import { UserService } from '../../user';
 
@@ -40,6 +40,7 @@ export class AuthController {
     return await this.authService.createToken(user);
   }
 
+  // TODO: remove this endpoint in production
   @Get('mock-login')
   @ApiOperation({ summary: 'Mock Login, disabled in production' })
   @ApiResponse({ status: 201, description: 'Successful Login', type: TokenDTO })

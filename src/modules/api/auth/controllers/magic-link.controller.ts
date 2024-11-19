@@ -96,6 +96,7 @@ export class MagicLinkAuthController {
       });
   }
 
+  // TODO: remove
   @ApiOperation({ summary: 'Demo endpoint for testing purposes' })
   @Get('demo')
   demo(@Query('token') token: string) {

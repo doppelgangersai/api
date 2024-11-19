@@ -78,6 +78,7 @@ export class VaultController {
     };
   }
 
+  // TODO: remove this endpoint in production
   @Get('instagram/trigger/uploaded')
   @UseGuards(AuthGuard())
   @ApiOperation({ summary: 'Trigger Instagram archive processing' })
@@ -88,6 +89,7 @@ export class VaultController {
     };
   }
 
+  // TODO: remove this endpoint in production
   @Get('instagram/trigger/preprocessed')
   @UseGuards(AuthGuard())
   @ApiOperation({ summary: 'Trigger Instagram archive preprocessed' })
