@@ -16,6 +16,7 @@ import {
   GOOGLE_REDIRECT_URI,
 } from '../../../../core/constants/environment.constants';
 import { PointsService } from '../../../points/points.service';
+import { TokenDTO } from '../auth.dtos';
 
 @ApiTags('google')
 @Controller('api/auth/google')
@@ -64,6 +65,7 @@ export class GoogleAuthController {
   @ApiResponse({
     status: 200,
     description: 'Successfully authenticated and created user if needed.',
+    type: TokenDTO,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @Get('auth')
