@@ -43,9 +43,10 @@ export class AuthController {
   // TODO: remove this endpoint in production
   @Get('mock-login')
   @ApiOperation({ summary: 'Mock Login, disabled in production' })
-  @ApiResponse({ status: 201, description: 'Successful Login', type: TokenDTO })
+  @ApiQuery({ name: 'id', required: false })
+  @ApiResponse({ status: 200, description: 'Successful Login', type: TokenDTO })
   async mockLogin(@Query('id') id = 1): Promise<any> {
     const user = await this.userService.get(id);
-    return await this.authService.createToken(user);
+    return this.authService.createToken(user);
   }
 }
