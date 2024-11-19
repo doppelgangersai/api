@@ -20,6 +20,11 @@ export class ChatService {
     @InjectRepository(Chat)
     private readonly chatRepository: Repository<Chat>,
   ) {}
+
+  async getChatbotById(chatbotId: number): Promise<Chatbot> {
+    return this.chatbotService.getChatbotById(chatbotId);
+  }
+
   async createOrGetConversationByChatbotId(chatbotId: number): Promise<{
     conversationId: string;
     conversationToken?: string;

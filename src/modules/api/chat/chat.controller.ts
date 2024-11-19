@@ -112,6 +112,23 @@ export class ChatController {
     return this.chatService.getChatMessages(twinUserId, user.id);
   }
 
+  // get Chatbot by ID
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get chatbot by ID' })
+  @ApiParam({ name: 'chatbotId', description: 'ID of the chatbot' })
+  @ApiResponse({
+    status: 200,
+    description: 'Chatbot',
+    type: Chatbot,
+  })
+  @UseGuards(AuthGuard('jwt'))
+  @Get('chatbot/:chatbotId')
+  async getChatbotById(
+    @Param('chatbotId') chatbotId: number,
+  ): Promise<Chatbot> {
+    return this.chatService.getChatbotById(chatbotId);
+  }
+
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Send message' })
   @ApiParam({ name: 'chatbotId', description: 'ID of the chat' })
