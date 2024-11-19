@@ -12,7 +12,10 @@ export class AuthController {
   ) {}
 
   @Post('login')
-  @ApiOperation({ summary: 'Login via email and password' })
+  @ApiOperation({
+    summary:
+      'Login via email and password: we have this opportunity, but not using it',
+  })
   @ApiResponse({ status: 201, description: 'Successful Login', type: TokenDTO })
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -22,7 +25,9 @@ export class AuthController {
   }
 
   @Post('register')
-  @ApiOperation({ summary: 'Register a new user' })
+  @ApiOperation({
+    summary: 'Register a new user via login, password and e-mail',
+  })
   @ApiResponse({
     status: 201,
     description: 'Successful Registration',
