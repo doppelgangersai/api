@@ -133,7 +133,9 @@ export class ChatbotService {
 
     console.log(imagePrompt);
 
-    const img = await this.aiService.generateImage(`${imagePrompt}`);
+    const img: string | null = (await this.aiService
+      .generateImage(`${imagePrompt}`)
+      .catch(() => null)) as string | null;
     console.log(img);
 
     const chatbot = await this.chatbotRepository.save({
@@ -141,11 +143,11 @@ export class ChatbotService {
       ownerId: userId,
       creatorId: userId,
       merge1Id: chatbot1Id,
-      merge2Id: chatbot1Id,
+      merge2Id: chatbot2Id,
       fullName: `${chatbot1.fullName} & ${chatbot2.fullName}`,
       description: `Merge of ${chatbot1.fullName} & ${chatbot2.fullName}`,
-      avatar: img,
       isPublic: false,
+      ...(typeof img === 'string' ? { avatar: img } : {}),
     });
 
     return chatbot;
