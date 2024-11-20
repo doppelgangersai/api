@@ -123,13 +123,13 @@ export class ChatbotService {
     ${backstory2}`;
 
     const imagePrompt = await this.aiService
-      .processText(`Create image generation prompt for a single person face, 500 characters max, based on backstories:
-    Merge two users backstories to one (like a hybrid):
-    Backstory 1:
-    ${backstory1}
-    
-    Backstory 2:
-    ${backstory2}`);
+      .processText(`Create image generation prompt for a single person face, 500 characters max, based on backstory:
+      ${backstory}
+      
+      Do not use names in response.
+      
+      Prompt:
+      `);
 
     console.log(imagePrompt);
 
