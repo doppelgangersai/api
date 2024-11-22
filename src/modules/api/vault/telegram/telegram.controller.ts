@@ -41,7 +41,7 @@ export class TelegramAuthCompleteDTO {
 }
 
 @ApiBearerAuth()
-@ApiTags('Telegram')
+@ApiTags('telegram')
 @Controller('api/vault/telegram')
 export class TelegramController {
   constructor(private readonly telegramService: TelegramService) {}
