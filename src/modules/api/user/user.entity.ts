@@ -34,10 +34,7 @@ export class User {
   })
   @Column({ length: 255, nullable: true })
   nearAccountId: string;
-  @ApiProperty({
-    required: false,
-    example: 'ed25519:3URid12St7mSsRzwZV6cvDETFmgLvEz7JP8V89HeNsdc',
-  })
+
   @Column({ length: 255, nullable: true })
   nearPublicKey: string;
 
@@ -126,6 +123,7 @@ export class User {
       telegramFile,
       instagramFile,
       backstory,
+      nearPublicKey,
       ...self
     } = this;
     return {
