@@ -1,7 +1,7 @@
 {
-  "name": "nest-boilerplate",
+  "name": "doppelgrangers-api-gateway",
   "version": "1.0.0",
-  "description": "Doppelgangers.AI",
+  "description": "Doppelgangers.AI API Gateway",
   "author": "Doppelgangers team",
   "license": "MIT",
   "scripts": {
@@ -35,6 +35,8 @@
     "@nestjs/serve-static": "^4.0.2",
     "@nestjs/swagger": "^5.2.0",
     "@nestjs/typeorm": "^8.0.3",
+    "@sentry/nestjs": "^8.37.1",
+    "@sentry/profiling-node": "^8.37.1",
     "@types/multer": "^1.4.11",
     "archiver": "^7.0.1",
     "axios": "^1.7.2",
