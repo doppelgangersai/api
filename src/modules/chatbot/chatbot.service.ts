@@ -152,6 +152,24 @@ export class ChatbotService {
     const img: string | null = (await this.aiService
       .generateImage(`${imagePrompt}`)
       .catch(() => null)) as string | null;
+
+    const title = await this.aiService
+      .processText(
+        `Create a short simple title for chatbot based on backstory:
+${backstory}
+
+Title:`,
+      )
+      .catch(() => `Merge of ${chatbot1.fullName} & ${chatbot2.fullName}`);
+
+    const description = await this.aiService
+      .processText(
+        `Create a simple description for chatbot based on backstory:
+${backstory}
+
+Title:`,
+      )
+      .catch(() => '');
     // todo: save image to s3
     console.log('img:', !!img);
 
@@ -162,7 +180,8 @@ export class ChatbotService {
       merge1Id: chatbot1Id,
       merge2Id: chatbot2Id,
       fullName: `${chatbot1.fullName} & ${chatbot2.fullName}`,
-      description: `Merge of ${chatbot1.fullName} & ${chatbot2.fullName}`,
+      title,
+      description,
       isPublic: false,
       ...(typeof img === 'string' ? { avatar: img } : {}),
     });
