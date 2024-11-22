@@ -1,7 +1,7 @@
 
-# Doppelgangers.AI Backend
+# Doppelgangers.AI API Gateway
 
-This is the backend service for Doppelgangers.AI, built using NestJS. The service includes authentication (JWT, Google Auth), AI integrations, and various modules for chat, user management, and more.
+This is the API gateway and basic backend service for Doppelgangers.AI, built using NestJS. The service includes authentication (JWT, Google Auth), AI integrations, and various modules for chat, user management, and more.
 
 ## Quick Start
 
@@ -15,6 +15,14 @@ This will start the required dependencies such as the PostgreSQL database and Mi
 
 ```bash
 yarn start:dev
+```
+
+## Swagger Documentation
+
+Swagger is set up for easy API exploration. Once the service is running, you can access it at:
+
+```
+http://localhost:3000/api/docs
 ```
 
 ## Scripts
@@ -159,12 +167,4 @@ To run database migrations, use the following command:
 
 ```bash
 yarn migration:run
-```
-
-## Swagger Documentation
-
-Swagger is set up for easy API exploration. Once the service is running, you can access it at:
-
-```
-http://localhost:5173/api/docs
 ```
