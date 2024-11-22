@@ -65,7 +65,6 @@ export class User {
   @Column({ nullable: true, select: false })
   appleAccessToken: string;
 
-  @ApiResponseProperty()
   @Column({ nullable: true })
   instagramFile: string;
 
@@ -112,15 +111,21 @@ export class User {
   @JoinTable()
   friends: User[];
 
+  @ApiResponseProperty()
+  isTelegramConnected: boolean;
+
+  @ApiResponseProperty()
+  isInstagramConnected: boolean;
+
   toJSON() {
     const {
       password,
       googleAccessToken,
       appleAccessToken,
       telegramAuthSession,
-      // telegramFile,
+      telegramFile,
       instagramFile,
-      // backstory,
+      backstory,
       ...self
     } = this;
     return {
