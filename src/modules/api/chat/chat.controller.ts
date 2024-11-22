@@ -41,7 +41,6 @@ export class MergeChatbotDto {
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
-  // mock endpoint: POST /api/chat/merge/:chatbotId
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Merge chatbot' })
   @ApiParam({ name: 'chatbotId', description: 'ID of the chatbot' })
