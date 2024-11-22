@@ -70,7 +70,7 @@ export class StartMissionDto {
 }
 
 @Controller('api/missions')
-@ApiTags('api/missions')
+@ApiTags('missions')
 export class MissionController {
   constructor(
     private readonly userService: UserService,
