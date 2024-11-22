@@ -187,6 +187,12 @@ Now another user will write to you. You are not his digital twin, but the digita
   }
 
   async merge(chatbot1Id: number, chatbot2Id: number, userId: number) {
+    console.log(
+      '[ChatService] Merging chatbots: ',
+      chatbot1Id,
+      chatbot2Id,
+      userId,
+    );
     return this.chatbotService.mergeChatbots(chatbot1Id, chatbot2Id, userId);
   }
 }

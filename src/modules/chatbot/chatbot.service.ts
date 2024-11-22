@@ -111,16 +111,34 @@ export class ChatbotService {
   }
 
   async mergeChatbots(chatbot1Id: number, chatbot2Id: number, userId: number) {
+    console.log(
+      '[ChatbotService.mergeChatbots] Merging chatbots:',
+      chatbot1Id,
+      chatbot2Id,
+      userId,
+    );
     const chatbot1 = await this.getChatbotById(chatbot1Id);
+    console.log('chatbot1:', !!chatbot1);
     const chatbot2 = await this.getChatbotById(chatbot2Id);
+    console.log('chatbot2:', !!chatbot2);
     const backstory1 = chatbot1.backstory;
+    console.log('backstory1:', !!backstory1);
     const backstory2 = chatbot2.backstory;
-    const backstory = `Merge two users backstories to one (like a hybrid):
+    console.log('backstory2:', !!backstory2);
+
+    const backstory_prompt = `Merge two users backstories to one (like a hybrid/digital baby/...), create a new person backstory based on two provided backstories:
     Backstory 1:
     ${backstory1}
     
     Backstory 2:
     ${backstory2}`;
+
+    const backstory = await this.aiService
+      .processText(backstory_prompt)
+      .catch(() => {
+        console.log('Fallback to original prompt');
+        return backstory_prompt;
+      });
 
     const imagePrompt = await this.aiService
       .processText(`Create image generation prompt for a single person face, 500 characters max, based on backstory:
@@ -131,12 +149,11 @@ export class ChatbotService {
       Prompt:
       `);
 
-    console.log(imagePrompt);
-
     const img: string | null = (await this.aiService
       .generateImage(`${imagePrompt}`)
       .catch(() => null)) as string | null;
-    console.log(img);
+    // todo: save image to s3
+    console.log('img:', !!img);
 
     const chatbot = await this.chatbotRepository.save({
       backstory,
@@ -149,6 +166,8 @@ export class ChatbotService {
       isPublic: false,
       ...(typeof img === 'string' ? { avatar: img } : {}),
     });
+
+    console.log('chatbot:', !!chatbot);
 
     return chatbot;
   }
