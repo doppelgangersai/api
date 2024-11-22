@@ -13,11 +13,19 @@ export class Chatbot {
     nullable: true,
   })
   fullName: string;
+
+  @ApiResponseProperty()
+  @Column({
+    nullable: true,
+  })
+  title: string;
+
   @ApiResponseProperty()
   @Column({
     nullable: true,
   })
   description: string;
+
   @Column()
   backstory: string;
   @ApiResponseProperty()
