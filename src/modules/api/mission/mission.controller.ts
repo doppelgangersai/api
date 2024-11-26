@@ -4,6 +4,7 @@ import {
   ApiResponse,
   ApiProperty,
   ApiBearerAuth,
+  ApiResponseProperty,
 } from '@nestjs/swagger';
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -38,11 +39,11 @@ class Mission {
   })
   action: string;
 
-  @ApiProperty({
-    example: true,
-    description: 'Completion status of the mission',
+  @ApiResponseProperty({
+    example: MissionStatus.STARTED,
   })
-  done: boolean;
+  status?: MissionStatus;
+  done?: boolean;
 
   @ApiProperty({
     example: 20,
@@ -95,6 +96,7 @@ export class MissionController {
           title: 'Refer a friend',
           description: 'Some description',
           action: 'refer',
+          status: referralsCount > 0 && MissionStatus.COMPLETED,
           done: referralsCount > 0,
           points: 20,
         },
@@ -103,6 +105,9 @@ export class MissionController {
           title: 'Connect Data in Vault',
           description: 'Some description',
           action: 'connect',
+          status:
+            (!!user.instagramFile || !!user.telegramAuthSession) &&
+            MissionStatus.COMPLETED,
           done: !!user.instagramFile || !!user.telegramAuthSession,
           points: 10,
         },
