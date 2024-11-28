@@ -1,9 +1,10 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 export enum MissionStatus {
+  TODO = 'todo',
   STARTED = 'started',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
+  REVIEW = 'review',
+  DONE = 'done',
 }
 
 @Entity()
