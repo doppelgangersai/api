@@ -203,6 +203,8 @@ export class MissionController {
     // if action: 'connect': (!!user.instagramFile || !!user.telegramAuthSession) &&MissionStatus.DONE,
     // if action: 'refer': referralsCount > 0 && MissionStatus.DONE,
 
+    // TODO: trigger 'connect' and 'refer' actions
+
     const mappedMissions = MISSIONS_LIST.map((m) => ({
       ...m,
       status:
