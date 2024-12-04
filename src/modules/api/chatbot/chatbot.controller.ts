@@ -11,6 +11,8 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ChatbotService } from './chatbot.service';
 import { Chatbot } from './chatbot.entity';
+import { CurrentUser } from '../../common/decorator/current-user.decorator';
+import { User } from '../user';
 
 // export class MergeChatbotDto {
 //   @ApiResponseProperty({
@@ -83,5 +85,21 @@ export class ChatbotController {
     @Body() chatbot: Chatbot,
   ): Promise<Chatbot> {
     return this.chatbotService.updateChatbot(chatbotId, chatbot);
+  }
+
+  // GET /api/chatbot/merged - isModified = true, userId = user.id?
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get merged chatbots: isModified = true, userId = user.id?',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of merged chatbots',
+    type: [Chatbot],
+  })
+  @UseGuards(AuthGuard('jwt'))
+  @Get('merged')
+  async getMergedChatbots(@CurrentUser() user: User): Promise<Chatbot[]> {
+    return this.chatbotService.getMergedChatbots(user.id);
   }
 }
