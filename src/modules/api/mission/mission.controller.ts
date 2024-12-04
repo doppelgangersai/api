@@ -40,7 +40,7 @@ class Mission {
   action: string;
 
   @ApiResponseProperty({
-    example: MissionStatus.STARTED,
+    example: MissionStatus.TODO,
   })
   status?: MissionStatus;
   done?: boolean;

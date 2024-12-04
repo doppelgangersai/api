@@ -21,7 +21,7 @@ export class UserMissionEntity {
   @Column({
     type: 'enum',
     enum: MissionStatus,
-    default: MissionStatus.STARTED,
+    default: MissionStatus.TODO,
     nullable: true,
   })
   status: MissionStatus;
