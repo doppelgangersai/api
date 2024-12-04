@@ -6,7 +6,7 @@ import { StorageModule } from '../../storage/storage.module';
 import { InstagramParserHandler } from './handlers/instagram-parser.handler';
 import { AIModule } from '../../ai/ai.module';
 import { VaultModule } from '../../api/vault/vault.module';
-import { ChatbotModule } from '../../chatbot/chatbot.module';
+import { ChatbotModule } from '../../api/chatbot/chatbot.module';
 
 @Module({
   providers: [

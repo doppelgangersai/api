@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { AIService } from '../ai/ai.service';
+import { AIService } from '../../ai/ai.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Chatbot } from './chatbot.entity';
 import { Repository } from 'typeorm';
-import { UserService } from '../api/user';
+import { UserService } from '../user';
 
 interface MessagesWithTitle {
   title: string;
@@ -198,5 +198,14 @@ Title:`,
   ): Promise<Chatbot> {
     await this.chatbotRepository.update(chatbotId, chatbot);
     return this.getChatbotById(chatbotId);
+  }
+
+  async getMergedChatbots(userId: number): Promise<Chatbot[]> {
+    return this.chatbotRepository.find({
+      where: {
+        ownerId: userId,
+        isModified: true,
+      },
+    });
   }
 }

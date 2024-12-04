@@ -8,8 +8,8 @@ import { Chat } from './chat.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { CHATBOTKIT_SECRET } from '../../../core/constants/environment.constants';
-import { ChatbotService } from '../../chatbot/chatbot.service';
-import { Chatbot } from '../../chatbot/chatbot.entity';
+import { ChatbotService } from '../chatbot/chatbot.service';
+import { Chatbot } from '../chatbot/chatbot.entity';
 
 @Injectable()
 export class ChatService {

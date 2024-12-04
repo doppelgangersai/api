@@ -9,7 +9,7 @@ import { InstagramParserModule } from '../../parsers/instagram/instagram-parser.
 import { VaultEmitter } from './vault.emitter';
 import { TelegramService } from './telegram/telegram.service';
 import { AIModule } from '../../ai/ai.module';
-import { ChatbotModule } from '../../chatbot/chatbot.module';
+import { ChatbotModule } from '../chatbot/chatbot.module';
 import { PointsModule } from '../../points/points.module'; // Import TelegramService
 
 @Module({

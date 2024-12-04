@@ -10,7 +10,7 @@ import {
   TELEGRAM_API_ID,
 } from '../../../../core/constants/environment.constants';
 import { AIService, MessagesWithTitle } from '../../../ai/ai.service';
-import { ChatbotService } from '../../../chatbot/chatbot.service';
+import { ChatbotService } from '../../chatbot/chatbot.service';
 import { PointsService } from '../../../points/points.service';
 
 const { StringSession } = sessions;

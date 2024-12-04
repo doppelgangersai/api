@@ -28,7 +28,7 @@ import {
 import { ChatService } from './chat.service';
 import { User } from '../user';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
-import { Chatbot } from '../../chatbot/chatbot.entity';
+import { Chatbot } from '../chatbot/chatbot.entity';
 
 export class MergeChatbotDto {
   @ApiResponseProperty({

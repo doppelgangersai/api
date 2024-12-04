@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import { MessagesWithTitle } from '../../../ai/ai.service';
 import { InstagramMessage } from '../instagram-parser.types';
-import { ChatbotService } from '../../../chatbot/chatbot.service';
+import { ChatbotService } from '../../../api/chatbot/chatbot.service';
 
 @Injectable()
 export class InstagramParserService {
