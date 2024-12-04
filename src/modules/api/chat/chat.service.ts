@@ -195,4 +195,8 @@ Now another user will write to you. You are not his digital twin, but the digita
     );
     return this.chatbotService.mergeChatbots(chatbot1Id, chatbot2Id, userId);
   }
+
+  async updateChatbot(chatbotId: number, chatbot: Partial<Chatbot>) {
+    return this.chatbotService.updateChatbot(chatbotId, chatbot);
+  }
 }

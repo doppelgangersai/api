@@ -1,26 +1,26 @@
 import { Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 import { Column } from 'typeorm';
-import { ApiResponseProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
 
 @Entity()
 export class Chatbot {
   @ApiResponseProperty()
   @PrimaryGeneratedColumn()
   id: number;
-  @ApiResponseProperty()
+  @ApiProperty()
   @Column({
     nullable: true,
   })
   fullName: string;
 
-  @ApiResponseProperty()
+  @ApiProperty()
   @Column({
     nullable: true,
   })
   title: string;
 
-  @ApiResponseProperty()
+  @ApiProperty()
   @Column({
     nullable: true,
   })
@@ -28,12 +28,12 @@ export class Chatbot {
 
   @Column()
   backstory: string;
-  @ApiResponseProperty()
+  @ApiProperty()
   @Column({
     nullable: true,
   })
   avatar: string;
-  @ApiResponseProperty()
+  @ApiProperty()
   @Column()
   isPublic: boolean;
   @ApiResponseProperty()

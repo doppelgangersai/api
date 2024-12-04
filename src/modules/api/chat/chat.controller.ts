@@ -7,6 +7,7 @@ import {
   Body,
   HttpCode,
   NotAcceptableException,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -119,7 +120,9 @@ export class ChatController {
 
   // get Chatbot by ID
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get chatbot by ID' })
+  @ApiOperation({
+    summary: 'DEPRECATED: use GET /api/chatbot/:chatbotId - Get chatbot by ID',
+  })
   @ApiParam({ name: 'chatbotId', description: 'ID of the chatbot' })
   @ApiResponse({
     status: 200,
@@ -132,6 +135,27 @@ export class ChatController {
     @Param('chatbotId') chatbotId: number,
   ): Promise<Chatbot> {
     return this.chatService.getChatbotById(chatbotId);
+  }
+
+  // implement patch
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'DEPRECATED, use PATCH chatbot/:chatbotId: Update chatbot',
+  })
+  @ApiParam({ name: 'chatbotId', description: 'ID of the chatbot' })
+  @ApiBody({ type: Chatbot, description: 'Chatbot' })
+  @ApiResponse({
+    status: 200,
+    description: 'Updated chatbot',
+    type: Chatbot,
+  })
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('chatbot/:chatbotId')
+  async updateChatbot(
+    @Param('chatbotId') chatbotId: number,
+    @Body() chatbot: Chatbot,
+  ): Promise<Chatbot> {
+    return this.chatService.updateChatbot(chatbotId, chatbot);
   }
 
   @ApiBearerAuth()

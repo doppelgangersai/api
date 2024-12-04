@@ -190,4 +190,13 @@ Title:`,
 
     return chatbot;
   }
+
+  // deprecated
+  async updateChatbot(
+    chatbotId: number,
+    chatbot: Partial<Chatbot>,
+  ): Promise<Chatbot> {
+    await this.chatbotRepository.update(chatbotId, chatbot);
+    return this.getChatbotById(chatbotId);
+  }
 }
