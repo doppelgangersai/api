@@ -91,117 +91,11 @@ export class MissionController {
   async getMissions(@CurrentUser() user: User): Promise<MissionResponse> {
     const referralsCount = await this.userService.countReferrals(user.id);
 
-    // const missions = [
-    //   {
-    //     id: 1,
-    //     title: 'Refer a friend',
-    //     description:
-    //       'Invite a friend and earn points when they create their Doppelganger.',
-    //     action: 'refer',
-    //     status: referralsCount > 0 && MissionStatus.DONE,
-    //     done: referralsCount > 0,
-    //     points: 1000,
-    //   },
-    //   {
-    //     id: 2,
-    //     title: 'Follow Us on X',
-    //     description:
-    //       'Stay in the loop! Follow us on X and get the latest updates.',
-    //     action: 'follow',
-    //     status: MissionStatus.TODO,
-    //     done: false,
-    //     points: 300,
-    //   },
-    //   {
-    //     id: 3,
-    //     title: 'Tag Us in a Post on X',
-    //     description:
-    //       'Post or reshare with our tag on X and score some rewards!',
-    //     action: 'tag',
-    //     status: MissionStatus.TODO,
-    //     done: false,
-    //     points: 500,
-    //   },
-    //   {
-    //     id: 4,
-    //     title: 'Follow Us on TikTok',
-    //     description:
-    //       'Join us on TikTok for exclusive content and more fun missions.',
-    //     action: 'follow',
-    //     status: MissionStatus.TODO,
-    //     done: false,
-    //     points: 300,
-    //   },
-    //   {
-    //     id: 5,
-    //     title: 'Tag Us in a TikTok',
-    //     description: 'Share a video tagging us on TikTok to earn big rewards!',
-    //     action: 'tag',
-    //     status: MissionStatus.TODO,
-    //     done: false,
-    //     points: 800,
-    //   },
-    //   {
-    //     id: 6,
-    //     title: 'Follow Us on Instagram',
-    //     description:
-    //       'Follow us on Instagram and stay inspired with daily updates.',
-    //     action: 'follow',
-    //     status: MissionStatus.TODO,
-    //     done: false,
-    //     points: 300,
-    //   },
-    //   {
-    //     id: 7,
-    //     title: 'Tag Us in an IG Post',
-    //     description:
-    //       'Share or reshare a post tagging us on Instagram to earn points.',
-    //     action: 'tag',
-    //     status: MissionStatus.TODO,
-    //     done: false,
-    //     points: 500,
-    //   },
-    //   {
-    //     id: 8,
-    //     title: 'Join Our Discord',
-    //     description:
-    //       'Be part of our community! Join Discord and chat with fans.',
-    //     action: 'join',
-    //     status: MissionStatus.TODO,
-    //     done: false,
-    //     points: 600,
-    //   },
-    //   {
-    //     id: 9,
-    //     title: 'Join Our Telegram',
-    //     description: 'Join our Telegram for news and insights. Points await!',
-    //     action: 'join',
-    //     status: MissionStatus.TODO,
-    //     done: false,
-    //     points: 600,
-    //   },
-    //   {
-    //     id: 10,
-    //     title: 'Connect Data in Vault',
-    //     description:
-    //       'Link a data source in your vault to enhance your twin’s growth.',
-    //     action: 'connect',
-    //     status:
-    //       (!!user.instagramFile || !!user.telegramAuthSession) &&
-    //       MissionStatus.DONE,
-    //     done: !!user.instagramFile || !!user.telegramAuthSession,
-    //     points: 3000,
-    //   },
-    // ];
-
     const userMissions = await this.userMissionRepository.find({
       where: {
         userId: user.id,
       },
     });
-
-    // if action: 'connect': (!!user.instagramFile || !!user.telegramAuthSession) &&MissionStatus.DONE,
-    // if action: 'refer': referralsCount > 0 && MissionStatus.DONE,
 
     // TODO: trigger 'connect' and 'refer' actions
 
