@@ -8,6 +8,7 @@ export class Chatbot {
   @ApiResponseProperty()
   @PrimaryGeneratedColumn()
   id: number;
+
   @ApiProperty()
   @Column({
     nullable: true,
@@ -28,17 +29,27 @@ export class Chatbot {
 
   @Column()
   backstory: string;
+
   @ApiProperty()
   @Column({
     nullable: true,
   })
   avatar: string;
+
   @ApiProperty()
   @Column()
   isPublic: boolean;
+
+  @ApiProperty()
+  @Column({
+    nullable: true,
+  })
+  isModified: boolean;
+
   @ApiResponseProperty()
   @Column()
   creatorId: number;
+
   @ApiResponseProperty()
   @Column()
   ownerId: number;
