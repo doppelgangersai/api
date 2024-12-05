@@ -25,6 +25,21 @@ import { User } from '../user';
 @Controller('api/chatbot')
 export class ChatbotController {
   constructor(private readonly chatbotService: ChatbotService) {}
+  // GET /api/chatbot/merged - isModified = true, userId = user.id?
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get merged chatbots: isModified = true, userId = user.id?',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of merged chatbots',
+    type: [Chatbot],
+  })
+  @UseGuards(AuthGuard('jwt'))
+  @Get('merged')
+  async getMergedChatbots(@CurrentUser() user: User): Promise<Chatbot[]> {
+    return this.chatbotService.getMergedChatbots(user.id);
+  }
 
   // @ApiBearerAuth()
   // @ApiOperation({ summary: 'Merge chatbot' })
@@ -85,21 +100,5 @@ export class ChatbotController {
     @Body() chatbot: Chatbot,
   ): Promise<Chatbot> {
     return this.chatbotService.updateChatbot(chatbotId, chatbot);
-  }
-
-  // GET /api/chatbot/merged - isModified = true, userId = user.id?
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: 'Get merged chatbots: isModified = true, userId = user.id?',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'List of merged chatbots',
-    type: [Chatbot],
-  })
-  @UseGuards(AuthGuard('jwt'))
-  @Get('merged')
-  async getMergedChatbots(@CurrentUser() user: User): Promise<Chatbot[]> {
-    return this.chatbotService.getMergedChatbots(user.id);
   }
 }
