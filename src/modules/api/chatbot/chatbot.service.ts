@@ -208,4 +208,13 @@ Title:`,
       },
     });
   }
+
+  async getPrivateChatbots(userId: number): Promise<Chatbot[]> {
+    return this.chatbotRepository.find({
+      where: {
+        ownerId: userId,
+        isPublic: false,
+      },
+    });
+  }
 }
