@@ -43,16 +43,16 @@ export class ChatbotController {
 
   @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Get merged chatbots: isModified = true, userId = user.id?',
+    summary: 'Get private chatbots: isPublic !== true, userId = user.id?',
   })
   @ApiResponse({
     status: 200,
-    description: 'List of merged chatbots',
+    description: 'List of private chatbots',
     type: [Chatbot],
   })
   @UseGuards(AuthGuard('jwt'))
   @Get('private')
-  async getMergedChatbots(@CurrentUser() user: User): Promise<Chatbot[]> {
+  async getPrivateChatbots(@CurrentUser() user: User): Promise<Chatbot[]> {
     return this.chatbotService.getPrivateChatbots(user.id);
   }
 
