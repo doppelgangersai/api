@@ -65,7 +65,8 @@ export class Chatbot {
   merge2Id?: number;
 
   toJSON() {
-    const mapped = { ...this, avatar: avatarTransformer(this) };
+    const { ...self, backstory } = this;
+    const mapped = { ...self, avatar: avatarTransformer(this) };
     console.log(mapped, this);
     return mapped;
   }
