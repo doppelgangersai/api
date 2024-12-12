@@ -196,7 +196,10 @@ Title:`,
     chatbotId: number,
     chatbot: Partial<Chatbot>,
   ): Promise<Chatbot> {
-    await this.chatbotRepository.update(chatbotId, chatbot);
+    await this.chatbotRepository.update(chatbotId, {
+      ...chatbot,
+      isModified: true,
+    });
     return this.getChatbotById(chatbotId);
   }
 
