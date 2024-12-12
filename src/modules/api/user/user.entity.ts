@@ -57,6 +57,15 @@ export class User {
   googleAccessToken: string;
 
   @Column({ nullable: true })
+  twitterRefreshToken: string;
+
+  @Column({ nullable: true })
+  twitterUserId: string;
+
+  @Column({ nullable: true })
+  twitterUsername: string;
+
+  @Column({ nullable: true })
   appleId: string;
 
   @Column({ nullable: true, select: false })
@@ -113,6 +122,10 @@ export class User {
 
   @ApiResponseProperty()
   isInstagramConnected: boolean;
+
+  // @ApiResponseProperty()
+  // @Column('text', { nullable: true, array: true })
+  // tags: string[];
 
   toJSON() {
     const {
