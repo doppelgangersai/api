@@ -67,7 +67,7 @@ export class ChatbotService {
     const publicAndOwnChatbots = await this.chatbotRepository
       .createQueryBuilder('chatbot')
       .where('chatbot.isPublic = :isPublic', { isPublic: true })
-      .orWhere('chatbot.ownerId = :userId', { userId })
+      //.orWhere('chatbot.ownerId = :userId', { userId })
       .getMany();
 
     // Combine results and remove duplicates
