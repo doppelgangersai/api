@@ -12,7 +12,8 @@ import { AIModule } from '../../ai/ai.module';
 import { ChatbotModule } from '../chatbot/chatbot.module';
 import { PointsModule } from '../../points/points.module';
 import { TwitterAuthController } from './twitter/twitter-auth.controller';
-import { TwitterAuthService } from './twitter/twitter-auth.service'; // Import TelegramService
+import { TwitterAuthService } from './twitter/twitter-auth.service';
+import { TwitterHandler } from './twitter/twitter.handlers'; // Import TelegramService
 
 @Module({
   imports: [
@@ -26,7 +27,12 @@ import { TwitterAuthService } from './twitter/twitter-auth.service'; // Import T
     PointsModule,
   ],
   controllers: [VaultController, TelegramController, TwitterAuthController], // Add TelegramController
-  providers: [VaultEmitter, TelegramService, TwitterAuthService], // Add TelegramService
+  providers: [
+    VaultEmitter,
+    TelegramService,
+    TwitterAuthService,
+    TwitterHandler,
+  ],
   exports: [VaultEmitter],
 })
 export class VaultModule {}

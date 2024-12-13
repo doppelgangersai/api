@@ -4,6 +4,7 @@ import {
   INSTAGRAM_PREPROCESSED_EVENT,
   INSTAGRAM_UPLOADED_EVENT,
   TELEGRAM_UPLOADED_EVENT,
+  TWITTER_CONNECTED_EVENT,
 } from '../../../core/constants';
 
 @Injectable()
@@ -19,5 +20,9 @@ export class VaultEmitter {
 
   emitTelegramConnected(userId: number): void {
     this.eventEmitter.emit(TELEGRAM_UPLOADED_EVENT, userId);
+  }
+
+  emitTwitterConnected(userId: number): void {
+    this.eventEmitter.emit(TWITTER_CONNECTED_EVENT, userId);
   }
 }

@@ -74,7 +74,7 @@ export class TwitterAuthController {
 
   @ApiOperation({
     summary:
-      'Handle Twitter authentication callback: pass url from twitter redirection there',
+      'Handle Twitter authentication callback: pass URL from Twitter redirection here',
   })
   @ApiBearerAuth()
   @UseGuards(OptionalJwtAuthGuard)
@@ -93,7 +93,7 @@ export class TwitterAuthController {
   @ApiResponse({
     status: 200,
     description:
-      'Successfully authenticated and retrieved twitter refresh token',
+      'Successfully authenticated and retrieved Twitter refresh token',
   })
   @Get('callback')
   async handleCallback(
@@ -103,50 +103,12 @@ export class TwitterAuthController {
     @CurrentUser() user: User,
   ) {
     try {
-      const tokenData = (await this.twitterAuthService.exchangeCodeForToken(
+      await this.twitterAuthService.saveTwitterRefreshToken(
         code,
         returnedState,
-      )) as Record<string, string>;
-      const accessToken = tokenData.access_token;
-      const twitterUserId = await this.twitterAuthService.getUserId(
-        accessToken,
+        user.id || 1,
       );
-      const tweetsData = (await this.twitterAuthService.getUserTweets(
-        accessToken,
-        twitterUserId,
-      )) as Record<string, any>;
-
-      const tweetsDataDto: TweetsDataDto = {
-        data: tweetsData.data.map((tweet) => ({
-          text: tweet.text,
-        })),
-      };
-
-      const mappedMessages: MessagesWithTitle = {
-        title: 'Tweets',
-        messages: tweetsData.data.map((tweet) => tweet.text),
-      };
-
-      await this.chatbotService.createChatbot([mappedMessages], user.id || 1);
-
-      // Update the user with the refresh token
-      if (tokenData.refresh_token) {
-        await this.userService.update(user.id, {
-          twitterRefreshToken: tokenData.refresh_token,
-          twitterUserId,
-        });
-      }
-
-      const responseData: TwitterCallbackResponseDto = {
-        access_token: tokenData.access_token,
-        refresh_token: tokenData.refresh_token || null,
-        scope: tokenData.scope,
-        expires_in: Number(tokenData.expires_in),
-        user_id: twitterUserId,
-        tweets: tweetsDataDto,
-      };
-
-      res.json(responseData);
+      res.status(200).json({ message: 'Twitter connected successfully' });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
