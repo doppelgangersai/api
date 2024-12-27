@@ -7,11 +7,12 @@ import {
 } from 'typeorm';
 import { PasswordTransformer } from './password.transformer';
 import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
+import { IDoppelganger } from '../../doppelganger/doppelganger.interace';
 
 @Entity({
   name: 'users',
 })
-export class User {
+export class User implements IDoppelganger {
   @ApiResponseProperty()
   @PrimaryGeneratedColumn()
   id: number;
