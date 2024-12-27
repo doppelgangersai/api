@@ -220,4 +220,18 @@ Title:`,
       },
     });
   }
+
+  async getDoppelgangerChatbot(userId: number): Promise<Chatbot> {
+    return this.chatbotRepository.findOne({
+      where: {
+        ownerId: userId,
+        merge1Id: null,
+        merge2Id: null,
+      },
+    });
+  }
+
+  async get(chatbotId: number): Promise<Chatbot> {
+    return this.chatbotRepository.findOne(chatbotId);
+  }
 }
