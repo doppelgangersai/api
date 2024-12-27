@@ -2,9 +2,10 @@ import { Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 import { Column } from 'typeorm';
 import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
+import { IDoppelganger } from '../../doppelganger/doppelganger.interace';
 
 @Entity()
-export class Chatbot {
+export class Chatbot implements IDoppelganger {
   @ApiResponseProperty()
   @PrimaryGeneratedColumn()
   id: number;
