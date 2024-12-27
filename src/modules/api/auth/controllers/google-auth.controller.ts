@@ -1,6 +1,8 @@
 import {
+  Body,
   Controller,
   Get,
+  Post,
   Query,
   Redirect,
   UnauthorizedException,
@@ -16,7 +18,7 @@ import {
   GOOGLE_REDIRECT_URI,
 } from '../../../../core/constants/environment.constants';
 import { PointsService } from '../../../points/points.service';
-import { TokenDTO } from '../auth.dtos';
+import { TokenDTO, GoogleMobileAuthDto } from '../auth.dtos';
 
 @ApiTags('google')
 @Controller('api/auth/google')
@@ -118,6 +120,85 @@ export class GoogleAuthController {
         expiresIn: jwt.expiresIn,
         user: jwt.user,
         googleUserInfo: userInfo,
+        redirectTo: '/dashboard/vault',
+        newUser,
+      };
+    } catch (error) {
+      throw new UnauthorizedException(error.message);
+    }
+  }
+
+  @ApiOperation({
+    summary:
+      'Google Auth: Authenticate user from Mobile via ID Token (iOS/Android)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully authenticated and created user if needed.',
+    type: TokenDTO, // ваш класс, описывающий ответ
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  @Post('mobile')
+  async googleAuthMobile(
+    @Body() body: GoogleMobileAuthDto, // принимаем наш DTO
+  ) {
+    const { idToken, ref } = body;
+    const referrerId = ref ? parseInt(ref, 10) : null;
+
+    if (!idToken) {
+      throw new UnauthorizedException('No idToken provided');
+    }
+
+    try {
+      const verifyUrl = `https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`;
+      const { data: tokenInfo } = await axios.get(verifyUrl);
+
+      const mobileClientId = this.configService.get<string>(
+        'GOOGLE_MOBILE_CLIENT_ID',
+      );
+      if (tokenInfo.aud !== mobileClientId) {
+        throw new UnauthorizedException(
+          'Invalid mobile client_id (aud mismatch)',
+        );
+      }
+      if (tokenInfo.aud !== mobileClientId) {
+        throw new UnauthorizedException('Invalid iOS client_id (aud mismatch)');
+      }
+
+      const email = tokenInfo.email as string;
+      const googleId = tokenInfo.sub as string;
+      const fullName = tokenInfo.name as string;
+      const avatar = tokenInfo.picture;
+
+      let user = await this.userService.getByEmail(email);
+      const newUser = !user;
+
+      if (!user) {
+        user = await this.userService.create({
+          email,
+          googleId,
+          fullName,
+          avatar,
+          referrerId,
+        });
+      } else {
+        // Обновляем при желании
+        await this.userService.update(user.id, { googleId, avatar });
+      }
+
+      const jwt = this.authService.createToken(user);
+
+      if (!user.referrerId && referrerId) {
+        await this.pointsService.reward(referrerId, 20, 'Referral signup');
+        await this.userService.update(user.id, { referrerId });
+        await this.userService.addFriend(user.id, referrerId);
+      }
+
+      return {
+        accessToken: jwt.accessToken,
+        expiresIn: jwt.expiresIn,
+        user: jwt.user,
+        googleUserInfo: tokenInfo,
         redirectTo: '/dashboard/vault',
         newUser,
       };

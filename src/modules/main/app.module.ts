@@ -21,6 +21,7 @@ import {
 } from '../../core/constants/environment.constants';
 import { MissionModule } from '../api/mission/mission.module';
 import { PointsModule } from '../points/points.module';
+import { PosterModule } from '../api/poster/poster.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { PointsModule } from '../points/points.module';
     InstagramParserModule,
     PointsModule,
     MissionModule,
+    PosterModule,
   ],
   controllers: [AppController],
   providers: [AppService],

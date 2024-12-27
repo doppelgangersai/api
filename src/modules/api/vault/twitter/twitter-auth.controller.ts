@@ -11,9 +11,8 @@ import {
 } from '@nestjs/swagger';
 import { CurrentUser } from '../../../common/decorator/current-user.decorator';
 import { User, UserService } from '../../user';
-import { MessagesWithTitle } from '../../../ai/ai.service';
 import { ChatbotService } from '../../chatbot/chatbot.service';
-import { OptionalJwtAuthGuard } from '../../../../core/guards/optional-auth.guard';
+import { OptionalAuthGuard } from '../../../../core/guards/optional-auth.guard';
 
 class TweetDto {
   @ApiProperty({ example: 'This is a tweet' })
@@ -77,7 +76,7 @@ export class TwitterAuthController {
       'Handle Twitter authentication callback: pass URL from Twitter redirection here',
   })
   @ApiBearerAuth()
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(OptionalAuthGuard)
   @ApiQuery({
     name: 'code',
     type: String,
