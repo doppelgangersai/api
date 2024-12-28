@@ -130,9 +130,12 @@ export class TwitterAuthController {
     }
   }
 
-  // should receive twitterRefreshToken
-  @Patch('mobile')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({
+    description: 'Saves twitter refreshToken and triggers processing',
+  })
+  @Patch('mobile')
   async authMobile(
     @Body() { twitterRefreshToken }: TwitterMobileAuthDto,
     @CurrentUser() user: User,
