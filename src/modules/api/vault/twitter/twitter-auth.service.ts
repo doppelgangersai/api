@@ -99,7 +99,7 @@ export class TwitterAuthService {
 
       const mappedMessages: MessagesWithTitle = {
         title: `Tweets and replies of ${userData.name} (@${userData.username})`,
-        messages: tweetsData.data.map((tweet) => tweet.text),
+        messages: tweetsData.map((tweet) => tweet.text),
       };
 
       await this.chatbotService.createChatbot([mappedMessages], userId);
@@ -227,6 +227,13 @@ export class TwitterAuthService {
 
     const tokenData = await tokenResponse.json();
     return tokenData;
+  }
+
+  public async mobileAuth(userId: number, twitterRefreshToken: string) {
+    await this.userService.update(userId, {
+      twitterRefreshToken,
+    });
+    this.vaultEmitter.emitTwitterConnected(userId);
   }
 
   private generateAuthHeader(clientId: string, clientSecret: string): string {

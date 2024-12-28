@@ -1,4 +1,12 @@
-import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Query,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { Response } from 'express';
 import { TwitterAuthService } from './twitter-auth.service';
 import {
@@ -13,6 +21,7 @@ import { CurrentUser } from '../../../common/decorator/current-user.decorator';
 import { User, UserService } from '../../user';
 import { ChatbotService } from '../../chatbot/chatbot.service';
 import { OptionalAuthGuard } from '../../../../core/guards/optional-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 class TweetDto {
   @ApiProperty({ example: 'This is a tweet' })
@@ -22,6 +31,14 @@ class TweetDto {
 class TweetsDataDto {
   @ApiProperty({ type: [TweetDto] })
   data: TweetDto[];
+}
+
+class TwitterMobileAuthDto {
+  @ApiProperty({
+    example:
+      'S0ME-REFRESH-TOKEN-qYXczV1hjYVhFZGlWMUw5b3ZGOXNBSlFUVHVxWUdJOjE3MzUzODQzNjA1NTI6MToxOnJ0OjE',
+  })
+  twitterRefreshToken: string;
 }
 
 class TwitterCallbackResponseDto {
@@ -111,5 +128,15 @@ export class TwitterAuthController {
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
+  }
+
+  // should receive twitterRefreshToken
+  @Patch('mobile')
+  @UseGuards(AuthGuard('jwt'))
+  async authMobile(
+    @Body() { twitterRefreshToken }: TwitterMobileAuthDto,
+    @CurrentUser() user: User,
+  ) {
+    await this.twitterAuthService.mobileAuth(user.id, twitterRefreshToken);
   }
 }
