@@ -29,6 +29,7 @@ import { ChatService } from './chat.service';
 import { User } from '../user';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
 import { Chatbot } from '../chatbot/chatbot.entity';
+import { TUserID } from '../user/user.types';
 
 export class MergeChatbotDto {
   @ApiResponseProperty({
@@ -112,7 +113,7 @@ export class ChatController {
   @UseGuards(AuthGuard('jwt'))
   @Get(':chatId')
   async getChatMessages(
-    @Param('chatId') twinUserId: number,
+    @Param('chatId') twinUserId: TUserID,
     @CurrentUser() user: User,
   ): Promise<ChatMessagesResponseDto> {
     return this.chatService.getChatMessages(twinUserId, user.id);
@@ -181,7 +182,7 @@ export class ChatController {
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Post('legacy/:userId/init')
-  async initChat(@Param('userId') userId: string, @CurrentUser() user: User) {
-    return this.chatService.initChat(parseInt(userId), user.id);
+  async initChat(@Param('userId') userId: TUserID, @CurrentUser() user: User) {
+    return this.chatService.initChat(userId, user.id);
   }
 }

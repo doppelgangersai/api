@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Not, Repository } from 'typeorm';
 
 import { User, UserFillableFields } from './user.entity';
+import { TUserID } from './user.types';
 
 @Injectable()
 export class UserService {
@@ -69,7 +70,7 @@ export class UserService {
     return await this.usersRepository.update(id, { ...user });
   }
 
-  async addFriend(userId: number, friendId: number): Promise<void> {
+  async addFriend(userId: TUserID, friendId: number): Promise<void> {
     const user = await this.usersRepository.findOne(userId, {
       relations: ['friends'],
     });
@@ -81,7 +82,7 @@ export class UserService {
     }
   }
 
-  async getFriends(userId: number): Promise<User[]> {
+  async getFriends(userId: TUserID): Promise<User[]> {
     const user = await this.usersRepository.findOne(userId, {
       relations: ['friends'],
     });

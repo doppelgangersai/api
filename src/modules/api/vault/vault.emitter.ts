@@ -6,23 +6,24 @@ import {
   TELEGRAM_UPLOADED_EVENT,
   TWITTER_CONNECTED_EVENT,
 } from '../../../core/constants';
+import { TUserID } from '../user/user.types';
 
 @Injectable()
 export class VaultEmitter {
   constructor(private readonly eventEmitter: EventEmitter2) {}
 
-  emitInstagramPreprocessed(userId: number): void {
+  emitInstagramPreprocessed(userId: TUserID): void {
     this.eventEmitter.emit(INSTAGRAM_PREPROCESSED_EVENT, userId);
   }
-  emitInstagramUploaded(userId: number): void {
+  emitInstagramUploaded(userId: TUserID): void {
     this.eventEmitter.emit(INSTAGRAM_UPLOADED_EVENT, userId);
   }
 
-  emitTelegramConnected(userId: number): void {
+  emitTelegramConnected(userId: TUserID): void {
     this.eventEmitter.emit(TELEGRAM_UPLOADED_EVENT, userId);
   }
 
-  emitTwitterConnected(userId: number): void {
+  emitTwitterConnected(userId: TUserID): void {
     this.eventEmitter.emit(TWITTER_CONNECTED_EVENT, userId);
   }
 }

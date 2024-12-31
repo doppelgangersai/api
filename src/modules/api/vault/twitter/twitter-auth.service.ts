@@ -8,6 +8,7 @@ import { UserService } from '../../user';
 import { VaultEmitter } from '../vault.emitter';
 import { OnEvent } from '@nestjs/event-emitter';
 import { TWITTER_CONNECTED_EVENT } from '../../../../core/constants';
+import { TUserID } from '../../user/user.types';
 
 @Injectable()
 export class TwitterAuthService {
@@ -58,7 +59,7 @@ export class TwitterAuthService {
   public async saveTwitterRefreshToken(
     code: string,
     state: string,
-    userId: number,
+    userId: TUserID,
   ): Promise<void> {
     if (state !== this.state) {
       throw new Error('Invalid state');
@@ -229,7 +230,7 @@ export class TwitterAuthService {
     return tokenData;
   }
 
-  public async mobileAuth(userId: number, twitterRefreshToken: string) {
+  public async mobileAuth(userId: TUserID, twitterRefreshToken: string) {
     await this.userService.update(userId, {
       twitterRefreshToken,
     });

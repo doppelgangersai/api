@@ -1,4 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { TUserID } from '../../user/user.types';
 
 export enum MissionStatus {
   TODO = 'todo',
@@ -16,7 +17,7 @@ export class UserMissionEntity {
   missionId: number;
 
   @Column()
-  userId: number;
+  userId: TUserID; // be careful on type change
 
   @Column({
     type: 'enum',

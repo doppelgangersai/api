@@ -12,6 +12,7 @@ import {
 import { AIService, MessagesWithTitle } from '../../../ai/ai.service';
 import { ChatbotService } from '../../chatbot/chatbot.service';
 import { PointsService } from '../../../points/points.service';
+import { TUserID } from '../../user/user.types';
 
 const { StringSession } = sessions;
 
@@ -64,7 +65,7 @@ export class TelegramService {
   }
 
   async completeAuth(
-    userId: number,
+    userId: TUserID,
     code: string,
     phone: string,
     phoneCodeHash: string,
@@ -127,7 +128,7 @@ export class TelegramService {
   }
 
   @OnEvent(TELEGRAM_UPLOADED_EVENT)
-  async parseChats(userId: number): Promise<string[]> {
+  async parseChats(userId: TUserID): Promise<string[]> {
     const user = await this.userService.get(userId);
     if (!user.telegramAuthSession) {
       console.warn('No telegram session found for user', user.id);

@@ -6,6 +6,7 @@ import {
 } from '../../../../core/constants';
 import { InstagramParserService } from '../services/instagram-parser.service';
 import { VaultEmitter } from '../../../api/vault/vault.emitter';
+import { TUserID } from '../../../api/user/user.types';
 
 @Injectable()
 export class InstagramParserHandler {
@@ -14,13 +15,13 @@ export class InstagramParserHandler {
     private readonly emitter: VaultEmitter,
   ) {}
   @OnEvent(INSTAGRAM_UPLOADED_EVENT)
-  async handleInstagramUploadedEvent(userId: number): Promise<void> {
+  async handleInstagramUploadedEvent(userId: TUserID): Promise<void> {
     await this.parserService.removePhotos(userId);
     this.emitter.emitInstagramPreprocessed(userId);
   }
 
   @OnEvent(INSTAGRAM_PREPROCESSED_EVENT)
-  async handleInstagramPreprocessedEvent(userId: number): Promise<void> {
+  async handleInstagramPreprocessedEvent(userId: TUserID): Promise<void> {
     await this.parserService.parseUser(userId);
   }
 }

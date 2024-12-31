@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import { MessagesWithTitle } from '../../../ai/ai.service';
 import { InstagramMessage } from '../instagram-parser.types';
 import { ChatbotService } from '../../../api/chatbot/chatbot.service';
+import { TUserID } from '../../../api/user/user.types';
 
 @Injectable()
 export class InstagramParserService {
@@ -21,7 +22,7 @@ export class InstagramParserService {
     private readonly chatbotService: ChatbotService,
   ) {}
 
-  async removePhotos(userId: number): Promise<void> {
+  async removePhotos(userId: TUserID): Promise<void> {
     const user = await this.userService.get(userId);
     if (!user) {
       return;
@@ -81,7 +82,7 @@ export class InstagramParserService {
     }
   }
 
-  async parseUser(userId: number): Promise<void> {
+  async parseUser(userId: TUserID): Promise<void> {
     const user = await this.userService.get(userId);
     if (!user) {
       console.log('User not found');

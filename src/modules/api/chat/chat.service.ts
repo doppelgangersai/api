@@ -10,6 +10,7 @@ import axios from 'axios';
 import { CHATBOTKIT_SECRET } from '../../../core/constants/environment.constants';
 import { ChatbotService } from '../chatbot/chatbot.service';
 import { Chatbot } from '../chatbot/chatbot.entity';
+import { TUserID } from '../user/user.types';
 
 @Injectable()
 export class ChatService {
@@ -58,7 +59,7 @@ Now another user will write to you. You are not his digital twin, but the digita
     };
   }
 
-  async processMessage(chatbotId: number, userId: number, message: string) {
+  async processMessage(chatbotId: number, userId: TUserID, message: string) {
     let chat = await this.chatRepository.findOne({
       with_user_id: chatbotId,
       from_user_id: userId,
@@ -90,7 +91,7 @@ Now another user will write to you. You are not his digital twin, but the digita
     }
   }
 
-  async getChatList(userId: number): Promise<IChat[]> {
+  async getChatList(userId: TUserID): Promise<IChat[]> {
     const user = await this.userService.get(userId);
     const chats = await this.chatRepository.find({
       where: [{ with_user_id: userId }],
@@ -104,17 +105,17 @@ Now another user will write to you. You are not his digital twin, but the digita
     }));
   }
 
-  async getAvailableChatList(userId: number): Promise<Chatbot[]> {
+  async getAvailableChatList(userId: TUserID): Promise<Chatbot[]> {
     return this.chatbotService.getAvailableChatbots(userId);
   }
 
-  async getFriendsChatList(userId: number): Promise<Chatbot[]> {
+  async getFriendsChatList(userId: TUserID): Promise<Chatbot[]> {
     return this.chatbotService.getFriendsChatbots(userId);
   }
 
   async getChatMessages(
     chatbotId: number,
-    userId: number,
+    userId: TUserID,
   ): Promise<{ messages: any[]; user: User }> {
     console.log('Getting chat messages:', chatbotId, userId);
     const chat = await this.chatRepository.findOne({
@@ -166,8 +167,8 @@ Now another user will write to you. You are not his digital twin, but the digita
   }
 
   async initChat(
-    withUserId: number,
-    fromUserId: number,
+    withUserId: TUserID,
+    fromUserId: TUserID,
     providerName = 'chatbotkit',
   ): Promise<Chat> {
     const chat = new Chat();
@@ -186,7 +187,7 @@ Now another user will write to you. You are not his digital twin, but the digita
     return chat;
   }
 
-  async merge(chatbot1Id: number, chatbot2Id: number, userId: number) {
+  async merge(chatbot1Id: number, chatbot2Id: number, userId: TUserID) {
     console.log(
       '[ChatService] Merging chatbots: ',
       chatbot1Id,

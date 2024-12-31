@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Chatbot } from './chatbot.entity';
 import { Repository } from 'typeorm';
 import { UserService } from '../user';
+import { TUserID } from '../user/user.types';
 
 interface MessagesWithTitle {
   title: string;
@@ -20,7 +21,7 @@ export class ChatbotService {
   ) {}
   async createChatbot(
     messages: MessagesWithTitle[],
-    userId: number,
+    userId: TUserID,
   ): Promise<Chatbot> {
     const maxForBlock = Math.floor(50 / messages.length);
     const backstory = await this.aiService.getBackstoryByMessagesPack(
@@ -59,7 +60,7 @@ export class ChatbotService {
    * @param userId - ID of the user
    * @returns Array of available chatbots
    */
-  async getAvailableChatbots(userId: number): Promise<Chatbot[]> {
+  async getAvailableChatbots(userId: TUserID): Promise<Chatbot[]> {
     // Get chatbots owned by friends
     const friendsChatbots = await this.getFriendsChatbots(userId);
 
@@ -87,7 +88,7 @@ export class ChatbotService {
    * @param userId - ID of the user
    * @returns Array of friends' chatbots
    */
-  async getFriendsChatbots(userId: number): Promise<Chatbot[]> {
+  async getFriendsChatbots(userId: TUserID): Promise<Chatbot[]> {
     const friends = await this.usersService.getFriends(userId);
 
     const friendIds = friends.map((friend) => friend.id);
@@ -110,7 +111,7 @@ export class ChatbotService {
     return this.chatbotRepository.findOne(chatbotId);
   }
 
-  async mergeChatbots(chatbot1Id: number, chatbot2Id: number, userId: number) {
+  async mergeChatbots(chatbot1Id: number, chatbot2Id: number, userId: TUserID) {
     console.log(
       '[ChatbotService.mergeChatbots] Merging chatbots:',
       chatbot1Id,
@@ -203,7 +204,7 @@ Title:`,
     return this.getChatbotById(chatbotId);
   }
 
-  async getMergedChatbots(userId: number): Promise<Chatbot[]> {
+  async getMergedChatbots(userId: TUserID): Promise<Chatbot[]> {
     return this.chatbotRepository.find({
       where: {
         ownerId: userId,
@@ -212,7 +213,7 @@ Title:`,
     });
   }
 
-  async getPrivateChatbots(userId: number): Promise<Chatbot[]> {
+  async getPrivateChatbots(userId: TUserID): Promise<Chatbot[]> {
     return this.chatbotRepository.find({
       where: {
         ownerId: userId,
@@ -221,7 +222,7 @@ Title:`,
     });
   }
 
-  async getDoppelgangerChatbot(userId: number): Promise<Chatbot> {
+  async getDoppelgangerChatbot(userId: TUserID): Promise<Chatbot> {
     return this.chatbotRepository.findOne({
       where: {
         ownerId: userId,

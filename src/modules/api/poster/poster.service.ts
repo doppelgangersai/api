@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ChatbotService } from '../chatbot/chatbot.service';
 import * as Parser from 'rss-parser';
 import { AIService } from '../../ai/ai.service';
+import { TUserID } from '../user/user.types';
 
 @Injectable()
 export class PosterService {
@@ -12,7 +13,7 @@ export class PosterService {
     private readonly aiService: AIService,
   ) {}
 
-  async parseAndPostByUser(userId: number): Promise<string> {
+  async parseAndPostByUser(userId: TUserID): Promise<string> {
     const doppelganger = await this.chatbotService.getDoppelgangerChatbot(
       userId,
     );

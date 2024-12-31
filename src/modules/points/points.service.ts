@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PointsTransaction } from './points-transaction.entity';
 import { Repository } from 'typeorm';
 import { UserService } from '../api/user';
+import { TUserID } from '../api/user/user.types';
 
 @Injectable()
 export class PointsService {
@@ -12,7 +13,7 @@ export class PointsService {
     private readonly userService: UserService,
   ) {}
 
-  async reward(userId: number, amount: number, message?: string) {
+  async reward(userId: TUserID, amount: number, message?: string) {
     const rewardTransaction = await this.pointsRepository.save({
       fromUserId: null,
       toUserId: userId,
@@ -26,7 +27,7 @@ export class PointsService {
     return rewardTransaction;
   }
 
-  async countAndUpdateUserPoints(userId: number): Promise<void> {
+  async countAndUpdateUserPoints(userId: TUserID): Promise<void> {
     // Calculate total points received by the user
     const { totalReceived }: { totalReceived: string | null } =
       await this.pointsRepository
