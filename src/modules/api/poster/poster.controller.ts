@@ -1,7 +1,6 @@
 import { Controller, Param, Post, UseGuards } from '@nestjs/common';
 import { PosterService } from './poster.service';
-import { ApiParam, ApiTags } from '@nestjs/swagger';
-import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 import { OptionalAuthGuard } from '../../../core/guards/optional-auth.guard';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
 import { User } from '../user';
@@ -11,10 +10,11 @@ import { User } from '../user';
 export class PosterController {
   constructor(private readonly posterService: PosterService) {}
 
+  @ApiBearerAuth()
   @UseGuards(OptionalAuthGuard)
   @Post()
   async post(@CurrentUser() user: User) {
-    return this.posterService.parseAndPostByUser(user?.id || 1);
+    return this.posterService.parseAndPostByUser(user);
   }
 
   @ApiParam({ name: 'chatbotId', type: Number })

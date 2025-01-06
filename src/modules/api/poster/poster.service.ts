@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { ChatbotService } from '../chatbot/chatbot.service';
 import * as Parser from 'rss-parser';
 import { AIService } from '../../ai/ai.service';
-import { TUserID } from '../user/user.types';
+import { TwitterAuthService } from '../vault/twitter/twitter-auth.service';
+import { User } from '../user';
 
 @Injectable()
 export class PosterService {
@@ -11,13 +12,17 @@ export class PosterService {
   constructor(
     private readonly chatbotService: ChatbotService,
     private readonly aiService: AIService,
+    private readonly twitterAuthService: TwitterAuthService,
   ) {}
 
-  async parseAndPostByUser(userId: TUserID): Promise<string> {
+  async parseAndPostByUser(user: Partial<User>): Promise<string> {
     const doppelganger = await this.chatbotService.getDoppelgangerChatbot(
-      userId,
+      user.id,
     );
-    return this.parseAndPost(doppelganger.backstory);
+    const accessToken = await this.twitterAuthService.refreshAccessToken(
+      user.twitterRefreshToken,
+    );
+    return this.parseAndPost(doppelganger.backstory, accessToken);
   }
 
   async parseAndPostByChatbot(chatbotId: number): Promise<string> {
@@ -26,7 +31,10 @@ export class PosterService {
     return this.parseAndPost(chatbot.backstory);
   }
 
-  private async parseAndPost(backstory: string): Promise<string> {
+  private async parseAndPost(
+    backstory: string,
+    accessToken?: string,
+  ): Promise<string> {
     const feed = await this.fetchFeed(
       'https://www.reddit.com/r/programming.rss',
     );
@@ -39,6 +47,10 @@ ${post.content}`);
 
     const prompt = this.generatePrompt(backstory, post);
     const rewrittenPost = await this.aiService.processText(prompt);
+
+    if (accessToken) {
+      await this.twitterAuthService.tweet(accessToken, rewrittenPost);
+    }
 
     console.log(`Rewritten post: ${rewrittenPost}`);
     return rewrittenPost;

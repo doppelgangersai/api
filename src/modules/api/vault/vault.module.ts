@@ -33,6 +33,6 @@ import { TwitterHandler } from './twitter/twitter.handlers'; // Import TelegramS
     TwitterAuthService,
     TwitterHandler,
   ],
-  exports: [VaultEmitter],
+  exports: [VaultEmitter, TwitterAuthService],
 })
 export class VaultModule {}

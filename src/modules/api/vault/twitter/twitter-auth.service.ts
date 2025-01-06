@@ -15,7 +15,7 @@ export class TwitterAuthService {
   private clientId: string;
   private clientSecret: string;
   private redirectUri: string;
-  private scope = 'tweet.read users.read offline.access';
+  private scope = 'tweet.read tweet.write users.read offline.access';
 
   private state: string;
   private codeVerifier: string;
@@ -80,7 +80,7 @@ export class TwitterAuthService {
   }
 
   @OnEvent(TWITTER_CONNECTED_EVENT)
-  public async processUserTwitter(userId: number): Promise<void> {
+  public async processUserTwitter(userId: TUserID): Promise<void> {
     const user = await this.userService.get(userId);
     if (!user) {
       console.error('User not found');
@@ -111,16 +111,18 @@ export class TwitterAuthService {
     }
   }
 
-  private async refreshAccessToken(refreshToken: string): Promise<string> {
+  public async refreshAccessToken(refreshToken: string): Promise<string> {
     const authHeader = this.generateAuthHeader(
       this.clientId,
       this.clientSecret,
     );
-    const tokenParams = new URLSearchParams({
+
+    const tokensParamsObj = {
       grant_type: 'refresh_token',
       refresh_token: refreshToken,
       client_id: this.clientId,
-    });
+    };
+    const tokenParams = new URLSearchParams(tokensParamsObj);
 
     const tokenResponse = await fetch(this.tokenUrl, {
       method: 'POST',
@@ -137,7 +139,14 @@ export class TwitterAuthService {
     }
 
     const tokenData = await tokenResponse.json();
-    return tokenData.access_token;
+
+    console.log(tokenData);
+
+    const { access_token, refresh_token } = tokenData;
+
+    await this.userService.update(1, { twitterRefreshToken: refresh_token });
+
+    return access_token;
   }
 
   private async getUserData(
@@ -176,22 +185,61 @@ export class TwitterAuthService {
   public async getUserTweets(
     accessToken: string,
     userId: string,
-  ): Promise<any> {
-    const tweetsResponse = await fetch(
-      `https://api.twitter.com/2/users/${userId}/tweets`,
-      {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      },
-    );
+    maxTweets = 500,
+  ): Promise<any[]> {
+    const allTweets: any[] = [];
+    let nextToken: string | undefined = undefined;
 
-    if (!tweetsResponse.ok) {
-      const errorText = await tweetsResponse.text();
-      throw new Error(`Error fetching tweets: ${errorText}`);
+    let requests_count = 0;
+    // Keep fetching while we haven't reached maxTweets and Twitter has more data
+    while (allTweets.length < maxTweets) {
+      // Calculate how many tweets we still need
+      const remaining = maxTweets - allTweets.length;
+      // Twitter allows a max of 100 per request
+      const fetchCount = remaining > 100 ? 100 : remaining;
+
+      // Construct URL with query params
+      const url = new URL(`https://api.twitter.com/2/users/${userId}/tweets`);
+      url.searchParams.set('max_results', fetchCount.toString());
+      if (nextToken) {
+        url.searchParams.set('pagination_token', nextToken);
+      }
+
+      // Make API request
+      const response = await fetch(url.toString(), {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log(errorText);
+        break;
+      }
+
+      requests_count++;
+      const data = await response.json();
+
+      console.log(data);
+      // Push new tweets into our main array
+      if (data.data) {
+        allTweets.push(...data.data);
+      }
+
+      // Check for next_token to see if we can continue paginating
+      if (data.meta?.next_token) {
+        nextToken = data.meta.next_token;
+      } else {
+        // No more pages to fetch
+        break;
+      }
+
+      await new Promise((a) => setTimeout(a, 2000));
     }
 
-    return tweetsResponse.json();
+    return allTweets;
   }
-
   public async exchangeCodeForToken(
     code: string,
     returnedState: string,
@@ -228,6 +276,30 @@ export class TwitterAuthService {
 
     const tokenData = await tokenResponse.json();
     return tokenData;
+  }
+
+  public async tweet(accessToken: string, text: string): Promise<any> {
+    try {
+      const response = await fetch('https://api.twitter.com/2/tweets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ text }), // The body must be a JSON object with a `text` property
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error posting tweet: ${errorText}`);
+      }
+
+      const result = await response.json();
+      // The response will typically include the Tweet data, like tweet ID, text, etc.
+      return result;
+    } catch (error) {
+      throw error;
+    }
   }
 
   public async mobileAuth(userId: TUserID, twitterRefreshToken: string) {
