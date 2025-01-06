@@ -1,5 +1,6 @@
 import { EmailOptions, EmailService } from './email-service.interface';
 
+// TODO: remove?
 export class MockEmailService implements EmailService {
   async sendEmail(options: EmailOptions): Promise<any> {
     console.log(

@@ -25,12 +25,11 @@ export class ZipUtils {
       });
 
       output.on('close', () => {
-        console.log(`Zip file ${zipFilePath} has been created successfully.`);
         resolve();
       });
 
       archive.on('error', (err) => {
-        console.error('Error creating zip file:', err);
+        console.error('Error creating zip file:', err); // TODO: error handling
         reject(err);
       });
 

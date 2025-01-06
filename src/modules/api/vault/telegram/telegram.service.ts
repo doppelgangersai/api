@@ -71,33 +71,21 @@ export class TelegramService {
     phoneCodeHash: string,
     password?: string,
   ): Promise<string> {
-    console.log({
-      code,
-      phone,
-      phoneCodeHash,
-      password,
-    });
-
     const client = this.clients[phone];
     if (!client) {
       throw new BadRequestException('Phone number not found');
     }
 
     try {
-      console.log('Trying to sign in with code');
-
       const signInParams = {
         phoneNumber: phone,
         phoneCodeHash: phoneCodeHash,
         phoneCode: code,
       };
 
-      console.log(signInParams);
-
       await client.invoke(new Api.auth.SignIn(signInParams));
     } catch (err) {
       if (err.errorMessage === 'SESSION_PASSWORD_NEEDED' && password) {
-        console.log('Trying to sign in with password');
         await client.signInWithPassword(
           {
             apiId: this.apiId,
@@ -167,26 +155,23 @@ export class TelegramService {
           msgn = msgn + 1;
           const chatName = dialog.title || 'Unknown Chat/User';
           const formattedMessage = `To ${chatName}: ${message.message}`;
-          console.log(msgn, formattedMessage);
+
           chats.push(message.message);
           if (formattedMessage.length > 200) {
-            console.log(message);
+            console.log(message); // TODO: check message length
           }
 
           messagesWithTitle.messages.push(formattedMessage);
 
           if (msgn % 100 === 0) {
-            console.log('100 messages reached, breaking');
             break;
           }
         }
       }
 
       if (msgn > 500 || dn > 20) {
-        console.log('500 messages reached, breaking');
         break;
       }
-      console.log('Dialog:', dialog.id);
       await sleep(5);
     }
     await client.disconnect();

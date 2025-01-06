@@ -27,7 +27,6 @@ export class PosterService {
 
   async parseAndPostByChatbot(chatbotId: number): Promise<string> {
     const chatbot = await this.chatbotService.get(chatbotId);
-    console.log(chatbot);
     return this.parseAndPost(chatbot.backstory);
   }
 

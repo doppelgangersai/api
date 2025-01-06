@@ -27,12 +27,9 @@ export class StorageService {
   }
 
   async createBucketIfNotExists(bucketName: string): Promise<void> {
-    console.log('checking bucket', bucketName);
     const bucketExists = await this.minioClient.bucketExists(bucketName);
-    console.log('bucketExists', bucketExists);
     if (!bucketExists) {
-      console.log('creating bucket', bucketName);
-      await this.minioClient.makeBucket(bucketName, 'us-east-1');
+      await this.minioClient.makeBucket(bucketName, 'us-east-1'); // TODO: make region configurable
     }
   }
 
@@ -51,16 +48,14 @@ export class StorageService {
     const bucketName = bucket || `user-${userId}`;
 
     await this.createBucketIfNotExists(bucketName).catch((e) => {
-      console.log('Creation error:', e);
+      console.log('Creation error:', e); // TODO: error handling
     });
 
     await this.minioClient
       .putObject(bucketName, fileName, stream, fileSize, {
         'Content-Type': mimeType,
       })
-      .catch((e) => console.log(e.message));
-
-    console.log('Put', fileName, 'V');
+      .catch((e) => console.log(e.message)); // TODO: error handling
 
     return fileName;
   }
@@ -77,14 +72,9 @@ export class StorageService {
     objectName: string,
     destinationPath: string,
   ): Promise<void> {
-    console.log('Downloading', objectName, 'from bucket', bucketName);
-
-    // Ensure the directory for the file exists, not the file itself
     const destinationDir = dirname(destinationPath);
     if (!existsSync(destinationDir)) {
-      console.log('Destination directory does not exist, creating...');
       mkdirSync(destinationDir, { recursive: true });
-      console.log('Directory created:', destinationDir);
     }
 
     const fileStream = createWriteStream(destinationPath);
@@ -95,9 +85,7 @@ export class StorageService {
         objectName,
       );
       dataStream.pipe(fileStream);
-      console.log('File downloaded successfully to', destinationPath);
     } catch (e) {
-      console.log('Download error:', e);
       console.error(e.message);
     }
   }
@@ -119,38 +107,28 @@ export class StorageService {
       : `${Date.now()}${extname(filePath)}`;
     const bucketName = bucket || `user-${userId}`;
 
-    await this.createBucketIfNotExists(bucketName)
-      .then(() => console.log(`Bucket ${bucketName} created`))
-      .catch((e) => {
-        console.log('Creation error:', e);
-      });
+    await this.createBucketIfNotExists(bucketName).catch((e) => {
+      console.log('Creation error:', e); // TODO: error handling
+    });
 
     try {
       const fileStream = createReadStream(filePath);
 
       await this.minioClient.putObject(bucketName, fileName, fileStream);
-
-      console.log(
-        'File',
-        fileName,
-        'uploaded successfully to bucket',
-        bucketName,
-      );
       return fileName;
     } catch (e) {
-      console.log('Upload error:', e.message);
+      console.log('Upload error:', e.message); // TODO: error handling
       throw e; // rethrow the error after logging
     }
   }
 
+  // TODO: remove?
   /**
    * Deletes a file from the specified bucket.
    * @param bucketName The name of the bucket where the file is stored.
    * @param objectName The name of the file to delete.
    */
   async deleteFile(bucketName: string, objectName: string): Promise<void> {
-    console.log('Deleting', objectName, 'from bucket', bucketName);
     await this.minioClient.removeObject(bucketName, objectName);
-    console.log('File deleted successfully');
   }
 }

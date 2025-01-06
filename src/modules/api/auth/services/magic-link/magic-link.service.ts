@@ -58,7 +58,6 @@ export class MagicLinkService {
   }: IEmailCode & ITokenCode): Promise<void> {
     const appUrl = this.configService.get(APP_URL);
     const magicLink = `${appUrl}/auth/mail?token=${token}`;
-    console.log(`Sending magic link to ${email}: ${magicLink}`);
     await this.emailService.sendEmail({
       to: email,
       subject: 'Magic Link',

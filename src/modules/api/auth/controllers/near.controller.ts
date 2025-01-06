@@ -50,7 +50,6 @@ export class NearController {
   @ApiOperation({ summary: 'WIP: Near Auth' })
   @Get()
   async auth(@Query() query: NearAuthDto) {
-    console.log('query', query);
     const referrerId = (query.ref && parseInt(query.ref, 10)) || null;
     const user = await this.userService.getOrCreateByNearAccountId(
       query.account_id,

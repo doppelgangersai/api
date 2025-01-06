@@ -68,7 +68,6 @@ export class Chatbot implements IDoppelganger {
   toJSON() {
     const { backstory, ...self } = this;
     const mapped = { ...self, avatar: avatarTransformer(this) };
-    console.log(mapped, this);
     return mapped;
   }
 }

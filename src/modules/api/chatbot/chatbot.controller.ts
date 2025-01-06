@@ -56,33 +56,6 @@ export class ChatbotController {
     return this.chatbotService.getPrivateChatbots(user.id);
   }
 
-  // @ApiBearerAuth()
-  // @ApiOperation({ summary: 'Merge chatbot' })
-  // @ApiParam({ name: 'chatbotId', description: 'ID of the chatbot' })
-  // @ApiResponse({
-  //   status: 201,
-  //   description: 'Merged',
-  //   type: MergeChatbotDto,
-  // })
-  // @HttpCode(201)
-  // @UseGuards(AuthGuard('jwt'))
-  // @Post('merge/:chatbotId')
-  // mergeChatbot(
-  //   @Param('chatbotId') chatbotId: number,
-  //   @CurrentUser() user: User,
-  // ) {
-  //   if (!user.chatbotId) {
-  //     throw new NotAcceptableException('User has not chatbot');
-  //   }
-  //   console.log(
-  //     '[controller] Merging chatbot:',
-  //     chatbotId,
-  //     user.chatbotId,
-  //     user.id,
-  //   );
-  //   return this.chatbotService.merge(chatbotId, user.chatbotId, user.id);
-  // }
-
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get chatbot by ID' })
   @ApiParam({ name: 'chatbotId', description: 'ID of the chatbot' })

@@ -14,7 +14,6 @@ export class MandrillEmailService implements EmailService {
 
   async sendEmail(options: EmailOptions): Promise<any> {
     const key = this.configService.get(MANDRILL_API_KEY);
-    console.log('key', key);
     const payload = {
       key,
       template_name: DEFAULT_TEMPLATE_ID,
@@ -35,7 +34,6 @@ export class MandrillEmailService implements EmailService {
 
     try {
       const response = await axios.post(this.apiUrl, payload);
-      console.log('Email sent:', response.data);
       return response.data;
     } catch (error) {
       console.error(

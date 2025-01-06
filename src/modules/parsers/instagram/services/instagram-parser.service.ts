@@ -85,11 +85,9 @@ export class InstagramParserService {
   async parseUser(userId: TUserID): Promise<void> {
     const user = await this.userService.get(userId);
     if (!user) {
-      console.log('User not found');
       return;
     }
 
-    console.log(`Parsing Instagram user: ${userId} - User: ${user.fullName}`);
     const uniqueIdentifier = uuidv4();
     const zipFileName = `${uniqueIdentifier}_instagram_data.zip`;
     const zipFilePath = path.join('/tmp', zipFileName);
@@ -101,7 +99,6 @@ export class InstagramParserService {
         user.instagramFile,
         zipFilePath,
       );
-      console.log('Download complete, starting to extract ZIP...');
       await this.zipUtils.extractZip(zipFilePath, outputDir);
 
       const topLevelItems = fs.readdirSync(outputDir);
@@ -145,7 +142,6 @@ export class InstagramParserService {
         ],
         userId,
       );
-      console.log('AI generated description:', backstory);
     } catch (error) {
       console.error('Error processing user data:', error);
     } finally {

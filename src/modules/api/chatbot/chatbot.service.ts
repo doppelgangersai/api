@@ -42,14 +42,9 @@ export class ChatbotService {
     });
 
     const chatbotId = chatbot.id;
-
-    console.log(`Created chatbot with id: ${chatbotId}`);
     await this.usersService.update(userId, {
       chatbotId,
     });
-
-    console.log(`Chatbot service created with backstory: ${backstory}`);
-    console.log(`Chatbot service created by user: ${userId}`);
 
     return chatbot;
   }
@@ -112,20 +107,10 @@ export class ChatbotService {
   }
 
   async mergeChatbots(chatbot1Id: number, chatbot2Id: number, userId: TUserID) {
-    console.log(
-      '[ChatbotService.mergeChatbots] Merging chatbots:',
-      chatbot1Id,
-      chatbot2Id,
-      userId,
-    );
     const chatbot1 = await this.getChatbotById(chatbot1Id);
-    console.log('chatbot1:', !!chatbot1);
     const chatbot2 = await this.getChatbotById(chatbot2Id);
-    console.log('chatbot2:', !!chatbot2);
     const backstory1 = chatbot1.backstory;
-    console.log('backstory1:', !!backstory1);
     const backstory2 = chatbot2.backstory;
-    console.log('backstory2:', !!backstory2);
 
     const backstory_prompt = `Merge two users backstories to one (like a hybrid/digital baby/...), create a new person backstory based on two provided backstories:
     Backstory 1:
@@ -137,7 +122,6 @@ export class ChatbotService {
     const backstory = await this.aiService
       .processText(backstory_prompt)
       .catch(() => {
-        console.log('Fallback to original prompt');
         return backstory_prompt;
       });
 
@@ -186,8 +170,6 @@ Title:`,
       isPublic: false,
       ...(typeof img === 'string' ? { avatar: img } : {}),
     });
-
-    console.log('chatbot:', !!chatbot);
 
     return chatbot;
   }

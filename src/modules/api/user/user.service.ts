@@ -32,12 +32,12 @@ export class UserService {
     });
   }
 
+  // TODO: remove?
   async getOrCreateByEmail(email: string) {
     let user = await this.getByEmail(email);
     if (!user) {
       user = await this.create({ email });
     }
-    console.log('user', user);
     return user;
   }
 
@@ -66,7 +66,6 @@ export class UserService {
   }
 
   async update(id, user: Partial<User>) {
-    console.log('Updating user', id, user);
     return await this.usersRepository.update(id, { ...user });
   }
 

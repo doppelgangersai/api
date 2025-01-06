@@ -61,12 +61,6 @@ export class ChatController {
     if (!user.chatbotId) {
       throw new NotAcceptableException('User has not chatbot');
     }
-    console.log(
-      '[controller] Merging chatbot:',
-      chatbotId,
-      user.chatbotId,
-      user.id,
-    );
     return this.chatService.merge(chatbotId, user.chatbotId, user.id);
   }
 

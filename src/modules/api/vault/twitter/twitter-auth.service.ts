@@ -73,10 +73,7 @@ export class TwitterAuthService {
       twitterUserId,
     });
 
-    console.log('Twitter refresh token saved for user ID', userId);
     this.vaultEmitter.emitTwitterConnected(userId);
-
-    console.log('Twitter connected and chatbot created for user ID', userId);
   }
 
   @OnEvent(TWITTER_CONNECTED_EVENT)
@@ -104,8 +101,6 @@ export class TwitterAuthService {
       };
 
       await this.chatbotService.createChatbot([mappedMessages], userId);
-
-      console.log(`Chatbot successfully created for user ID ${userId}`);
     } catch (error) {
       console.error('Error processing user Twitter:', error.message);
     }
@@ -139,9 +134,6 @@ export class TwitterAuthService {
     }
 
     const tokenData = await tokenResponse.json();
-
-    console.log(tokenData);
-
     const { access_token, refresh_token } = tokenData;
 
     await this.userService.update(1, { twitterRefreshToken: refresh_token });
@@ -214,15 +206,11 @@ export class TwitterAuthService {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.log(errorText);
         break;
       }
 
       requests_count++;
       const data = await response.json();
-
-      console.log(data);
-      // Push new tweets into our main array
       if (data.data) {
         allTweets.push(...data.data);
       }

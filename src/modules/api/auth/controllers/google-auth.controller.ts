@@ -45,7 +45,6 @@ export class GoogleAuthController {
     )}&redirect_uri=${encodeURIComponent(
       googleRedirectUrl,
     )}&response_type=code&scope=${scopes}`;
-    console.log(url);
     return {
       url,
     };

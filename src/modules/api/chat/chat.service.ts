@@ -70,8 +70,6 @@ Now another user will write to you. You are not his digital twin, but the digita
 
     const secret = this.configService.get(CHATBOTKIT_SECRET);
     const apiUrl = `https://api.chatbotkit.com/v1/conversation/${chat.provider_internal_id}/complete`;
-    console.log('Processing message:', message);
-    console.log('Conversation ID:', chat.provider_internal_id);
 
     try {
       const response = await axios.post(
@@ -117,7 +115,6 @@ Now another user will write to you. You are not his digital twin, but the digita
     chatbotId: number,
     userId: TUserID,
   ): Promise<{ messages: any[]; user: User }> {
-    console.log('Getting chat messages:', chatbotId, userId);
     const chat = await this.chatRepository.findOne({
       with_user_id: chatbotId,
       from_user_id: userId,
@@ -126,7 +123,6 @@ Now another user will write to you. You are not his digital twin, but the digita
     const twin = await this.userService.get(chatbotId);
     const user = await this.userService.get(userId);
     if (!chat) {
-      console.log('Chat not found');
       return {
         user: twin,
         messages: [],
@@ -188,12 +184,6 @@ Now another user will write to you. You are not his digital twin, but the digita
   }
 
   async merge(chatbot1Id: number, chatbot2Id: number, userId: TUserID) {
-    console.log(
-      '[ChatService] Merging chatbots: ',
-      chatbot1Id,
-      chatbot2Id,
-      userId,
-    );
     return this.chatbotService.mergeChatbots(chatbot1Id, chatbot2Id, userId);
   }
 
