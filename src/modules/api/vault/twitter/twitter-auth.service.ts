@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 import { ConfigService } from '../../../config';
 import { MessagesWithTitle } from '../../../ai/ai.service';
 import { ChatbotService } from '../../chatbot/chatbot.service';
-import { UserService } from '../../user';
+import { ConnectionStatus, UserService } from '../../user';
 import { VaultEmitter } from '../vault.emitter';
 import { OnEvent } from '@nestjs/event-emitter';
 import { TWITTER_CONNECTED_EVENT } from '../../../../core/constants';
@@ -71,6 +71,7 @@ export class TwitterAuthService {
     await this.userService.update(userId, {
       twitterRefreshToken: tokenData.refresh_token,
       twitterUserId,
+      twitterConnectionStatus: ConnectionStatus.CONNECTED,
     });
 
     this.vaultEmitter.emitTwitterConnected(userId);
@@ -101,6 +102,9 @@ export class TwitterAuthService {
       };
 
       await this.chatbotService.createChatbot([mappedMessages], userId);
+      await this.userService.update(userId, {
+        twitterConnectionStatus: ConnectionStatus.PROCESSED,
+      });
     } catch (error) {
       console.error('Error processing user Twitter:', error.message);
     }

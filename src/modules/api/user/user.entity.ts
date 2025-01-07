@@ -9,6 +9,13 @@ import { PasswordTransformer } from './password.transformer';
 import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
 import { IDoppelganger } from '../../doppelganger/doppelganger.interace';
 
+export enum ConnectionStatus {
+  UNCONNECTED = 'unconnected',
+  CONNECTED = 'connected',
+  PROCESSED = 'processed',
+  DISCONNECTED = 'disconnected',
+}
+
 @Entity({
   name: 'users',
 })
@@ -124,9 +131,43 @@ export class User implements IDoppelganger {
   @ApiResponseProperty()
   isInstagramConnected: boolean;
 
-  // @ApiResponseProperty()
-  // @Column('text', { nullable: true, array: true })
-  // tags: string[];
+  @ApiProperty({
+    description: 'Twitter connection status',
+    enum: ConnectionStatus,
+    default: ConnectionStatus.UNCONNECTED,
+  })
+  @Column({
+    type: 'enum',
+    enum: ConnectionStatus,
+    default: ConnectionStatus.UNCONNECTED,
+  })
+  twitterConnectionStatus: ConnectionStatus;
+
+  // same for instagramConnectionStatus, telegramConnectionStatus:
+
+  @ApiProperty({
+    description: 'Instagram connection status',
+    enum: ConnectionStatus,
+    default: ConnectionStatus.UNCONNECTED,
+  })
+  @Column({
+    type: 'enum',
+    enum: ConnectionStatus,
+    default: ConnectionStatus.UNCONNECTED,
+  })
+  instagramConnectionStatus: ConnectionStatus;
+
+  @ApiProperty({
+    description: 'Telegram connection status',
+    enum: ConnectionStatus,
+    default: ConnectionStatus.UNCONNECTED,
+  })
+  @Column({
+    type: 'enum',
+    enum: ConnectionStatus,
+    default: ConnectionStatus.UNCONNECTED,
+  })
+  telegramConnectionStatus: ConnectionStatus;
 
   toJSON() {
     const {
@@ -138,6 +179,8 @@ export class User implements IDoppelganger {
       instagramFile,
       backstory,
       nearPublicKey,
+      instagramConnectionStatus,
+      telegramConnectionStatus,
       ...self
     } = this;
     return {
