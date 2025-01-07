@@ -61,7 +61,7 @@ class TwitterCallbackResponseDto {
   tweets: TweetsDataDto;
 }
 
-@ApiTags('Twitter')
+@ApiTags('vault/twitter')
 @Controller('api/vault/twitter')
 export class TwitterAuthController {
   constructor(
