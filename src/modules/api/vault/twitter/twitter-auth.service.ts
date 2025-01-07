@@ -85,14 +85,24 @@ export class TwitterAuthService {
       return;
     }
 
-    const { twitterRefreshToken, twitterUserId } = user;
-    if (!twitterRefreshToken || !twitterUserId) {
-      console.error('Twitter refresh token or user ID missing');
+    const { twitterRefreshToken } = user;
+
+    let { twitterUserId } = user;
+    if (!twitterRefreshToken) {
+      console.error('Twitter refresh token missing');
       return;
     }
 
     try {
       const accessToken = await this.refreshAccessToken(twitterRefreshToken);
+
+      if (!twitterUserId) {
+        twitterUserId = await this.getUserId(accessToken);
+        await this.userService.update(userId, {
+          twitterUserId,
+        });
+      }
+
       const userData = await this.getUserData(accessToken);
       const tweetsData = await this.getUserTweets(accessToken, twitterUserId);
 
