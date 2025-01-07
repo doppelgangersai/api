@@ -10,7 +10,7 @@ import { StorageModule } from '../../storage/storage.module';
   imports: [
     TypeOrmModule.forFeature([User]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    StorageModule
+    StorageModule,
   ],
   exports: [UserService],
   providers: [UserService],
