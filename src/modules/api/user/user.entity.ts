@@ -67,9 +67,15 @@ export class User implements IDoppelganger {
   @Column({ nullable: true })
   twitterRefreshToken: string;
 
+  @ApiResponseProperty({
+    example: '123456789',
+  })
   @Column({ nullable: true })
   twitterUserId: string;
 
+  @ApiResponseProperty({
+    example: 'john_doe',
+  })
   @Column({ nullable: true })
   twitterUsername: string;
 
@@ -143,8 +149,6 @@ export class User implements IDoppelganger {
   })
   twitterConnectionStatus: ConnectionStatus;
 
-  // same for instagramConnectionStatus, telegramConnectionStatus:
-
   @ApiProperty({
     description: 'Instagram connection status',
     enum: ConnectionStatus,
@@ -179,8 +183,10 @@ export class User implements IDoppelganger {
       instagramFile,
       backstory,
       nearPublicKey,
-      instagramConnectionStatus,
-      telegramConnectionStatus,
+      linkedInFile,
+      whatsAppFile,
+      facebookFile,
+      messengerFile,
       ...self
     } = this;
     return {
