@@ -134,7 +134,7 @@ export class User implements IDoppelganger {
   @ApiProperty({
     description: 'Twitter connection status',
     enum: ConnectionStatus,
-    default: ConnectionStatus.UNCONNECTED,
+    example: ConnectionStatus.UNCONNECTED,
   })
   @Column({
     type: 'enum',
@@ -148,7 +148,7 @@ export class User implements IDoppelganger {
   @ApiProperty({
     description: 'Instagram connection status',
     enum: ConnectionStatus,
-    default: ConnectionStatus.UNCONNECTED,
+    example: ConnectionStatus.CONNECTED,
   })
   @Column({
     type: 'enum',
@@ -160,7 +160,7 @@ export class User implements IDoppelganger {
   @ApiProperty({
     description: 'Telegram connection status',
     enum: ConnectionStatus,
-    default: ConnectionStatus.UNCONNECTED,
+    example: ConnectionStatus.PROCESSED,
   })
   @Column({
     type: 'enum',
