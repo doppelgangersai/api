@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { TelegramClient, sessions, Api } from 'telegram';
+import { Api, sessions, TelegramClient } from 'telegram';
 import { ConfigService } from '../../../config';
-import { UserService } from '../../user';
+import { ConnectionStatus, UserService } from '../../user';
 import { VaultEmitter } from '../vault.emitter';
 import { OnEvent } from '@nestjs/event-emitter';
 import { TELEGRAM_UPLOADED_EVENT } from '../../../../core/constants/event-emitter.constants';
@@ -108,6 +108,7 @@ export class TelegramService {
     this.removeClient(phone);
     await this.userService.update(userId, {
       telegramAuthSession: sessionString,
+      telegramConnectionStatus: ConnectionStatus.CONNECTED,
     });
 
     await this.vaultEmitter.emitTelegramConnected(userId);
