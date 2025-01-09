@@ -3,7 +3,7 @@
 import { Injectable } from '@nestjs/common';
 import { FileUtils, ZipUtils } from '../../../utils';
 import * as path from 'path';
-import { UserService } from '../../../api/user';
+import { ConnectionStatus, UserService } from '../../../api/user';
 import { StorageService } from '../../../storage/storage.service';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
@@ -142,6 +142,10 @@ export class InstagramParserService {
         ],
         userId,
       );
+
+      await this.userService.update(userId, {
+        instagramConnectionStatus: ConnectionStatus.PROCESSED,
+      });
     } catch (error) {
       console.error('Error processing user data:', error);
     } finally {

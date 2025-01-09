@@ -1,26 +1,26 @@
 import {
-  Controller,
-  Post,
-  UseInterceptors,
-  UploadedFiles,
   BadRequestException,
-  UseGuards,
-  Req,
   Body,
+  Controller,
   Get,
+  Post,
+  Req,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
-  ApiTags,
-  ApiConsumes,
+  ApiBearerAuth,
   ApiBody,
+  ApiConsumes,
   ApiOperation,
   ApiResponse,
-  ApiBearerAuth,
+  ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { RequestWithUser } from '../user/request-with-user.interface';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
-import { User, UserService } from '../user';
+import { ConnectionStatus, User, UserService } from '../user';
 import { VaultEmitter } from './vault.emitter';
 import { UsernameDTO } from './vault.dtos';
 import { VaultFileInterceptor } from './vault.interceptors';
@@ -67,6 +67,7 @@ export class VaultController {
     }
     await this.userService.update(req.user.id, {
       instagramFile: files[0].filename,
+      instagramConnectionStatus: ConnectionStatus.CONNECTED,
     });
     if (!req.user.instagramFile) {
       await this.pointsService.reward(req.user.id, 20);
