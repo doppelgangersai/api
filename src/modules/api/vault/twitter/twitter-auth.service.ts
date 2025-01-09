@@ -236,8 +236,6 @@ export class TwitterAuthService {
         // No more pages to fetch
         break;
       }
-
-      await new Promise((a) => setTimeout(a, 2000));
     }
 
     return allTweets;
