@@ -305,6 +305,7 @@ export class TwitterAuthService {
   public async mobileAuth(userId: TUserID, twitterRefreshToken: string) {
     await this.userService.update(userId, {
       twitterRefreshToken,
+      twitterConnectionStatus: ConnectionStatus.CONNECTED,
     });
     this.vaultEmitter.emitTwitterConnected(userId);
   }
