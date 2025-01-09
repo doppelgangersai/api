@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OpenAIService } from './openai/openai.service';
 import { getUniqueStrings } from '../../utils/unique';
+import { z, ZodSchema } from 'zod';
 
 export interface MessagesWithTitle {
   title: string;
@@ -13,6 +14,13 @@ export class AIService {
 
   async processText(prompt: string) {
     return this.openAIService.getResponse(prompt);
+  }
+
+  async processTextWithValidation<T>(
+    prompt: string,
+    schema: ZodSchema<T>,
+  ): Promise<T> {
+    return this.openAIService.processTextWithValidation<T>(prompt, schema);
   }
 
   async getBackstoryByMessagesPack(

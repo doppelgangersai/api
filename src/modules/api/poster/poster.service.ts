@@ -4,6 +4,7 @@ import * as Parser from 'rss-parser';
 import { AIService } from '../../ai/ai.service';
 import { TwitterAuthService } from '../vault/twitter/twitter-auth.service';
 import { User } from '../user';
+import { z } from 'zod';
 
 @Injectable()
 export class PosterService {
@@ -14,6 +15,15 @@ export class PosterService {
     private readonly aiService: AIService,
     private readonly twitterAuthService: TwitterAuthService,
   ) {}
+
+  async tweet(user: Partial<User>, tweet: string): Promise<string> {
+    console.log(`Tweeting: ${tweet}`, user);
+    const accessToken = await this.twitterAuthService.refreshAccessToken(
+      user.twitterRefreshToken,
+    );
+    await this.twitterAuthService.tweet(accessToken, tweet);
+    return tweet;
+  }
 
   async parseAndPostByUser(user: Partial<User>): Promise<string> {
     const doppelganger = await this.chatbotService.getDoppelgangerChatbot(
@@ -66,14 +76,54 @@ ${post.content}`);
   private generatePrompt(backstory: string, post: Parser.Item): string {
     return `${backstory}
 
-TASK: rewrite the following post to tweet in the style of the chatbot. Ignore links and formatting on content.
+TASK: rewrite the following post to tweet in the style of the chatbot. Provide 4 different options (funny, serious, hopeful and professional) formatted as JSON.
 
 POST:
 ${post.title}
 
 ${post.content}
 
-TWEET:
+
+Use only one language per variant.
+
+Format your response as JSON with the following structure:
+
+{
+  "variants": [
+    "variant1",
+    "variant2",
+    "variant3",
+    "variant4"
+  ]
+}
 `;
+  }
+
+  async getVariants(user: Partial<User>): Promise<{ variants: string[] }> {
+    const feed = await this.fetchFeed(
+      'https://www.reddit.com/r/programming.rss',
+    );
+    const post = this.getPost(feed);
+
+    console.log(`Parsed post:
+${post.title}
+
+${post.content}`);
+
+    const prompt = this.generatePrompt(user.backstory, post);
+
+    // Define Zod schema
+    const VariantsSchema = z.object({
+      variants: z.array(z.string()).length(4),
+    });
+
+    // Use AIService to parse response with Zod validation
+    const variants = await this.aiService.processTextWithValidation(
+      prompt,
+      VariantsSchema,
+    );
+
+    console.log(`Generated variants: ${JSON.stringify(variants)}`);
+    return { variants: variants.variants };
   }
 }
