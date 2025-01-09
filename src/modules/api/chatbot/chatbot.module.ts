@@ -5,8 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Chatbot } from './chatbot.entity';
 import { UserModule } from '../user';
 import { ChatbotController } from './chatbot.controller';
+import { FilterModule } from '../../filter/filter.module';
 @Module({
-  imports: [AIModule, UserModule, TypeOrmModule.forFeature([Chatbot])],
+  imports: [
+    AIModule,
+    UserModule,
+    FilterModule,
+    TypeOrmModule.forFeature([Chatbot]),
+  ],
   controllers: [ChatbotController],
   providers: [ChatbotService],
   exports: [ChatbotService],

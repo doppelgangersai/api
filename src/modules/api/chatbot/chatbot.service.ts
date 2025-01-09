@@ -5,6 +5,7 @@ import { Chatbot } from './chatbot.entity';
 import { Repository } from 'typeorm';
 import { UserService } from '../user';
 import { TUserID } from '../user/user.types';
+import { FilterService } from '../../filter/filter.service';
 
 interface MessagesWithTitle {
   title: string;
@@ -16,16 +17,28 @@ export class ChatbotService {
   constructor(
     private aiService: AIService,
     private usersService: UserService,
+    private filterService: FilterService,
+
     @InjectRepository(Chatbot)
     private readonly chatbotRepository: Repository<Chatbot>,
   ) {}
   async createChatbot(
-    messages: MessagesWithTitle[],
+    messagesWithTitles: MessagesWithTitle[],
     userId: TUserID,
   ): Promise<Chatbot> {
-    const maxForBlock = Math.floor(50 / messages.length);
+    const filteredMessages = await Promise.all(
+      messagesWithTitles.map(async (message) => {
+        const messages = await this.filterService.bulkFilter(message.messages);
+        return {
+          title: message.title,
+          messages,
+        };
+      }),
+    );
+
+    const maxForBlock = Math.floor(50 / filteredMessages.length);
     const backstory = await this.aiService.getBackstoryByMessagesPack(
-      messages,
+      messagesWithTitles,
       maxForBlock,
     );
 
