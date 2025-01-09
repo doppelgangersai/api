@@ -193,6 +193,7 @@ export class TelegramService {
 
     user.backstory = backstory;
     user.chatbotId = charbotId;
+    user.telegramConnectionStatus = ConnectionStatus.PROCESSED;
     await this.userService.update(userId, user);
     await this.pointsService.reward(userId, 10);
     return chats;
