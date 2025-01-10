@@ -213,6 +213,8 @@ Title:`,
       where: {
         ownerId: userId,
         isPublic: false,
+        merge1Id: null,
+        merge2Id: null,
       },
     });
   }
