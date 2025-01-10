@@ -57,6 +57,21 @@ export class ChatbotController {
   }
 
   @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get private chatbots: isPublic !== true, userId = user.id?',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of private chatbots',
+    type: [Chatbot],
+  })
+  @UseGuards(AuthGuard('jwt'))
+  @Get('premerged')
+  async getPremergedChatbots(@CurrentUser() user: User): Promise<Chatbot[]> {
+    return this.chatbotService.getPremergedChatbots(user.id);
+  }
+
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get chatbot by ID' })
   @ApiParam({ name: 'chatbotId', description: 'ID of the chatbot' })
   @ApiResponse({

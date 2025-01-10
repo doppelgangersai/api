@@ -219,6 +219,15 @@ Title:`,
     });
   }
 
+  async getPremergedChatbots(userId: TUserID): Promise<Chatbot[]> {
+    return this.chatbotRepository.find({
+      where: {
+        ownerId: userId,
+        isPublic: false,
+      },
+    });
+  }
+
   async getDoppelgangerChatbot(userId: TUserID): Promise<Chatbot> {
     return this.chatbotRepository.findOne({
       where: {
