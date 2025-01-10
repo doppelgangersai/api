@@ -209,22 +209,18 @@ Title:`,
   }
 
   async getPrivateChatbots(userId: TUserID): Promise<Chatbot[]> {
-    return this.chatbotRepository.find(
-      {
-        where: {
-          ownerId: userId,
-          isPublic: false,
-          merge1Id: null,
-          merge2Id: null,
-        },
-        order: {
-          id: 'DESC',
-        },
+    return this.chatbotRepository.find({
+      where: {
+        ownerId: userId,
+        isPublic: false,
+        merge1Id: null,
+        merge2Id: null,
       },
-      {
-        limit: 1,
+      order: {
+        id: 'DESC',
       },
-    );
+      take: 1,
+    });
   }
 
   async getPremergedChatbots(userId: TUserID): Promise<Chatbot[]> {
