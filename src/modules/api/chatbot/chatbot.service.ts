@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AIService } from '../../ai/ai.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Chatbot } from './chatbot.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { UserService } from '../user';
 import { TUserID } from '../user/user.types';
 import { FilterService } from '../../filter/filter.service';
@@ -203,6 +203,8 @@ Title:`,
     return this.chatbotRepository.find({
       where: {
         ownerId: userId,
+        merge1Id: Not(IsNull()),
+        merge2Id: Not(IsNull()),
         // isModified: true,
       },
     });
