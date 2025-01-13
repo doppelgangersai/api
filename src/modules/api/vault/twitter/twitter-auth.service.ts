@@ -210,7 +210,7 @@ export class TwitterAuthService {
     userId: string,
     maxTweets = 500,
   ): Promise<Record<string, string>[]> {
-    const allTweets: Record<string, string>[] = [];
+    const allTweets = [];
     let nextToken: string | undefined;
 
     // let requests_count = 0;
@@ -238,9 +238,11 @@ export class TwitterAuthService {
       const data = (await response.json()) as Record<
         string,
         Record<string, string>
-      >;
+      > & {
+        data: string[];
+      };
       if (data.data) {
-        allTweets.push(...(data.data as Record<string, string>[]));
+        allTweets.push(...data.data);
       }
 
       if (data.meta?.next_token) {
