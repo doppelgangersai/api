@@ -16,6 +16,16 @@ export class UserService {
     return this.usersRepository.findOne({ id });
   }
 
+  async getTwitterRefreshToken(
+    userOrUserId: TUserID | Partial<User>,
+  ): Promise<string> {
+    if (typeof userOrUserId !== 'number') {
+      return userOrUserId.twitterRefreshToken;
+    }
+    const user = await this.get(userOrUserId);
+    return user.twitterRefreshToken;
+  }
+
   async countReferrals(id: number) {
     return this.usersRepository.count({ referrerId: id });
   }

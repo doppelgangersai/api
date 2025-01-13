@@ -6,6 +6,7 @@ import { IsNull, Not, Repository } from 'typeorm';
 import { UserService } from '../user';
 import { TUserID } from '../user/user.types';
 import { FilterService } from '../../filter/filter.service';
+import { ChatbotSource } from './chatbot.types';
 
 interface MessagesWithTitle {
   title: string;
@@ -22,9 +23,71 @@ export class ChatbotService {
     @InjectRepository(Chatbot)
     private readonly chatbotRepository: Repository<Chatbot>,
   ) {}
+
+  async createOrUpdateChatbotWithSameSource(
+    messagesWithTitles: MessagesWithTitle[],
+    userId: TUserID,
+    source: ChatbotSource = ChatbotSource.UNKNOWN,
+  ): Promise<Chatbot> {
+    const filteredMessages = await Promise.all(
+      messagesWithTitles.map(async (message) => {
+        const messages = await this.filterService.bulkFilter(message.messages);
+        return {
+          title: message.title,
+          messages,
+        };
+      }),
+    );
+
+    const maxForBlock = Math.floor(50 / filteredMessages.length);
+    const backstory = await this.aiService.getBackstoryByMessagesPack(
+      messagesWithTitles,
+      maxForBlock,
+    );
+
+    const user = await this.usersService.get(userId);
+
+    let chatbot = await this.chatbotRepository.findOne({
+      where: {
+        creatorId: userId,
+        source,
+      },
+    });
+
+    if (chatbot) {
+      console.log('Chatbot with source', source, 'found. Updating.');
+
+      await this.chatbotRepository.update(chatbot.id, {
+        backstory,
+      });
+      return chatbot;
+    }
+
+    console.log('Chatbot with source', source, 'not found. Creating new one.');
+
+    chatbot = await this.chatbotRepository.save({
+      backstory,
+      creatorId: userId,
+      ownerId: userId,
+      fullName: user.fullName,
+      description: `Chatbot for ${user.fullName}`,
+      avatar: user.avatar,
+      isPublic: false,
+      source,
+    });
+
+    const chatbotId = chatbot.id;
+    await this.usersService.update(userId, {
+      chatbotId,
+    });
+
+    return chatbot;
+  }
+
   async createChatbot(
     messagesWithTitles: MessagesWithTitle[],
     userId: TUserID,
+    source: ChatbotSource = ChatbotSource.UNKNOWN,
   ): Promise<Chatbot> {
     const filteredMessages = await Promise.all(
       messagesWithTitles.map(async (message) => {
@@ -52,6 +115,7 @@ export class ChatbotService {
       description: `Chatbot for ${user.fullName}`,
       avatar: user.avatar,
       isPublic: false,
+      source,
     });
 
     const chatbotId = chatbot.id;

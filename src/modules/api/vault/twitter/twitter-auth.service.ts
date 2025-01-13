@@ -9,6 +9,7 @@ import { VaultEmitter } from '../vault.emitter';
 import { OnEvent } from '@nestjs/event-emitter';
 import { TWITTER_CONNECTED_EVENT } from '../../../../core/constants';
 import { TUserID } from '../../user/user.types';
+import { ChatbotSource } from '../../chatbot/chatbot.types';
 
 @Injectable()
 export class TwitterAuthService {
@@ -65,7 +66,10 @@ export class TwitterAuthService {
       throw new Error('Invalid state');
     }
 
-    const tokenData = await this.exchangeCodeForToken(code, state);
+    const tokenData = (await this.exchangeCodeForToken(code, state)) as Record<
+      string,
+      string
+    >;
     const twitterUserId = await this.getUserId(tokenData.access_token);
 
     await this.userService.update(userId, {
@@ -85,7 +89,9 @@ export class TwitterAuthService {
       return;
     }
 
-    const { twitterRefreshToken } = user;
+    const twitterRefreshToken = await this.userService.getTwitterRefreshToken(
+      user,
+    );
 
     let { twitterUserId } = user;
     if (!twitterRefreshToken) {
@@ -111,11 +117,16 @@ export class TwitterAuthService {
         messages: tweetsData.map((tweet) => tweet.text),
       };
 
-      await this.chatbotService.createChatbot([mappedMessages], userId);
+      await this.chatbotService.createOrUpdateChatbotWithSameSource(
+        [mappedMessages],
+        userId,
+        ChatbotSource.TWITTER,
+      );
       await this.userService.update(userId, {
         twitterConnectionStatus: ConnectionStatus.PROCESSED,
       });
     } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       console.error('Error processing user Twitter:', error.message);
     }
   }
@@ -147,7 +158,7 @@ export class TwitterAuthService {
       throw new Error(`Error refreshing token: ${errorText}`);
     }
 
-    const tokenData = await tokenResponse.json();
+    const tokenData = (await tokenResponse.json()) as Record<string, string>;
     const { access_token, refresh_token } = tokenData;
 
     await this.userService.update(1, { twitterRefreshToken: refresh_token });
@@ -167,7 +178,10 @@ export class TwitterAuthService {
       throw new Error(`Error fetching user data: ${errorText}`);
     }
 
-    const userData = await userResponse.json();
+    const userData = (await userResponse.json()) as Record<
+      string,
+      Record<string, string>
+    >;
     return {
       name: userData.data.name,
       username: userData.data.username,
@@ -184,7 +198,10 @@ export class TwitterAuthService {
       throw new Error(`Error fetching user data: ${errorText}`);
     }
 
-    const userData = await userResponse.json();
+    const userData = (await userResponse.json()) as Record<
+      string,
+      Record<string, string>
+    >;
     return userData.data.id;
   }
 
@@ -192,26 +209,21 @@ export class TwitterAuthService {
     accessToken: string,
     userId: string,
     maxTweets = 500,
-  ): Promise<any[]> {
-    const allTweets: any[] = [];
-    let nextToken: string | undefined = undefined;
+  ): Promise<Record<string, string>[]> {
+    const allTweets: Record<string, string>[] = [];
+    let nextToken: string | undefined;
 
-    let requests_count = 0;
-    // Keep fetching while we haven't reached maxTweets and Twitter has more data
+    // let requests_count = 0;
     while (allTweets.length < maxTweets) {
-      // Calculate how many tweets we still need
       const remaining = maxTweets - allTweets.length;
-      // Twitter allows a max of 100 per request
       const fetchCount = remaining > 100 ? 100 : remaining;
 
-      // Construct URL with query params
       const url = new URL(`https://api.twitter.com/2/users/${userId}/tweets`);
       url.searchParams.set('max_results', fetchCount.toString());
       if (nextToken) {
         url.searchParams.set('pagination_token', nextToken);
       }
 
-      // Make API request
       const response = await fetch(url.toString(), {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -219,21 +231,21 @@ export class TwitterAuthService {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
         break;
       }
 
-      requests_count++;
-      const data = await response.json();
+      // requests_count++;
+      const data = (await response.json()) as Record<
+        string,
+        Record<string, string>
+      >;
       if (data.data) {
-        allTweets.push(...data.data);
+        allTweets.push(...(data.data as Record<string, string>[]));
       }
 
-      // Check for next_token to see if we can continue paginating
       if (data.meta?.next_token) {
         nextToken = data.meta.next_token;
       } else {
-        // No more pages to fetch
         break;
       }
     }
@@ -274,8 +286,7 @@ export class TwitterAuthService {
       throw new Error(`Error fetching token: ${errorText}`);
     }
 
-    const tokenData = await tokenResponse.json();
-    return tokenData;
+    return tokenResponse.json();
   }
 
   public async tweet(accessToken: string, text: string): Promise<any> {
@@ -294,9 +305,7 @@ export class TwitterAuthService {
         throw new Error(`Error posting tweet: ${errorText}`);
       }
 
-      const result = await response.json();
-      // The response will typically include the Tweet data, like tweet ID, text, etc.
-      return result;
+      return response.json();
     } catch (error) {
       throw error;
     }
