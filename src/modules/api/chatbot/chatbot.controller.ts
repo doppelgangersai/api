@@ -1,4 +1,14 @@
-import { Controller, Get, Patch, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Param,
+  Body,
+  UseGuards,
+  Post,
+  Delete,
+  HttpCode,
+} from '@nestjs/common';
 import {
   ApiOperation,
   ApiTags,
@@ -103,5 +113,32 @@ export class ChatbotController {
     @Body() chatbot: Chatbot,
   ): Promise<Chatbot> {
     return this.chatbotService.updateChatbot(chatbotId, chatbot);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Soft-delete chatbot' })
+  @ApiParam({ name: 'chatbotId', description: 'ID of the chatbot' })
+  @ApiResponse({ status: 200, description: 'Soft-deleted chatbot' })
+  @UseGuards(AuthGuard('jwt'))
+  @Delete(':chatbotId')
+  async softDeleteChatbot(
+    @Param('chatbotId') chatbotId: number,
+    @CurrentUser() user: User,
+  ): Promise<void> {
+    return this.chatbotService.softDeleteChatbot(chatbotId, user.id);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Restore a previously soft-deleted chatbot' })
+  @ApiParam({ name: 'chatbotId', description: 'ID of the chatbot' })
+  @ApiResponse({ status: 200, description: 'Restored chatbot' })
+  @UseGuards(AuthGuard('jwt'))
+  @HttpCode(200)
+  @Post('restore/:chatbotId')
+  async restoreChatbot(
+    @Param('chatbotId') chatbotId: number,
+    @CurrentUser() user: User,
+  ): Promise<void> {
+    return this.chatbotService.restoreChatbot(chatbotId, user.id);
   }
 }

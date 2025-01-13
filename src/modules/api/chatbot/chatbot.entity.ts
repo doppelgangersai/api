@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { DeleteDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 import { Column } from 'typeorm';
 import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
@@ -64,6 +64,9 @@ export class Chatbot implements IDoppelganger {
     nullable: true,
   })
   merge2Id?: number;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 
   toJSON() {
     const { backstory, ...self } = this;

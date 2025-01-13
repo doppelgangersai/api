@@ -247,4 +247,48 @@ Title:`,
   async get(chatbotId: number): Promise<Chatbot> {
     return this.chatbotRepository.findOne(chatbotId);
   }
+
+  /**
+   * Soft delete a chatbot by ID, only if it belongs to the current user.
+   * @param chatbotId - ID of the chatbot
+   * @param userId - ID of the user performing the deletion
+   */
+  async softDeleteChatbot(chatbotId: number, userId: TUserID): Promise<void> {
+    // Optionally, ensure the chatbot belongs to the user
+    const chatbot = await this.chatbotRepository.findOne({
+      where: {
+        id: chatbotId,
+        ownerId: userId,
+      },
+    });
+
+    if (!chatbot) {
+      // Throw an error or handle as you see fit
+      throw new Error(`Chatbot ${chatbotId} not found or not owned by user.`);
+    }
+
+    await this.chatbotRepository.softDelete(chatbotId);
+  }
+
+  /**
+   * Restore a previously soft-deleted chatbot, only if it belongs to the current user.
+   * @param chatbotId - ID of the chatbot
+   * @param userId - ID of the user performing the restore
+   */
+  async restoreChatbot(chatbotId: number, userId: TUserID): Promise<void> {
+    // Optionally, ensure the chatbot belongs to the user even though it’s soft deleted
+    const chatbot = await this.chatbotRepository.findOne({
+      where: {
+        id: chatbotId,
+        ownerId: userId,
+      },
+      withDeleted: true, // important to find soft-deleted records
+    });
+
+    if (!chatbot) {
+      throw new Error(`Chatbot ${chatbotId} not found or not owned by user.`);
+    }
+
+    await this.chatbotRepository.restore(chatbotId);
+  }
 }
