@@ -131,7 +131,7 @@ export class TelegramService {
     const telegramUser = await client.getMe();
 
     const dialogs = await client.getDialogs();
-    const chats = [];
+    const chatMessages = [];
 
     const sleep = (n) =>
       new Promise((resolve) => setTimeout(resolve, n * 1000));
@@ -158,7 +158,7 @@ export class TelegramService {
           const chatName = dialog.title || 'Unknown Chat/User';
           const formattedMessage = `To ${chatName}: ${message.message}`;
 
-          chats.push(message.message);
+          chatMessages.push(message.message as string);
           if (formattedMessage.length > 200) {
             console.log(message); // TODO: check message length
           }
@@ -181,7 +181,7 @@ export class TelegramService {
     await this.removeClient(clientId);
 
     if (msgn < 50) {
-      return chats;
+      return chatMessages;
     }
 
     const backstory = await this.aiService.getBackstoryByMessagesPack([
@@ -201,7 +201,7 @@ export class TelegramService {
     user.telegramConnectionStatus = ConnectionStatus.PROCESSED;
     await this.userService.update(userId, user);
     await this.pointsService.reward(userId, 10);
-    return chats;
+    return chatMessages;
   }
 
   private async removeClient(phone: string) {
