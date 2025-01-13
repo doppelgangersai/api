@@ -4,6 +4,15 @@ import { Column } from 'typeorm';
 import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
 import { IDoppelganger } from '../../doppelganger/doppelganger.interace';
 
+export enum ChatbotSource {
+  Twitter = 'twitter',
+  Instagram = 'instagram',
+  Telegram = 'telegram',
+  Merged = 'merged',
+  DB = 'db',
+  UNKNOWN = 'unknown',
+}
+
 @Entity()
 export class Chatbot implements IDoppelganger {
   @ApiResponseProperty({
@@ -88,6 +97,13 @@ export class Chatbot implements IDoppelganger {
 
   @DeleteDateColumn()
   deletedAt?: Date;
+
+  @Column({
+    type: 'enum',
+    enum: ChatbotSource,
+    default: ChatbotSource.UNKNOWN,
+  })
+  source: ChatbotSource;
 
   toJSON() {
     const { backstory, ...self } = this;
