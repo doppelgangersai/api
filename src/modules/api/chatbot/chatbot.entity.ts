@@ -101,6 +101,21 @@ export class Chatbot implements IDoppelganger {
   })
   source: ChatbotSource;
 
+  @Column({
+    nullable: true,
+  })
+  twitterRefreshToken: string;
+
+  @Column({
+    nullable: true,
+  })
+  twitterUsername: string;
+
+  @Column({
+    nullable: true,
+  })
+  twitterUserId: string;
+
   toJSON() {
     const { backstory, ...self } = this;
     const mapped = { ...self, avatar: avatarTransformer(this) };

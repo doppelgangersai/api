@@ -5,4 +5,7 @@ export interface IDoppelganger {
   backstory?: string;
   isPublic?: boolean;
   isModified?: boolean;
+  twitterRefreshToken?: string;
+  twitterUsername?: string;
+  twitterUserId?: string;
 }
