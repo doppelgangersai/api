@@ -11,6 +11,7 @@ import { MessagesWithTitle } from '../../../ai/ai.service';
 import { InstagramMessage } from '../instagram-parser.types';
 import { ChatbotService } from '../../../api/chatbot/chatbot.service';
 import { TUserID } from '../../../api/user/user.types';
+import { ChatbotSource } from '../../../api/chatbot/chatbot.types';
 
 @Injectable()
 export class InstagramParserService {
@@ -141,6 +142,7 @@ export class InstagramParserService {
           { title: 'Inbox', messages: inbox },
         ],
         userId,
+        ChatbotSource.INSTAGRAM,
       );
 
       await this.userService.update(userId, {
