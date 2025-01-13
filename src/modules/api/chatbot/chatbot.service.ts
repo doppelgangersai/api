@@ -133,17 +133,13 @@ export class ChatbotService {
    * @returns Array of available chatbots
    */
   async getAvailableChatbots(userId: TUserID): Promise<Chatbot[]> {
-    // Get chatbots owned by friends
     const friendsChatbots = await this.getFriendsChatbots(userId);
 
-    // Get public and user's own chatbots
     const publicAndOwnChatbots = await this.chatbotRepository
       .createQueryBuilder('chatbot')
       .where('chatbot.isPublic = :isPublic', { isPublic: true })
-      //.orWhere('chatbot.ownerId = :userId', { userId })
       .getMany();
 
-    // Combine results and remove duplicates
     const allChatbotsMap = new Map<number, Chatbot>();
     publicAndOwnChatbots.forEach((chatbot) =>
       allChatbotsMap.set(chatbot.id, chatbot),
@@ -165,18 +161,14 @@ export class ChatbotService {
 
     const friendIds = friends.map((friend) => friend.id);
 
-    // If the user has no friends, return an empty array
     if (friendIds.length === 0) {
       return [];
     }
 
-    // Step 2: Retrieve chatbots where ownerId is in friendIds
-    const friendsChatbots = await this.chatbotRepository
+    return this.chatbotRepository
       .createQueryBuilder('chatbot')
       .where('chatbot.ownerId IN (:...friendIds)', { friendIds })
       .getMany();
-
-    return friendsChatbots;
   }
 
   async getChatbotById(chatbotId: number): Promise<Chatbot> {
@@ -189,12 +181,13 @@ export class ChatbotService {
     const backstory1 = chatbot1.backstory;
     const backstory2 = chatbot2.backstory;
 
-    const backstory_prompt = `Merge two users backstories to one (like a hybrid/digital baby/...), create a new person backstory based on two provided backstories:
-    Backstory 1:
-    ${backstory1}
-    
-    Backstory 2:
-    ${backstory2}`;
+    const backstory_prompt = `Merge two users backstories to one (like a hybrid/digital baby/...).
+Create a new person backstory based on two provided backstories:
+Backstory 1:
+${backstory1}
+
+Backstory 2:
+${backstory2}`;
 
     const backstory = await this.aiService
       .processText(backstory_prompt)
@@ -318,7 +311,6 @@ Title:`,
    * @param userId - ID of the user performing the deletion
    */
   async softDeleteChatbot(chatbotId: number, userId: TUserID): Promise<void> {
-    // Optionally, ensure the chatbot belongs to the user
     const chatbot = await this.chatbotRepository.findOne({
       where: {
         id: chatbotId,
@@ -327,7 +319,6 @@ Title:`,
     });
 
     if (!chatbot) {
-      // Throw an error or handle as you see fit
       throw new Error(`Chatbot ${chatbotId} not found or not owned by user.`);
     }
 
