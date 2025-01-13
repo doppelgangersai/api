@@ -1,8 +1,8 @@
 export enum ChatbotSource {
-  Twitter = 'twitter',
-  Instagram = 'instagram',
-  Telegram = 'telegram',
-  Merged = 'merged',
+  TWITTER = 'twitter',
+  INSTAGRAM = 'instagram',
+  TELEGRAM = 'telegram',
+  MERGED = 'merged',
   DB = 'db',
   UNKNOWN = 'unknown',
 }
