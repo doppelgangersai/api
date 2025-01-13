@@ -13,6 +13,7 @@ import { AIService, MessagesWithTitle } from '../../../ai/ai.service';
 import { ChatbotService } from '../../chatbot/chatbot.service';
 import { PointsService } from '../../../points/points.service';
 import { TUserID } from '../../user/user.types';
+import { ChatbotSource } from '../../chatbot/chatbot.types';
 
 const { StringSession } = sessions;
 
@@ -187,12 +188,16 @@ export class TelegramService {
       messagesWithTitle,
     ]);
 
-    const charbotId = (
-      await this.chatbotService.createChatbot([messagesWithTitle], userId)
+    const chatbotId = (
+      await this.chatbotService.createOrUpdateChatbotWithSameSource(
+        [messagesWithTitle],
+        userId,
+        ChatbotSource.TELEGRAM,
+      )
     ).id;
 
     user.backstory = backstory;
-    user.chatbotId = charbotId;
+    user.chatbotId = chatbotId; // be careful, we use this in filters
     user.telegramConnectionStatus = ConnectionStatus.PROCESSED;
     await this.userService.update(userId, user);
     await this.pointsService.reward(userId, 10);

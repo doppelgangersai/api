@@ -27,7 +27,7 @@ export class ChatbotService {
   async createOrUpdateChatbotWithSameSource(
     messagesWithTitles: MessagesWithTitle[],
     userId: TUserID,
-    source: ChatbotSource = ChatbotSource.UNKNOWN,
+    source: ChatbotSource,
   ): Promise<Chatbot> {
     const filteredMessages = await Promise.all(
       messagesWithTitles.map(async (message) => {
