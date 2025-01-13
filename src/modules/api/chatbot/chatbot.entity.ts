@@ -98,6 +98,10 @@ export class Chatbot implements IDoppelganger {
   @DeleteDateColumn()
   deletedAt?: Date;
 
+  @ApiResponseProperty({
+    type: String,
+    example: 'twitter',
+  })
   @Column({
     type: 'enum',
     enum: ChatbotSource,
