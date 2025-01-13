@@ -6,23 +6,32 @@ import { IDoppelganger } from '../../doppelganger/doppelganger.interace';
 
 @Entity()
 export class Chatbot implements IDoppelganger {
-  @ApiResponseProperty()
+  @ApiResponseProperty({
+    type: Number,
+    example: 7,
+  })
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'John Doe & Jane Doe',
+  })
   @Column({
     nullable: true,
   })
   fullName: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'John & Jane',
+  })
   @Column({
     nullable: true,
   })
   title: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'John & Jane are a couple of doppelgangers',
+  })
   @Column({
     nullable: true,
   })
@@ -31,27 +40,39 @@ export class Chatbot implements IDoppelganger {
   @Column()
   backstory: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: 'http://example.com/avatar.png',
+  })
   @Column({
     nullable: true,
   })
   avatar: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: true,
+  })
   @Column()
   isPublic: boolean;
 
-  @ApiProperty()
+  @ApiProperty({
+    example: true,
+  })
   @Column({
     nullable: true,
   })
   isModified: boolean;
 
-  @ApiResponseProperty()
+  @ApiResponseProperty({
+    type: Number,
+    example: 1,
+  })
   @Column()
   creatorId: number;
 
-  @ApiResponseProperty()
+  @ApiResponseProperty({
+    type: Number,
+    example: 1,
+  })
   @Column()
   ownerId: number;
 
