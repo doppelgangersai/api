@@ -20,7 +20,7 @@ import {
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { ChatbotService } from './chatbot.service';
-import { Chatbot } from './chatbot.entity';
+import { Chatbot, TChatbotID } from './chatbot.entity';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
 import { User } from '../user';
 
@@ -35,7 +35,7 @@ import { User } from '../user';
 @Controller('api/chatbot')
 export class ChatbotController {
   constructor(private readonly chatbotService: ChatbotService) {}
-  // GET /api/chatbot/merged - isModified = true, userId = user.id?
+
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get merged chatbots: isModified = true, userId = user.id?',
@@ -92,9 +92,9 @@ export class ChatbotController {
   @UseGuards(AuthGuard('jwt'))
   @Get(':chatbotId')
   async getChatbotById(
-    @Param('chatbotId') chatbotId: number,
+    @Param('chatbotId') chatbotId: TChatbotID,
   ): Promise<Chatbot> {
-    return this.chatbotService.getChatbotById(chatbotId);
+    return this.chatbotService.get(chatbotId);
   }
 
   @ApiBearerAuth()
@@ -109,7 +109,7 @@ export class ChatbotController {
   @UseGuards(AuthGuard('jwt'))
   @Patch(':chatbotId')
   async updateChatbot(
-    @Param('chatbotId') chatbotId: number,
+    @Param('chatbotId') chatbotId: TChatbotID,
     @Body() chatbot: Chatbot,
   ): Promise<Chatbot> {
     return this.chatbotService.updateChatbot(chatbotId, chatbot);
@@ -122,7 +122,7 @@ export class ChatbotController {
   @UseGuards(AuthGuard('jwt'))
   @Delete(':chatbotId')
   async softDeleteChatbot(
-    @Param('chatbotId') chatbotId: number,
+    @Param('chatbotId') chatbotId: TChatbotID,
     @CurrentUser() user: User,
   ): Promise<void> {
     return this.chatbotService.softDeleteChatbot(chatbotId, user.id);
@@ -136,7 +136,7 @@ export class ChatbotController {
   @HttpCode(200)
   @Post('restore/:chatbotId')
   async restoreChatbot(
-    @Param('chatbotId') chatbotId: number,
+    @Param('chatbotId') chatbotId: TChatbotID,
     @CurrentUser() user: User,
   ): Promise<void> {
     return this.chatbotService.restoreChatbot(chatbotId, user.id);

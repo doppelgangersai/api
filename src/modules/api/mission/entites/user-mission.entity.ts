@@ -8,10 +8,12 @@ export enum MissionStatus {
   DONE = 'done',
 }
 
+export type TUserMissionID = number;
+
 @Entity()
 export class UserMissionEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+  id: TUserMissionID;
 
   @Column()
   missionId: number;

@@ -4,6 +4,9 @@ import { Column } from 'typeorm';
 import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
 import { IDoppelganger } from '../../doppelganger/doppelganger.interace';
 import { ChatbotSource } from './chatbot.types';
+import { TUserID } from '../user/user.types';
+
+export type TChatbotID = number;
 
 @Entity()
 export class Chatbot implements IDoppelganger {
@@ -12,7 +15,7 @@ export class Chatbot implements IDoppelganger {
     example: 7,
   })
   @PrimaryGeneratedColumn()
-  id: number;
+  id: TChatbotID;
 
   @ApiProperty({
     example: 'John Doe & Jane Doe',
@@ -68,24 +71,24 @@ export class Chatbot implements IDoppelganger {
     example: 1,
   })
   @Column()
-  creatorId: number;
+  creatorId: TUserID;
 
   @ApiResponseProperty({
     type: Number,
     example: 1,
   })
   @Column()
-  ownerId: number;
+  ownerId: TUserID;
 
   @Column({
     nullable: true,
   })
-  merge1Id?: number;
+  merge1Id?: TChatbotID;
 
   @Column({
     nullable: true,
   })
-  merge2Id?: number;
+  merge2Id?: TChatbotID;
 
   @DeleteDateColumn()
   deletedAt?: Date;

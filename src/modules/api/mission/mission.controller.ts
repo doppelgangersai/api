@@ -10,17 +10,13 @@ import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
 import { User, UserService } from '../user';
-import { InjectRepository } from '@nestjs/typeorm';
-import {
-  MissionStatus,
-  UserMissionEntity,
-} from './entites/user-mission.entity';
-import { Repository } from 'typeorm';
+import { MissionStatus, TUserMissionID } from './entites/user-mission.entity';
 import { MISSIONS_LIST } from './mission.consts';
+import { MissionService } from './mission.service';
 
 class Mission {
   @ApiProperty({ example: 1, description: 'Unique identifier for the mission' })
-  id: number;
+  id: TUserMissionID;
 
   @ApiProperty({
     example: 'Refer a friend',
@@ -44,7 +40,6 @@ class Mission {
     example: MissionStatus.TODO,
   })
   status?: MissionStatus;
-  done?: boolean;
 
   @ApiProperty({
     example: 20,
@@ -68,7 +63,7 @@ export class StartMissionDto {
     example: 1,
     description: 'Unique identifier for the mission',
   })
-  id: number;
+  id: TUserMissionID;
 }
 
 @Controller('api/missions')
@@ -76,8 +71,7 @@ export class StartMissionDto {
 export class MissionController {
   constructor(
     private readonly userService: UserService,
-    @InjectRepository(UserMissionEntity)
-    private readonly userMissionRepository: Repository<UserMissionEntity>,
+    private readonly missionService: MissionService,
   ) {}
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
@@ -91,11 +85,7 @@ export class MissionController {
   async getMissions(@CurrentUser() user: User): Promise<MissionResponse> {
     const referralsCount = await this.userService.countReferrals(user.id);
 
-    const userMissions = await this.userMissionRepository.find({
-      where: {
-        userId: user.id,
-      },
-    });
+    const userMissions = await this.missionService.getByUserId(user.id);
 
     // TODO: trigger 'connect' and 'refer' actions
 
@@ -126,12 +116,11 @@ export class MissionController {
     @Body() mission: StartMissionDto,
     @CurrentUser() user: User,
   ) {
-    const userMission = this.userMissionRepository.create({
+    const userMission = await this.missionService.create({
       missionId: mission.id,
       userId: user.id,
       status: MissionStatus.STARTED,
     });
-    await this.userMissionRepository.save(userMission);
 
     return {
       mission: {

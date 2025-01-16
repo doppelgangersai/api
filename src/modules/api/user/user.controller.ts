@@ -25,6 +25,7 @@ import { RequestWithUser } from './request-with-user.interface';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
 import { User } from './user.entity';
 import { createS3FileInterceptor } from '../../storage/s3-file.interceptor';
+import { TUserID } from './user.types';
 
 const S3AvatarFileInterceptor = createS3FileInterceptor({
   allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
@@ -44,7 +45,6 @@ export class UserController {
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: 'Avatar image and user name',
-    type: 'multipart/form-data',
     required: true,
     schema: {
       type: 'object',
@@ -119,7 +119,7 @@ export class UserController {
   @Post('friends/:friendId')
   async addFriend(
     @CurrentUser() user: Partial<User>,
-    @Param('friendId') friendId: number,
+    @Param('friendId') friendId: TUserID,
   ) {
     await this.usersService.addFriend(user.id, friendId);
     return { message: 'Friend successfully added' };

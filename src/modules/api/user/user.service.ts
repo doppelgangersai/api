@@ -12,43 +12,48 @@ export class UserService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  async get(id: number) {
+  // DB START
+
+  async get(id: TUserID) {
     return this.usersRepository.findOne({ id });
-  }
-
-  async getTwitterRefreshToken(
-    userOrUserId: TUserID | Partial<User>,
-  ): Promise<string> {
-    if (typeof userOrUserId !== 'number') {
-      return userOrUserId.twitterRefreshToken;
-    }
-    const user = await this.get(userOrUserId);
-    return user.twitterRefreshToken;
-  }
-
-  async countReferrals(id: number) {
-    return this.usersRepository.count({ referrerId: id });
   }
 
   async getByEmail(email: string) {
     return await this.usersRepository.findOne({ email });
   }
 
-  async getUsersWithBackstory() {
-    return this.usersRepository.find({
-      where: {
-        backstory: Not(IsNull()),
-      },
+  async getByNearAccountId(nearAccountId: string) {
+    return this.usersRepository.findOne({ nearAccountId });
+  }
+
+  async save(user: Partial<User>) {
+    return this.usersRepository.save(user);
+  }
+
+  async countReferrals(id: TUserID) {
+    return this.usersRepository.count({ referrerId: id });
+  }
+
+  async update(id: TUserID, user: Partial<User>) {
+    return await this.usersRepository.update(id, { ...user });
+  }
+
+  async getUserWithFriends(id: TUserID) {
+    return this.usersRepository.findOne(id, {
+      relations: ['friends'],
     });
   }
 
-  // TODO: remove?
-  async getOrCreateByEmail(email: string) {
-    let user = await this.getByEmail(email);
-    if (!user) {
-      user = await this.create({ email });
+  // / DB END
+
+  async getTwitterRefreshToken(
+    userOrUserId: TUserID | Partial<User>,
+  ): Promise<string> {
+    if (typeof userOrUserId === 'object') {
+      return userOrUserId.twitterRefreshToken;
     }
-    return user;
+    const user = await this.get(userOrUserId);
+    return user.twitterRefreshToken;
   }
 
   async createSecured(payload: UserFillableFields) {
@@ -60,7 +65,7 @@ export class UserService {
       );
     }
 
-    return await this.usersRepository.save(payload);
+    return await this.save(payload);
   }
 
   async create(payload: Partial<User>) {
@@ -72,34 +77,22 @@ export class UserService {
       );
     }
 
-    return await this.usersRepository.save(payload);
+    return await this.save(payload);
   }
 
-  async update(id, user: Partial<User>) {
-    return await this.usersRepository.update(id, { ...user });
-  }
-
-  async addFriend(userId: TUserID, friendId: number): Promise<void> {
-    const user = await this.usersRepository.findOne(userId, {
-      relations: ['friends'],
-    });
-    const friend = await this.usersRepository.findOne(friendId);
+  async addFriend(userId: TUserID, friendId: TUserID): Promise<void> {
+    const user = await this.getUserWithFriends(userId);
+    const friend = await this.get(friendId);
 
     if (user && friend) {
       user.friends.push(friend);
-      await this.usersRepository.save(user);
+      await this.save(user);
     }
   }
 
   async getFriends(userId: TUserID): Promise<User[]> {
-    const user = await this.usersRepository.findOne(userId, {
-      relations: ['friends'],
-    });
+    const user = await this.getUserWithFriends(userId);
     return user?.friends || [];
-  }
-
-  async reward(id: number, points: number = 20) {
-    return await this.usersRepository.increment({ id }, 'points', points);
   }
 
   async getOrCreateByNearAccountId(
@@ -107,9 +100,7 @@ export class UserService {
     nearPublicKey: string,
     referrerId?: number,
   ) {
-    const user = await this.usersRepository.findOne({
-      where: { nearAccountId },
-    });
+    const user = await this.getByNearAccountId(nearAccountId);
     if (!user) {
       return await this.create({ nearAccountId, nearPublicKey, referrerId });
     }

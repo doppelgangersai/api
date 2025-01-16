@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { CHATBOTKIT_SECRET } from '../../../core/constants/environment.constants';
 import { ChatbotService } from '../chatbot/chatbot.service';
-import { Chatbot } from '../chatbot/chatbot.entity';
+import { Chatbot, TChatbotID } from '../chatbot/chatbot.entity';
 import { TUserID } from '../user/user.types';
 
 @Injectable()
@@ -22,19 +22,39 @@ export class ChatService {
     private readonly chatRepository: Repository<Chat>,
   ) {}
 
-  async getChatbotById(chatbotId: number): Promise<Chatbot> {
-    return this.chatbotService.getChatbotById(chatbotId);
+  // DB START
+
+  getByChatbotAndUser(chatbotId: TChatbotID, userId: TUserID) {
+    return this.chatRepository.findOne({
+      with_user_id: chatbotId,
+      from_user_id: userId,
+    });
   }
 
-  async createOrGetConversationByChatbotId(chatbotId: number): Promise<{
+  getByUserId(userId: TUserID) {
+    return this.chatRepository.find({
+      where: [{ with_user_id: userId }],
+    });
+  }
+
+  getChatbotById(chatbotId: TChatbotID): Promise<Chatbot> {
+    return this.chatbotService.get(chatbotId);
+  }
+
+  async save(chat: Partial<Chat>) {
+    return this.chatRepository.save(chat);
+  }
+
+  async createOrGetConversationByChatbotId(chatbotId: TChatbotID): Promise<{
     conversationId: string;
     conversationToken?: string;
-    chatbotId: number;
+    chatbotId: TChatbotID;
   }> {
-    const chatbot = await this.chatbotService.getChatbotById(chatbotId);
+    const chatbot = await this.chatbotService.get(chatbotId);
     const { backstory } = chatbot;
     const secret = this.configService.get(CHATBOTKIT_SECRET);
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const chatBotKit = new ChatBotKit({
       secret,
@@ -59,11 +79,12 @@ Now another user will write to you. You are not his digital twin, but the digita
     };
   }
 
-  async processMessage(chatbotId: number, userId: TUserID, message: string) {
-    let chat = await this.chatRepository.findOne({
-      with_user_id: chatbotId,
-      from_user_id: userId,
-    });
+  async processMessage(
+    chatbotId: TChatbotID,
+    userId: TUserID,
+    message: string,
+  ) {
+    let chat = await this.getByChatbotAndUser(chatbotId, userId);
     if (!chat) {
       chat = await this.initChat(chatbotId, userId);
     }
@@ -91,9 +112,7 @@ Now another user will write to you. You are not his digital twin, but the digita
 
   async getChatList(userId: TUserID): Promise<IChat[]> {
     const user = await this.userService.get(userId);
-    const chats = await this.chatRepository.find({
-      where: [{ with_user_id: userId }],
-    });
+    const chats = await this.getByUserId(userId);
 
     return chats.map((chat) => ({
       id: chat.id,
@@ -107,18 +126,15 @@ Now another user will write to you. You are not his digital twin, but the digita
     return this.chatbotService.getAvailableChatbots(userId);
   }
 
-  async getFriendsChatList(userId: TUserID): Promise<Chatbot[]> {
+  async getFriendsChatbotsList(userId: TUserID): Promise<Chatbot[]> {
     return this.chatbotService.getFriendsChatbots(userId);
   }
 
   async getChatMessages(
-    chatbotId: number,
+    chatbotId: TChatbotID,
     userId: TUserID,
   ): Promise<{ messages: any[]; user: User }> {
-    const chat = await this.chatRepository.findOne({
-      with_user_id: chatbotId,
-      from_user_id: userId,
-    });
+    const chat = await this.getByChatbotAndUser(chatbotId, userId);
 
     const twin = await this.userService.get(chatbotId);
     const user = await this.userService.get(userId);
@@ -179,15 +195,15 @@ Now another user will write to you. You are not his digital twin, but the digita
       chat.provider_internal_id = conversationId;
     }
 
-    await this.chatRepository.save(chat);
+    await this.save(chat);
     return chat;
   }
 
-  async merge(chatbot1Id: number, chatbot2Id: number, userId: TUserID) {
+  async merge(chatbot1Id: TChatbotID, chatbot2Id: TChatbotID, userId: TUserID) {
     return this.chatbotService.mergeChatbots(chatbot1Id, chatbot2Id, userId);
   }
 
-  async updateChatbot(chatbotId: number, chatbot: Partial<Chatbot>) {
+  async updateChatbot(chatbotId: TChatbotID, chatbot: Partial<Chatbot>) {
     return this.chatbotService.updateChatbot(chatbotId, chatbot);
   }
 }

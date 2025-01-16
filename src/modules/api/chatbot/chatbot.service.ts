@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AIService } from '../../ai/ai.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Chatbot } from './chatbot.entity';
+import { Chatbot, TChatbotID } from './chatbot.entity';
 import { IsNull, Not, Repository } from 'typeorm';
 import { UserService } from '../user';
 import { TUserID } from '../user/user.types';
@@ -23,6 +23,145 @@ export class ChatbotService {
     @InjectRepository(Chatbot)
     private readonly chatbotRepository: Repository<Chatbot>,
   ) {}
+
+  // DB START
+
+  async get(chatbotId: TChatbotID): Promise<Chatbot> {
+    return this.chatbotRepository.findOne(chatbotId);
+  }
+
+  async save(chatbot: Partial<Chatbot>) {
+    return this.chatbotRepository.save(chatbot);
+  }
+
+  async getChatbotByCreatorAndSource(
+    creatorId: TUserID,
+    source: ChatbotSource,
+  ): Promise<Chatbot | undefined> {
+    return this.chatbotRepository.findOne({
+      where: {
+        creatorId,
+        source,
+      },
+    });
+  }
+
+  async getMergedChatbots(userId: TUserID): Promise<Chatbot[]> {
+    return this.chatbotRepository.find({
+      where: {
+        ownerId: userId,
+        merge1Id: Not(IsNull()),
+        merge2Id: Not(IsNull()),
+        // isModified: true,
+      },
+    });
+  }
+
+  async getPrivateChatbots(userId: TUserID): Promise<Chatbot[]> {
+    return this.chatbotRepository.find({
+      where: {
+        ownerId: userId,
+        isPublic: false,
+        merge1Id: null,
+        merge2Id: null,
+      },
+      order: {
+        id: 'DESC',
+      },
+      take: 1,
+    });
+  }
+
+  async getPremergedChatbots(userId: TUserID): Promise<Chatbot[]> {
+    return this.chatbotRepository.find({
+      where: {
+        ownerId: userId,
+        isPublic: false,
+      },
+    });
+  }
+
+  async getDoppelgangerChatbot(userId: TUserID): Promise<Chatbot> {
+    return this.chatbotRepository.findOne({
+      where: {
+        ownerId: userId,
+        merge1Id: null,
+        merge2Id: null,
+      },
+    });
+  }
+
+  async getPublicAndOwnChatbots(userId: TUserID): Promise<Chatbot[]> {
+    return this.chatbotRepository.find({
+      where: [{ ownerId: userId }, { isPublic: true }],
+    });
+  }
+
+  /**
+   * Soft delete a chatbot by ID, only if it belongs to the current user.
+   * @param chatbotId - ID of the chatbot
+   * @param userId - ID of the user performing the deletion
+   */
+  async softDeleteChatbot(
+    chatbotId: TChatbotID,
+    userId: TUserID,
+  ): Promise<void> {
+    const chatbot = await this.chatbotRepository.findOne({
+      where: {
+        id: chatbotId,
+        ownerId: userId,
+      },
+    });
+
+    if (!chatbot) {
+      throw new Error(`Chatbot ${chatbotId} not found or not owned by user.`);
+    }
+
+    // TODO: remove search from start
+    await this.chatbotRepository.softDelete({
+      id: chatbotId,
+      ownerId: userId,
+    });
+  }
+
+  /**
+   * Restore a previously soft-deleted chatbot, only if it belongs to the current user.
+   * @param chatbotId - ID of the chatbot
+   * @param userId - ID of the user performing the restore
+   */
+  async restoreChatbot(chatbotId: TChatbotID, userId: TUserID): Promise<void> {
+    // Optionally, ensure the chatbot belongs to the user even though it’s soft deleted
+    const chatbot = await this.chatbotRepository.findOne({
+      where: {
+        id: chatbotId,
+        ownerId: userId,
+      },
+      withDeleted: true, // important to find soft-deleted records
+    });
+
+    if (!chatbot) {
+      throw new Error(`Chatbot ${chatbotId} not found or not owned by user.`);
+    }
+
+    await this.chatbotRepository.restore(chatbotId);
+  }
+
+  async updateChatbot(
+    chatbotId: TChatbotID,
+    chatbot: Partial<Chatbot>,
+  ): Promise<Chatbot> {
+    return this.save({
+      id: chatbotId,
+      ...chatbot,
+    });
+  }
+
+  async getChatbotByOwnersIds(ownersIds: TUserID[]) {
+    return this.chatbotRepository
+      .createQueryBuilder('chatbot')
+      .where('chatbot.ownerId IN (:...ownersIds)', { ownersIds })
+      .getMany();
+  }
 
   async createOrUpdateChatbotWithSameSource(
     messagesWithTitles: MessagesWithTitle[],
@@ -47,25 +186,18 @@ export class ChatbotService {
 
     const user = await this.usersService.get(userId);
 
-    let chatbot = await this.chatbotRepository.findOne({
-      where: {
-        creatorId: userId,
-        source,
-      },
-    });
+    let chatbot = await this.getChatbotByCreatorAndSource(userId, source);
 
     if (chatbot) {
       console.log('Chatbot with source', source, 'found. Updating.');
-
-      await this.chatbotRepository.update(chatbot.id, {
+      return this.updateChatbot(chatbot.id, {
         backstory,
       });
-      return chatbot;
     }
 
     console.log('Chatbot with source', source, 'not found. Creating new one.');
 
-    chatbot = await this.chatbotRepository.save({
+    chatbot = await this.save({
       backstory,
       creatorId: userId,
       ownerId: userId,
@@ -107,7 +239,7 @@ export class ChatbotService {
 
     const user = await this.usersService.get(userId);
 
-    const chatbot = await this.chatbotRepository.save({
+    const chatbot = await this.save({
       backstory,
       creatorId: userId,
       ownerId: userId,
@@ -135,10 +267,7 @@ export class ChatbotService {
   async getAvailableChatbots(userId: TUserID): Promise<Chatbot[]> {
     const friendsChatbots = await this.getFriendsChatbots(userId);
 
-    const publicAndOwnChatbots = await this.chatbotRepository
-      .createQueryBuilder('chatbot')
-      .where('chatbot.isPublic = :isPublic', { isPublic: true })
-      .getMany();
+    const publicAndOwnChatbots = await this.getPublicAndOwnChatbots(userId);
 
     const allChatbotsMap = new Map<number, Chatbot>();
     publicAndOwnChatbots.forEach((chatbot) =>
@@ -165,19 +294,16 @@ export class ChatbotService {
       return [];
     }
 
-    return this.chatbotRepository
-      .createQueryBuilder('chatbot')
-      .where('chatbot.ownerId IN (:...friendIds)', { friendIds })
-      .getMany();
+    return this.getChatbotByOwnersIds(friendIds);
   }
 
-  async getChatbotById(chatbotId: number): Promise<Chatbot> {
-    return this.chatbotRepository.findOne(chatbotId);
-  }
-
-  async mergeChatbots(chatbot1Id: number, chatbot2Id: number, userId: TUserID) {
-    const chatbot1 = await this.getChatbotById(chatbot1Id);
-    const chatbot2 = await this.getChatbotById(chatbot2Id);
+  async mergeChatbots(
+    chatbot1Id: TChatbotID,
+    chatbot2Id: TChatbotID,
+    userId: TUserID,
+  ) {
+    const chatbot1 = await this.get(chatbot1Id);
+    const chatbot2 = await this.get(chatbot2Id);
     const backstory1 = chatbot1.backstory;
     const backstory2 = chatbot2.backstory;
 
@@ -228,7 +354,7 @@ Title:`,
     // todo: save image to s3
     console.log('img:', !!img);
 
-    const chatbot = await this.chatbotRepository.save({
+    const chatbot = await this.save({
       backstory,
       ownerId: userId,
       creatorId: userId,
@@ -242,108 +368,5 @@ Title:`,
     });
 
     return chatbot;
-  }
-
-  // deprecated
-  async updateChatbot(
-    chatbotId: number,
-    chatbot: Partial<Chatbot>,
-  ): Promise<Chatbot> {
-    await this.chatbotRepository.update(chatbotId, {
-      ...chatbot,
-      isModified: true,
-    });
-    return this.getChatbotById(chatbotId);
-  }
-
-  async getMergedChatbots(userId: TUserID): Promise<Chatbot[]> {
-    return this.chatbotRepository.find({
-      where: {
-        ownerId: userId,
-        merge1Id: Not(IsNull()),
-        merge2Id: Not(IsNull()),
-        // isModified: true,
-      },
-    });
-  }
-
-  async getPrivateChatbots(userId: TUserID): Promise<Chatbot[]> {
-    return this.chatbotRepository.find({
-      where: {
-        ownerId: userId,
-        isPublic: false,
-        merge1Id: null,
-        merge2Id: null,
-      },
-      order: {
-        id: 'DESC',
-      },
-      take: 1,
-    });
-  }
-
-  async getPremergedChatbots(userId: TUserID): Promise<Chatbot[]> {
-    return this.chatbotRepository.find({
-      where: {
-        ownerId: userId,
-        isPublic: false,
-      },
-    });
-  }
-
-  async getDoppelgangerChatbot(userId: TUserID): Promise<Chatbot> {
-    return this.chatbotRepository.findOne({
-      where: {
-        ownerId: userId,
-        merge1Id: null,
-        merge2Id: null,
-      },
-    });
-  }
-
-  async get(chatbotId: number): Promise<Chatbot> {
-    return this.chatbotRepository.findOne(chatbotId);
-  }
-
-  /**
-   * Soft delete a chatbot by ID, only if it belongs to the current user.
-   * @param chatbotId - ID of the chatbot
-   * @param userId - ID of the user performing the deletion
-   */
-  async softDeleteChatbot(chatbotId: number, userId: TUserID): Promise<void> {
-    const chatbot = await this.chatbotRepository.findOne({
-      where: {
-        id: chatbotId,
-        ownerId: userId,
-      },
-    });
-
-    if (!chatbot) {
-      throw new Error(`Chatbot ${chatbotId} not found or not owned by user.`);
-    }
-
-    await this.chatbotRepository.softDelete(chatbotId);
-  }
-
-  /**
-   * Restore a previously soft-deleted chatbot, only if it belongs to the current user.
-   * @param chatbotId - ID of the chatbot
-   * @param userId - ID of the user performing the restore
-   */
-  async restoreChatbot(chatbotId: number, userId: TUserID): Promise<void> {
-    // Optionally, ensure the chatbot belongs to the user even though it’s soft deleted
-    const chatbot = await this.chatbotRepository.findOne({
-      where: {
-        id: chatbotId,
-        ownerId: userId,
-      },
-      withDeleted: true, // important to find soft-deleted records
-    });
-
-    if (!chatbot) {
-      throw new Error(`Chatbot ${chatbotId} not found or not owned by user.`);
-    }
-
-    await this.chatbotRepository.restore(chatbotId);
   }
 }

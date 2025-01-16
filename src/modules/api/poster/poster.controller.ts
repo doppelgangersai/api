@@ -10,6 +10,7 @@ import {
 import { OptionalAuthGuard } from '../../../core/guards/optional-auth.guard';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
 import { User } from '../user';
+import { TChatbotID } from '../chatbot/chatbot.entity';
 
 export class TweetDto {
   @ApiProperty({ description: 'The tweet content' })
@@ -49,7 +50,7 @@ export class PosterController {
 
   @ApiParam({ name: 'chatbotId', type: Number })
   @Post(':chatbotId')
-  async postByChatbotId(@Param('chatbotId') chatbotId: number) {
+  async postByChatbotId(@Param('chatbotId') chatbotId: TChatbotID) {
     return this.posterService.parseAndPostByChatbot(chatbotId);
   }
 }

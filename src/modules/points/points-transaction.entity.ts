@@ -1,21 +1,29 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { TUserID } from '../api/user/user.types';
+
+export type TPointTransactionID = number;
 
 @Entity()
 export class PointsTransaction {
   @PrimaryGeneratedColumn()
-  id: number;
+  id: TPointTransactionID;
+
   @Column({
     nullable: true,
   })
-  fromUserId?: number;
+  fromUserId?: TUserID;
+
   @Column({
     nullable: true,
   })
-  toUserId?: number;
+  toUserId?: TUserID;
+
   @Column()
   amount: number;
+
   @Column()
   type: string;
+
   @Column({
     nullable: true,
   })

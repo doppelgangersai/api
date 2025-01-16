@@ -5,11 +5,14 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { TChatID } from './chat.types';
+import { TUserID } from '../user/user.types';
+import { TChatbotID } from '../chatbot/chatbot.entity';
 
 @Entity()
 export class Chat {
   @PrimaryGeneratedColumn()
-  id: number;
+  id: TChatID;
 
   @Column({ nullable: true })
   provider_name: string;
@@ -18,10 +21,10 @@ export class Chat {
   provider_internal_id: string;
 
   @Column({ nullable: true })
-  with_user_id: number;
+  with_user_id: TChatbotID;
 
   @Column()
-  from_user_id: number;
+  from_user_id: TUserID;
 
   @Column({ nullable: true })
   name: string;

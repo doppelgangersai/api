@@ -1,4 +1,5 @@
 import { User } from '../user';
+import { TChatID } from './chat.types';
 
 export interface IChatMessage {
   id: number;
@@ -11,7 +12,7 @@ export interface IChatMessageWithUser extends IChatMessage {
 }
 
 export interface IChat {
-  id: number;
+  id: TChatID;
   title: string;
   messages: IChatMessageWithUser[];
   user: Partial<User>;

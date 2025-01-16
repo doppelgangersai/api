@@ -28,7 +28,7 @@ import {
 import { ChatService } from './chat.service';
 import { User } from '../user';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
-import { Chatbot } from '../chatbot/chatbot.entity';
+import { Chatbot, TChatbotID } from '../chatbot/chatbot.entity';
 import { TUserID } from '../user/user.types';
 
 export class MergeChatbotDto {
@@ -55,7 +55,7 @@ export class ChatController {
   @UseGuards(AuthGuard('jwt'))
   @Post('merge/:chatbotId')
   mergeChatbot(
-    @Param('chatbotId') chatbotId: number,
+    @Param('chatbotId') chatbotId: TChatbotID,
     @CurrentUser() user: User,
   ) {
     if (!user.chatbotId) {
@@ -93,7 +93,7 @@ export class ChatController {
   @UseGuards(AuthGuard('jwt'))
   @Get('friends')
   async getFriendsChatList(@CurrentUser() user: User): Promise<Chatbot[]> {
-    return this.chatService.getFriendsChatList(user.id);
+    return this.chatService.getFriendsChatbotsList(user.id);
   }
 
   @ApiBearerAuth()
@@ -127,7 +127,7 @@ export class ChatController {
   @UseGuards(AuthGuard('jwt'))
   @Get('chatbot/:chatbotId')
   async getChatbotById(
-    @Param('chatbotId') chatbotId: number,
+    @Param('chatbotId') chatbotId: TChatbotID,
   ): Promise<Chatbot> {
     return this.chatService.getChatbotById(chatbotId);
   }
@@ -147,7 +147,7 @@ export class ChatController {
   @UseGuards(AuthGuard('jwt'))
   @Patch('chatbot/:chatbotId')
   async updateChatbot(
-    @Param('chatbotId') chatbotId: number,
+    @Param('chatbotId') chatbotId: TChatbotID,
     @Body() chatbot: Chatbot,
   ): Promise<Chatbot> {
     return this.chatService.updateChatbot(chatbotId, chatbot);
@@ -165,7 +165,7 @@ export class ChatController {
   @UseGuards(AuthGuard('jwt'))
   @Post(':twinUserId/message')
   async sendMessage(
-    @Param('twinUserId') chatbotId: number,
+    @Param('twinUserId') chatbotId: TChatbotID,
     @Body() message: ChatMessageDto,
     @CurrentUser() user: User,
   ): Promise<ChatMessageWithUserDto> {

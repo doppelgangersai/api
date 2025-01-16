@@ -13,8 +13,39 @@ export class PointsService {
     private readonly userService: UserService,
   ) {}
 
+  // DB START
+
+  async save(transaction: Partial<PointsTransaction>) {
+    return this.pointsRepository.save(transaction);
+  }
+
+  async countSent(userId: TUserID) {
+    const { totalSent }: { totalSent: string | null } =
+      await this.pointsRepository
+        .createQueryBuilder('transaction')
+        .select('SUM(transaction.amount)', 'totalSent')
+        .where('transaction.fromUserId = :userId', { userId })
+        .getRawOne();
+
+    return totalSent;
+  }
+
+  async countReceived(userId: TUserID) {
+    const { totalReceived }: { totalReceived: string | null } =
+      // DB PAIN
+      await this.pointsRepository
+        .createQueryBuilder('transaction')
+        .select('SUM(transaction.amount)', 'totalReceived')
+        .where('transaction.toUserId = :userId', { userId })
+        .getRawOne();
+
+    return totalReceived;
+  }
+
+  // / DB END
+
   async reward(userId: TUserID, amount: number, message?: string) {
-    const rewardTransaction = await this.pointsRepository.save({
+    const rewardTransaction = await this.save({
       fromUserId: null,
       toUserId: userId,
       amount,
@@ -28,28 +59,13 @@ export class PointsService {
   }
 
   async countAndUpdateUserPoints(userId: TUserID): Promise<void> {
-    // Calculate total points received by the user
-    const { totalReceived }: { totalReceived: string | null } =
-      await this.pointsRepository
-        .createQueryBuilder('transaction')
-        .select('SUM(transaction.amount)', 'totalReceived')
-        .where('transaction.toUserId = :userId', { userId })
-        .getRawOne();
+    const totalReceived = await this.countReceived(userId);
+    const totalSent = await this.countSent(userId);
 
-    // Calculate total points sent by the user
-    const { totalSent }: { totalSent: string | null } =
-      await this.pointsRepository
-        .createQueryBuilder('transaction')
-        .select('SUM(transaction.amount)', 'totalSent')
-        .where('transaction.fromUserId = :userId', { userId })
-        .getRawOne();
-
-    // Handle null or undefined values and calculate net points
     const netPoints =
       (totalReceived ? parseInt(totalReceived, 10) : 0) -
       (totalSent ? parseInt(totalSent, 10) : 0);
 
-    // Update the user's points in the User entity
     await this.userService.update(userId, { points: netPoints });
   }
 }

@@ -5,6 +5,7 @@ import { AIService } from '../../ai/ai.service';
 import { TwitterAuthService } from '../vault/twitter/twitter-auth.service';
 import { User } from '../user';
 import { z } from 'zod';
+import { TChatbotID } from '../chatbot/chatbot.entity';
 
 @Injectable()
 export class PosterService {
@@ -35,7 +36,7 @@ export class PosterService {
     return this.parseAndPost(doppelganger.backstory, accessToken);
   }
 
-  async parseAndPostByChatbot(chatbotId: number): Promise<string> {
+  async parseAndPostByChatbot(chatbotId: TChatbotID): Promise<string> {
     const chatbot = await this.chatbotService.get(chatbotId);
     return this.parseAndPost(chatbot.backstory);
   }

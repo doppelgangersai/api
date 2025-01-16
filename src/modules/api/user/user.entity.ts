@@ -8,6 +8,8 @@ import {
 import { PasswordTransformer } from './password.transformer';
 import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
 import { IDoppelganger } from '../../doppelganger/doppelganger.interace';
+import { TUserID } from './user.types';
+import { TChatbotID } from '../chatbot/chatbot.entity';
 
 export enum ConnectionStatus {
   UNCONNECTED = 'unconnected',
@@ -22,7 +24,7 @@ export enum ConnectionStatus {
 export class User implements IDoppelganger {
   @ApiResponseProperty()
   @PrimaryGeneratedColumn()
-  id: number;
+  id: TUserID;
 
   @ApiProperty({ required: false, example: 'John Doe' })
   @Column({ length: 255, nullable: true })
@@ -125,7 +127,7 @@ export class User implements IDoppelganger {
   @Column({
     nullable: true,
   })
-  chatbotId: number;
+  chatbotId: TChatbotID;
 
   @ManyToMany(() => User, (user) => user.friends)
   @JoinTable()
@@ -200,7 +202,7 @@ export class User implements IDoppelganger {
   @Column({
     nullable: true,
   })
-  referrerId?: number;
+  referrerId?: TUserID;
 }
 
 export class UserFillableFields {

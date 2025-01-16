@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IChat, IChatMessage, IChatMessageWithUser } from './chat.interfaces';
 import { User } from '../user';
+import { TChatID } from './chat.types';
 
 export class ChatMessageDto implements IChatMessage {
   @ApiProperty({ description: 'Unique identifier of the message' })
@@ -34,7 +35,7 @@ export class ChatMessagesResponseDto {
 
 export class ChatDto implements IChat {
   @ApiProperty({ description: 'Unique identifier of the chat' })
-  id: number;
+  id: TChatID;
 
   @ApiProperty({ description: 'Title of the chat' })
   title: string;
