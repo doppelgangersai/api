@@ -11,14 +11,14 @@ export class AuthController {
     private readonly userService: UserService,
   ) {}
 
-  @Post('login')
   @ApiOperation({
     summary:
-      'Login via email and password: we have this opportunity, but not using it',
+      '[DEPRECARED] Login via email and password: we have this opportunity, but not using it',
   })
   @ApiResponse({ status: 201, description: 'Successful Login', type: TokenDTO })
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Post('login')
   async login(@Body() payload: LoginDTO): Promise<TokenDTO> {
     const user = await this.authService.validateUser(payload);
     return await this.authService.createToken(user);
@@ -26,7 +26,7 @@ export class AuthController {
 
   @Post('register')
   @ApiOperation({
-    summary: 'Register a new user via login, password and e-mail',
+    summary: '[DEPRECARED] Register a new user via login, password and e-mail',
   })
   @ApiResponse({
     status: 201,
