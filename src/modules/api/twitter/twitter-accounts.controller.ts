@@ -63,6 +63,29 @@ class FollowingDto {
 export class TwitterAccountController {
   constructor(private readonly twitterAccountService: TwitterAccountService) {}
 
+  @Get()
+  @ApiOperation({
+    summary:
+      '[draft][mock] Get Linked Twitter Accounts (i`m ready to remove this mock and enable real data)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of linked Twitter accounts.',
+    type: [LinkedTwitterAccountDto],
+  })
+  getLinkedAccounts(): LinkedTwitterAccountDto[] {
+    return [
+      {
+        screen_name: 'elonmusk',
+        id: 7,
+      },
+      {
+        screen_name: 'NearProtocol',
+        id: 5,
+      },
+    ];
+  }
+
   @Get(':accountId')
   @ApiOperation({ summary: 'Get Twitter Account by ID' })
   @ApiParam({
