@@ -22,6 +22,8 @@ import {
 import { MissionModule } from '../api/mission/mission.module';
 import { PointsModule } from '../points/points.module';
 import { PosterModule } from '../api/poster/poster.module';
+import { AgentModule } from '../api/agent/agent.module';
+import { TwitterModule } from '../api/twitter/twitter.module';
 
 @Module({
   imports: [
@@ -43,15 +45,19 @@ import { PosterModule } from '../api/poster/poster.module';
       },
     }),
     ConfigModule,
+    // -------------------
+
+    AgentModule,
     AuthModule,
-    CommonModule,
-    VaultModule,
     ChatModule,
-    ProcessModule,
+    CommonModule,
     InstagramParserModule,
-    PointsModule,
     MissionModule,
+    PointsModule,
     PosterModule,
+    ProcessModule,
+    TwitterModule,
+    VaultModule,
   ],
   controllers: [AppController],
   providers: [AppService],
