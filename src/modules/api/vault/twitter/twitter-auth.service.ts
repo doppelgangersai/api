@@ -40,14 +40,14 @@ export class TwitterAuthService {
     this.codeVerifier = randomBytes(32).toString('base64url');
   }
 
-  public getAuthorizationUrl(): string {
+  public getAuthorizationUrl(callback?: string): string {
     const codeChallenge = this.codeVerifier;
     const codeChallengeMethod = 'plain';
 
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: this.clientId,
-      redirect_uri: this.redirectUri,
+      redirect_uri: callback || this.redirectUri,
       scope: this.scope,
       state: this.state,
       code_challenge: codeChallenge,

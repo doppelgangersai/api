@@ -16,6 +16,7 @@ import {
   ApiResponse,
   ApiQuery,
   ApiProperty,
+  ApiParam,
 } from '@nestjs/swagger';
 import { CurrentUser } from '../../../common/decorator/current-user.decorator';
 import { User, UserService } from '../../user';
@@ -82,10 +83,41 @@ export class TwitterAuthController {
     },
   })
   @Get('init')
-  initiateAuth(@Res() res: Response) {
+  @ApiParam({
+    name: 'callback_url',
+    required: false,
+    description: 'Optional callback URL',
+  })
+  initiateAuth(@Res() res: Response, @Query('callback_url') callback: string) {
     this.twitterAuthService.generateAuthData();
-    const authorizationUrl = this.twitterAuthService.getAuthorizationUrl();
+    const authorizationUrl =
+      this.twitterAuthService.getAuthorizationUrl(callback);
     res.redirect(authorizationUrl);
+  }
+
+  @ApiOperation({
+    summary:
+      'Returns redirect URL for Twitter authentication, with optional param "callback"',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Twitter authorization URL',
+  })
+  @Get('auth-url')
+  @ApiParam({
+    name: 'callback_url',
+    required: false,
+    description: 'Optional callback URL',
+  })
+  getAuthUrl(@Query('callback_url') callback: string): {
+    redirect_url: string;
+  } {
+    this.twitterAuthService.generateAuthData();
+    const authorizationUrl =
+      this.twitterAuthService.getAuthorizationUrl(callback);
+    return {
+      redirect_url: authorizationUrl,
+    };
   }
 
   @ApiOperation({
