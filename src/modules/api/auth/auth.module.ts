@@ -17,6 +17,7 @@ import {
   JWT_SECRET_KEY,
 } from '../../../core/constants/environment.constants';
 import { PointsModule } from '../../points/points.module';
+import { AppleAuthController } from './controllers/apple-auth.controller';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { PointsModule } from '../../points/points.module';
     }),
   ],
   controllers: [
+    AppleAuthController,
     AuthController,
     GoogleAuthController,
     MagicLinkAuthController,
