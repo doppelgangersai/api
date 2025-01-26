@@ -59,6 +59,9 @@ export class TokenDTO {
   accessToken: string;
   @ApiProperty()
   expiresIn: string;
+}
+
+export class TokenWithUserDTO extends TokenDTO {
   @ApiProperty()
   user: User;
 }

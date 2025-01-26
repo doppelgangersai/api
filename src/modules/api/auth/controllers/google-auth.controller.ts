@@ -18,7 +18,7 @@ import {
   GOOGLE_REDIRECT_URI,
 } from '../../../../core/constants/environment.constants';
 import { PointsService } from '../../../points/points.service';
-import { TokenDTO, GoogleMobileAuthDto } from '../auth.dtos';
+import { TokenWithUserDTO, GoogleMobileAuthDto } from '../auth.dtos';
 
 @ApiTags('google')
 @Controller('api/auth/google')
@@ -66,7 +66,7 @@ export class GoogleAuthController {
   @ApiResponse({
     status: 200,
     description: 'Successfully authenticated and created user if needed.',
-    type: TokenDTO,
+    type: TokenWithUserDTO,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @Get('auth')
@@ -134,13 +134,11 @@ export class GoogleAuthController {
   @ApiResponse({
     status: 200,
     description: 'Successfully authenticated and created user if needed.',
-    type: TokenDTO, // ваш класс, описывающий ответ
+    type: TokenWithUserDTO,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @Post('mobile')
-  async googleAuthMobile(
-    @Body() body: GoogleMobileAuthDto, // принимаем наш DTO
-  ) {
+  async googleAuthMobile(@Body() body: GoogleMobileAuthDto) {
     const { idToken, ref } = body;
     const referrerId = ref ? parseInt(ref, 10) : null;
 
