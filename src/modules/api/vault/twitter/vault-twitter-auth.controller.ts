@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { TwitterAuthService } from './twitter-auth.service';
+import { VaultTwitterAuthService } from './vault-twitter-auth.service';
 import {
   ApiBearerAuth,
   ApiTags,
@@ -19,20 +19,9 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { CurrentUser } from '../../../common/decorator/current-user.decorator';
-import { User, UserService } from '../../user';
-import { ChatbotService } from '../../chatbot/chatbot.service';
+import { User } from '../../user';
 import { OptionalAuthGuard } from '../../../../core/guards/optional-auth.guard';
 import { AuthGuard } from '@nestjs/passport';
-
-class TweetDto {
-  @ApiProperty({ example: 'This is a tweet' })
-  text: string;
-}
-
-class TweetsDataDto {
-  @ApiProperty({ type: [TweetDto] })
-  data: TweetDto[];
-}
 
 class TwitterMobileAuthDto {
   @ApiProperty({
@@ -40,35 +29,19 @@ class TwitterMobileAuthDto {
       'S0ME-REFRESH-TOKEN-qYXczV1hjYVhFZGlWMUw5b3ZGOXNBSlFUVHVxWUdJOjE3MzUzODQzNjA1NTI6MToxOnJ0OjE',
   })
   twitterRefreshToken: string;
-}
-
-class TwitterCallbackResponseDto {
-  @ApiProperty({ example: 'string' })
-  access_token: string;
-
-  @ApiProperty({ example: 'string or null' })
-  refresh_token: string | null;
-
-  @ApiProperty({ example: 'read_write' })
-  scope: string;
-
-  @ApiProperty({ example: 3600 })
-  expires_in: number;
-
-  @ApiProperty({ example: '123456789' })
-  user_id: string;
-
-  @ApiProperty({ type: TweetsDataDto })
-  tweets: TweetsDataDto;
+  @ApiProperty({
+    example:
+      'SOmE-ACCESSTOKEN-1qYXczV1hjYVhFZGlWMUw5b3ZGOXNBSlFUVHVxWUdJOjE3MzUzODQzNjA1NTI6MToxOnJ0OjE',
+    required: false,
+  })
+  twitterAccessToken?: string;
 }
 
 @ApiTags('vault/twitter')
 @Controller('api/vault/twitter')
-export class TwitterAuthController {
+export class VaultTwitterAuthController {
   constructor(
-    private readonly twitterAuthService: TwitterAuthService,
-    private readonly chatbotService: ChatbotService,
-    private readonly userService: UserService,
+    private readonly vaultTwitterAuthService: VaultTwitterAuthService,
   ) {}
 
   @ApiOperation({ summary: 'Initiate Twitter authentication process' })
@@ -89,9 +62,9 @@ export class TwitterAuthController {
     description: 'Optional callback URL',
   })
   initiateAuth(@Res() res: Response, @Query('callback_url') callback: string) {
-    this.twitterAuthService.generateAuthData();
+    this.vaultTwitterAuthService.generateAuthData();
     const authorizationUrl =
-      this.twitterAuthService.getAuthorizationUrl(callback);
+      this.vaultTwitterAuthService.getAuthorizationUrl(callback);
     res.redirect(authorizationUrl);
   }
 
@@ -112,9 +85,9 @@ export class TwitterAuthController {
   getAuthUrl(@Query('callback_url') callback: string): {
     redirect_url: string;
   } {
-    this.twitterAuthService.generateAuthData();
+    this.vaultTwitterAuthService.generateAuthData();
     const authorizationUrl =
-      this.twitterAuthService.getAuthorizationUrl(callback);
+      this.vaultTwitterAuthService.getAuthorizationUrl(callback);
     return {
       redirect_url: authorizationUrl,
     };
@@ -151,7 +124,7 @@ export class TwitterAuthController {
     @CurrentUser() user: User,
   ) {
     try {
-      await this.twitterAuthService.saveTwitterRefreshToken(
+      await this.vaultTwitterAuthService.saveTwitterRefreshToken(
         code,
         returnedState,
         user.id || 1,
@@ -169,9 +142,9 @@ export class TwitterAuthController {
   })
   @Patch('mobile')
   async authMobile(
-    @Body() { twitterRefreshToken }: TwitterMobileAuthDto,
+    @Body() { twitterRefreshToken, twitterAccessToken }: TwitterMobileAuthDto,
     @CurrentUser() user: User,
   ) {
-    await this.twitterAuthService.mobileAuth(user.id, twitterRefreshToken);
+    await this.vaultTwitterAuthService.mobileAuth(user.id, twitterRefreshToken, twitterAccessToken);
   }
 }

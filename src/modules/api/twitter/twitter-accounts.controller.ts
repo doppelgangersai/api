@@ -70,7 +70,7 @@ export class TwitterAccountController {
   })
   @ApiResponse({
     status: 200,
-    description: 'List of linked Twitter accounts.',
+    description: 'List of linked Twitter accounts or empty array.',
     type: [LinkedTwitterAccountDto],
   })
   getLinkedAccounts(): LinkedTwitterAccountDto[] {
@@ -109,6 +109,7 @@ export class TwitterAccountController {
     return account;
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Post()
   @ApiOperation({ summary: 'Add New Twitter Account' })
   @ApiBody({ type: AddTwitterAccountDto })
@@ -120,11 +121,13 @@ export class TwitterAccountController {
   })
   async addTwitterAccount(
     @Body() body: AddTwitterAccountDto,
+    @CurrentUser() user: User,
   ): Promise<AddTwitterAccountResponseDto> {
     const account = new TwitterAccount();
     account.refresh_token = body.refresh_token;
 
     const savedAccount = await this.twitterAccountService.createAccount(
+      user.id,
       account,
     );
     return {

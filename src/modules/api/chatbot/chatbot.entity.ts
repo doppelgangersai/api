@@ -116,6 +116,11 @@ export class Chatbot implements IDoppelganger {
   })
   twitterUserId: string;
 
+  @Column({
+    nullable: true,
+  })
+  twitterAccountId: number;
+
   toJSON() {
     const { backstory, ...self } = this;
     const mapped = { ...self, avatar: avatarTransformer(this) };

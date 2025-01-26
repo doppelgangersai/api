@@ -127,6 +127,11 @@ export class User implements IDoppelganger {
   })
   chatbotId: number;
 
+  @Column({
+    nullable: true,
+  })
+  twitterAccountId: number;
+
   @ManyToMany(() => User, (user) => user.friends)
   @JoinTable()
   friends: User[];
