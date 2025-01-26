@@ -64,6 +64,7 @@ export class TwitterAccountController {
   constructor(private readonly twitterAccountService: TwitterAccountService) {}
 
   @Get()
+  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
     summary:
       '[draft][mock] Get Linked Twitter Accounts (i`m ready to remove this mock and enable real data)',
@@ -73,17 +74,14 @@ export class TwitterAccountController {
     description: 'List of linked Twitter accounts or empty array.',
     type: [LinkedTwitterAccountDto],
   })
-  getLinkedAccounts(): LinkedTwitterAccountDto[] {
-    return [
-      {
-        screen_name: 'elonmusk',
-        id: 7,
-      },
-      {
-        screen_name: 'NearProtocol',
-        id: 5,
-      },
-    ];
+  async getLinkedAccounts(
+    @CurrentUser() user: User,
+  ): Promise<LinkedTwitterAccountDto[]> {
+    const accounts = await this.twitterAccountService.getUserAccounts(user.id);
+    return accounts.map((account) => ({
+      screen_name: account.screen_name,
+      id: account.id,
+    }));
   }
 
   @Get(':accountId')
