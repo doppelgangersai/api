@@ -269,6 +269,7 @@ export class VaultTwitterAuthService {
     code: string,
     returnedState: string,
   ): Promise<any> {
+    console.log({ code, returnedState, state: this.state });
     if (!code || returnedState !== this.state) {
       throw new Error('Invalid state or no code returned');
     }
