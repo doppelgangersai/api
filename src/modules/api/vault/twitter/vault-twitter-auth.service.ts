@@ -66,10 +66,6 @@ export class VaultTwitterAuthService {
     state: string,
     userId: TUserID,
   ): Promise<void> {
-    if (state !== this.state) {
-      throw new Error('Invalid state');
-    }
-
     const tokenData = (await this.exchangeCodeForToken(code, state)) as Record<
       string,
       string
