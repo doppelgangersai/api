@@ -125,6 +125,7 @@ export class VaultTwitterAuthController {
     @CurrentUser() user: User,
   ) {
     try {
+      console.log(code, returnedState, user.id);
       await this.vaultTwitterAuthService.saveTwitterRefreshToken(
         code,
         returnedState,
