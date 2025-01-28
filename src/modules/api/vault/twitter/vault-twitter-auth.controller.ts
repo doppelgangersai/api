@@ -60,6 +60,7 @@ export class VaultTwitterAuthController {
     name: 'callback_url',
     required: false,
     description: 'Optional callback URL',
+    example: 'https://app.doppelgangers.ai/api/vault/twitter/callback',
   })
   initiateAuth(@Res() res: Response, @Query('callback_url') callback: string) {
     this.vaultTwitterAuthService.generateAuthData();
@@ -145,6 +146,10 @@ export class VaultTwitterAuthController {
     @Body() { twitterRefreshToken, twitterAccessToken }: TwitterMobileAuthDto,
     @CurrentUser() user: User,
   ) {
-    await this.vaultTwitterAuthService.mobileAuth(user.id, twitterRefreshToken, twitterAccessToken);
+    await this.vaultTwitterAuthService.mobileAuth(
+      user.id,
+      twitterRefreshToken,
+      twitterAccessToken,
+    );
   }
 }
