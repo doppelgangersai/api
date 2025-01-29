@@ -106,8 +106,8 @@ export class User implements IDoppelganger {
   @Column({ nullable: true })
   telegramFile: string;
 
-  @Column({ nullable: true })
-  xUsername: string;
+  // @Column({ nullable: true })
+  // xUsername: string;
 
   @Column({ nullable: true })
   tikTokUsername: string;
