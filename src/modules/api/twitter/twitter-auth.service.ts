@@ -15,7 +15,7 @@ export class TwitterAuthService {
   private readonly clientSecret: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.tokenUrl = 'https://api.twitter.com/oauth2/token';
+    this.tokenUrl = 'https://api.twitter.com/oauth2/2/token';
     this.clientId = this.configService.get<string>('TWITTER_API_CLIENT_ID');
     this.clientSecret = this.configService.get<string>(
       'TWITTER_API_CLIENT_SECRET',
