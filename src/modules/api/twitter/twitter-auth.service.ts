@@ -23,6 +23,7 @@ export class TwitterAuthService {
   }
 
   async getTokensByRefreshToken(refresh_token: string): Promise<TokenResponse> {
+    console.log({ refresh_token });
     const authHeader = this.generateAuthHeader(
       this.clientId,
       this.clientSecret,
