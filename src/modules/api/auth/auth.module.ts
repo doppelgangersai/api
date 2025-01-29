@@ -18,6 +18,7 @@ import {
 } from '../../../core/constants/environment.constants';
 import { PointsModule } from '../../points/points.module';
 import { AppleAuthController } from './controllers/apple-auth.controller';
+import { AppleAuthService } from './services/apple-auth.service';
 
 @Module({
   imports: [
@@ -49,7 +50,13 @@ import { AppleAuthController } from './controllers/apple-auth.controller';
     MagicLinkAuthController,
     NearController,
   ],
-  providers: [AuthService, JwtStrategy, MagicLinkService, MandrillEmailService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    MagicLinkService,
+    MandrillEmailService,
+    AppleAuthService,
+  ],
   exports: [PassportModule.register({ defaultStrategy: 'jwt' })],
 })
 export class AuthModule {}

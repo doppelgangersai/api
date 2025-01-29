@@ -83,6 +83,9 @@ export class User implements IDoppelganger {
   appleId: string;
 
   @Column({ nullable: true, select: false })
+  appleSubId: string;
+
+  @Column({ nullable: true, select: false })
   appleAccessToken: string;
 
   @Column({ nullable: true })

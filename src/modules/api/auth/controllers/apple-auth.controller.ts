@@ -1,6 +1,7 @@
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiOperation, ApiProperty, ApiResponse } from '@nestjs/swagger';
-import { TokenDTO } from '../auth.dtos';
+import { TokenDTO, TokenWithUserDTO } from '../auth.dtos';
+import { AppleAuthService } from '../services/apple-auth.service';
 
 export class AppleMobileAuthDto {
   @ApiProperty({
@@ -11,7 +12,7 @@ export class AppleMobileAuthDto {
 }
 @Controller('api/auth/apple')
 export class AppleAuthController {
-  constructor() {}
+  constructor(private readonly appleAuthService: AppleAuthService) {}
 
   @ApiOperation({
     summary: '[mock] Apple Auth: Authenticate user with Apple ID',
@@ -23,10 +24,7 @@ export class AppleAuthController {
   })
   @HttpCode(201)
   @Post('mobile')
-  async mobileAuth(@Body() body: AppleMobileAuthDto): Promise<TokenDTO> {
-    return {
-      accessToken: 'accessToken',
-      expiresIn: 'expiresIn',
-    };
+  mobileAuth(@Body() body: AppleMobileAuthDto): Promise<TokenWithUserDTO> {
+    return this.appleAuthService.authByIdToken(body.idToken);
   }
 }

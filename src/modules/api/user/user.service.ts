@@ -34,12 +34,8 @@ export class UserService {
     return await this.usersRepository.findOne({ email });
   }
 
-  async getUsersWithBackstory() {
-    return this.usersRepository.find({
-      where: {
-        backstory: Not(IsNull()),
-      },
-    });
+  async getByAppleSubId(sub: string) {
+    return this.usersRepository.findOne({ appleSubId: sub });
   }
 
   // TODO: remove?
