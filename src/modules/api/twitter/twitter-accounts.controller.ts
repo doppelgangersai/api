@@ -180,14 +180,29 @@ export class TwitterAccountController {
   getFollowing(@Param('accountId') accountId: number): FollowingDto[] {
     return [
       {
+        screen_name: 'Doppelgangerai',
+        is_verified: true,
+        other_data: 'can contain additional fields from twitter, ignore them',
+      },
+      {
         screen_name: 'SpaceX',
         is_verified: true,
-        other_data: 'extra data from Twitter',
+        other_data: 'can contain additional fields from twitter, ignore them',
       },
       {
         screen_name: 'Tesla',
         is_verified: true,
-        other_data: 'extra data from Twitter',
+        other_data: 'can contain additional fields from twitter, ignore them',
+      },
+      {
+        screen_name: 'Not verified',
+        is_verified: false,
+        other_data: 'can contain additional fields from twitter, ignore them',
+      },
+      {
+        screen_name: 'Not verified 2',
+        is_verified: false,
+        other_data: 'can contain additional fields from twitter, ignore them',
       },
     ];
   }
