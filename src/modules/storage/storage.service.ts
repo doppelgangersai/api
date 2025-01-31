@@ -136,7 +136,7 @@ export class StorageService {
     try {
       return await this.minioClient.getObject(bucket, filename);
     } catch (error) {
-      throw new Error(`File not found: ${filename}`);
+      throw new Error(`File not found in bucket ${bucket}: ${filename}`);
     }
   }
 }
