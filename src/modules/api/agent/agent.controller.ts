@@ -128,7 +128,7 @@ export class AgentController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @Get(':agentId')
-  @ApiOperation({ summary: '[mock] Get Agent Data' })
+  @ApiOperation({ summary: 'Get Agent Data' })
   @ApiParam({ name: 'agentId', type: Number, description: 'ID of the agent' })
   @ApiResponse({
     status: 200,
@@ -146,7 +146,7 @@ export class AgentController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @Patch(':agentId')
-  @ApiOperation({ summary: '[mock] Update Agent Data' })
+  @ApiOperation({ summary: 'Update Agent Data' })
   @ApiParam({ name: 'agentId', type: Number, description: 'ID of the agent' })
   @ApiBody({ type: UpdateAgentDto })
   @ApiResponse({

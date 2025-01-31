@@ -66,8 +66,7 @@ export class TwitterAccountController {
   @Get()
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
-    summary:
-      '[draft][mock] Get Linked Twitter Accounts (i`m ready to remove this mock and enable real data)',
+    summary: 'Get Linked Twitter Accounts',
   })
   @ApiResponse({
     status: 200,
