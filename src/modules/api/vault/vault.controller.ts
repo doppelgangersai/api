@@ -265,19 +265,19 @@ export class VaultController {
     };
   }
 
-  @Post('x')
-  @UseGuards(AuthGuard())
-  @ApiOperation({ summary: 'Connect to X (formerly Twitter)' })
-  async x(@Body() { username }: UsernameDTO, @CurrentUser() user: User) {
-    await this.userService.update(user.id, { xUsername: username });
-    if (!user.xUsername) {
-      await this.pointsService.reward(user.id, 20);
-    }
-    return {
-      username,
-      message: 'Connected to X',
-    };
-  }
+  // @Post('x')
+  // @UseGuards(AuthGuard())
+  // @ApiOperation({ summary: 'Connect to X (formerly Twitter)' })
+  // async x(@Body() { username }: UsernameDTO, @CurrentUser() user: User) {
+  //   await this.userService.update(user.id, { xUsername: username });
+  //   if (!user.xUsername) {
+  //     await this.pointsService.reward(user.id, 20);
+  //   }
+  //   return {
+  //     username,
+  //     message: 'Connected to X',
+  //   };
+  // }
 
   // @Post('telegram')
   // @UseGuards(AuthGuard())

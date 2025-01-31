@@ -1,7 +1,11 @@
 import { DeleteDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 import { Column } from 'typeorm';
-import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  ApiResponseProperty,
+} from '@nestjs/swagger';
 import { IDoppelganger } from '../../doppelganger/doppelganger.interace';
 import { ChatbotSource } from './chatbot.types';
 
@@ -116,6 +120,108 @@ export class Chatbot implements IDoppelganger {
   })
   twitterUserId: string;
 
+  @Column({
+    nullable: true,
+  })
+  twitterAccountId: number;
+
+  // Fields for post_settings (internal use)
+  @Column({
+    type: 'boolean',
+    nullable: true,
+  })
+  post_enabled?: boolean;
+
+  @Column({
+    type: 'text',
+    array: true,
+    nullable: true,
+  })
+  post_accounts?: string[];
+
+  @Column({
+    type: 'text',
+    array: true,
+    nullable: true,
+  })
+  post_keywords?: string[];
+
+  @Column({
+    type: 'text',
+    nullable: true,
+  })
+  post_prompt?: string;
+
+  @Column({
+    type: 'integer',
+    nullable: true,
+  })
+  post_per_day?: number;
+
+  // Fields for comment_settings (internal use)
+  @Column({
+    type: 'boolean',
+    nullable: true,
+  })
+  comment_enabled?: boolean;
+
+  @Column({
+    type: 'text',
+    array: true,
+    nullable: true,
+  })
+  comment_accounts?: string[];
+
+  @Column({
+    type: 'boolean',
+    nullable: true,
+  })
+  comment_reply_when_tagged?: boolean;
+
+  @Column({
+    type: 'boolean',
+    nullable: true,
+  })
+  comment_x_accounts_replies?: boolean;
+
+  @Column({
+    type: 'boolean',
+    nullable: true,
+  })
+  comment_my_accounts_replies?: boolean;
+
+  @Column({
+    type: 'text',
+    nullable: true,
+  })
+  comment_prompt?: string;
+
+  @Column({
+    type: 'integer',
+    nullable: true,
+  })
+  comment_min_followers?: number;
+
+  @Column({
+    type: 'integer',
+    nullable: true,
+  })
+  comment_older_then?: number;
+
+  // New internal fields: post_last_check and comment_last_check
+
+  @Column({
+    type: 'timestamp',
+    nullable: true,
+  })
+  post_last_check?: Date;
+
+  @Column({
+    type: 'timestamp',
+    nullable: true,
+  })
+  comment_last_check?: Date;
+
   toJSON() {
     const { backstory, ...self } = this;
     const mapped = { ...self, avatar: avatarTransformer(this) };
@@ -124,9 +230,11 @@ export class Chatbot implements IDoppelganger {
 }
 
 const avatarTransformer = (self: Chatbot): string => {
-  return self?.avatar
-    ? self.avatar.includes('http')
-      ? self.avatar
-      : `/avatars/${self.avatar}`
-    : null;
+  if (!self?.avatar) return null;
+  
+  if (self.avatar.includes('http')) {
+    return self.avatar;
+  }
+  
+  return `/api/storage/avatars/${self.avatar}`;
 };

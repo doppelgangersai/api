@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ChatbotService } from '../chatbot/chatbot.service';
 import * as Parser from 'rss-parser';
 import { AIService } from '../../ai/ai.service';
-import { TwitterAuthService } from '../vault/twitter/twitter-auth.service';
+import { VaultTwitterAuthService } from '../vault/twitter/vault-twitter-auth.service';
 import { User } from '../user';
 import { z } from 'zod';
 
@@ -13,15 +13,15 @@ export class PosterService {
   constructor(
     private readonly chatbotService: ChatbotService,
     private readonly aiService: AIService,
-    private readonly twitterAuthService: TwitterAuthService,
+    private readonly vaultTwitterAuthService: VaultTwitterAuthService,
   ) {}
 
   async tweet(user: Partial<User>, tweet: string): Promise<string> {
     console.log(`Tweeting: ${tweet}`, user);
-    const accessToken = await this.twitterAuthService.refreshAccessToken(
+    const accessToken = await this.vaultTwitterAuthService.refreshAccessToken(
       user.twitterRefreshToken,
     );
-    await this.twitterAuthService.tweet(accessToken, tweet);
+    await this.vaultTwitterAuthService.tweet(accessToken, tweet);
     return tweet;
   }
 
@@ -29,7 +29,7 @@ export class PosterService {
     const doppelganger = await this.chatbotService.getDoppelgangerChatbot(
       user.id,
     );
-    const accessToken = await this.twitterAuthService.refreshAccessToken(
+    const accessToken = await this.vaultTwitterAuthService.refreshAccessToken(
       user.twitterRefreshToken,
     );
     return this.parseAndPost(doppelganger.backstory, accessToken);
@@ -58,7 +58,7 @@ ${post.content}`);
     const rewrittenPost = await this.aiService.processText(prompt);
 
     if (accessToken) {
-      await this.twitterAuthService.tweet(accessToken, rewrittenPost);
+      await this.vaultTwitterAuthService.tweet(accessToken, rewrittenPost);
     }
 
     console.log(`Rewritten post: ${rewrittenPost}`);

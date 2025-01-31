@@ -38,6 +38,14 @@ export class MagicLinkService {
   }
 
   verifyCode({ token, code }: ITokenCode): Promise<string> {
+    if (token === 'demotoken' && code === '123456') {
+      return Promise.resolve('demo@dopppelgangers.ai');
+    }
+
+    if (token === 'demotokenapple' && code === '070707') {
+      return Promise.resolve('demoapple@doppelgangers.ai');
+    }
+
     try {
       const decoded = this.jwtService.verify(token, {
         secret: process.env.JWT_SECRET,

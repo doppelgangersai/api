@@ -131,4 +131,12 @@ export class StorageService {
   async deleteFile(bucketName: string, objectName: string): Promise<void> {
     await this.minioClient.removeObject(bucketName, objectName);
   }
+
+  async getFileStream(bucket: string, filename: string): Promise<Readable> {
+    try {
+      return await this.minioClient.getObject(bucket, filename);
+    } catch (error) {
+      throw new Error(`File not found in bucket ${bucket}: ${filename}`);
+    }
+  }
 }

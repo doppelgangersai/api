@@ -17,6 +17,8 @@ import {
   JWT_SECRET_KEY,
 } from '../../../core/constants/environment.constants';
 import { PointsModule } from '../../points/points.module';
+import { AppleAuthController } from './controllers/apple-auth.controller';
+import { AppleAuthService } from './services/apple-auth.service';
 
 @Module({
   imports: [
@@ -42,12 +44,19 @@ import { PointsModule } from '../../points/points.module';
     }),
   ],
   controllers: [
+    AppleAuthController,
     AuthController,
     GoogleAuthController,
     MagicLinkAuthController,
     NearController,
   ],
-  providers: [AuthService, JwtStrategy, MagicLinkService, MandrillEmailService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    MagicLinkService,
+    MandrillEmailService,
+    AppleAuthService,
+  ],
   exports: [PassportModule.register({ defaultStrategy: 'jwt' })],
 })
 export class AuthModule {}

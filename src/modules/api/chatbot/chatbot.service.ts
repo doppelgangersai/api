@@ -28,6 +28,7 @@ export class ChatbotService {
     messagesWithTitles: MessagesWithTitle[],
     userId: TUserID,
     source: ChatbotSource,
+    twitterAccountId?: number,
   ): Promise<Chatbot> {
     const filteredMessages = await Promise.all(
       messagesWithTitles.map(async (message) => {
@@ -59,6 +60,7 @@ export class ChatbotService {
 
       await this.chatbotRepository.update(chatbot.id, {
         backstory,
+        twitterAccountId: chatbot.twitterAccountId || twitterAccountId,
       });
       return chatbot;
     }
@@ -74,6 +76,7 @@ export class ChatbotService {
       avatar: user.avatar,
       isPublic: false,
       source,
+      twitterAccountId,
     });
 
     const chatbotId = chatbot.id;

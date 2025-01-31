@@ -83,6 +83,9 @@ export class User implements IDoppelganger {
   appleId: string;
 
   @Column({ nullable: true, select: false })
+  appleSubId: string;
+
+  @Column({ nullable: true, select: false })
   appleAccessToken: string;
 
   @Column({ nullable: true })
@@ -103,8 +106,8 @@ export class User implements IDoppelganger {
   @Column({ nullable: true })
   telegramFile: string;
 
-  @Column({ nullable: true })
-  xUsername: string;
+  // @Column({ nullable: true })
+  // xUsername: string;
 
   @Column({ nullable: true })
   tikTokUsername: string;
@@ -126,6 +129,11 @@ export class User implements IDoppelganger {
     nullable: true,
   })
   chatbotId: number;
+
+  @Column({
+    nullable: true,
+  })
+  twitterAccountId: number;
 
   @ManyToMany(() => User, (user) => user.friends)
   @JoinTable()
@@ -210,11 +218,13 @@ export class UserFillableFields {
 }
 
 const avatarTransformer = (self: User) => {
-  return self?.avatar
-    ? self.avatar.includes('http')
-      ? self.avatar
-      : `/avatars/${self.avatar}`
-    : null;
+  if (!self?.avatar) return null;
+  
+  if (self.avatar.includes('http')) {
+    return self.avatar;
+  }
+  
+  return `/api/storage/avatars/${self.avatar}`;
 };
 
 export class MappedUserDTO extends User {

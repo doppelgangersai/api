@@ -11,9 +11,10 @@ import { TelegramService } from './telegram/telegram.service';
 import { AIModule } from '../../ai/ai.module';
 import { ChatbotModule } from '../chatbot/chatbot.module';
 import { PointsModule } from '../../points/points.module';
-import { TwitterAuthController } from './twitter/twitter-auth.controller';
-import { TwitterAuthService } from './twitter/twitter-auth.service';
-import { TwitterHandler } from './twitter/twitter.handlers'; // Import TelegramService
+import { VaultTwitterAuthController } from './twitter/vault-twitter-auth.controller';
+import { VaultTwitterAuthService } from './twitter/vault-twitter-auth.service';
+import { TwitterHandler } from './twitter/vault-twitter.handlers';
+import { TwitterModule } from '../twitter/twitter.module'; // Import TelegramService
 
 @Module({
   imports: [
@@ -25,14 +26,19 @@ import { TwitterHandler } from './twitter/twitter.handlers'; // Import TelegramS
     AIModule,
     ChatbotModule,
     PointsModule,
+    TwitterModule,
   ],
-  controllers: [VaultController, TelegramController, TwitterAuthController], // Add TelegramController
+  controllers: [
+    VaultController,
+    TelegramController,
+    VaultTwitterAuthController,
+  ], // Add TelegramController
   providers: [
     VaultEmitter,
     TelegramService,
-    TwitterAuthService,
+    VaultTwitterAuthService,
     TwitterHandler,
   ],
-  exports: [VaultEmitter, TwitterAuthService],
+  exports: [VaultEmitter, VaultTwitterAuthService],
 })
 export class VaultModule {}

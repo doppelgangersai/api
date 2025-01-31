@@ -53,25 +53,29 @@ export class LoginDTO {
 }
 
 export class TokenDTO {
-  @ApiProperty()
+  @ApiProperty({
+    example: 'accessToken',
+  })
   accessToken: string;
   @ApiProperty()
   expiresIn: string;
+}
+
+export class TokenWithUserDTO extends TokenDTO {
   @ApiProperty()
   user: User;
 }
 
 export class GoogleMobileAuthDto {
   @ApiProperty({
-    description:
-      'Google ID Token, полученный в мобильном приложении (iOS/Android)',
+    description: 'Google ID Token, received in mobile app (iOS/Android)',
     example: 'eyJhbGciOiJSUzI1NiIsImtpZCI6ImQ5NzQwYTcwYjA5...',
   })
   @IsString()
   idToken: string;
 
   @ApiPropertyOptional({
-    description: 'Опциональный реферальный код',
+    description: 'Optional referral code, if user was referred by someone',
     example: '123',
   })
   @IsOptional()

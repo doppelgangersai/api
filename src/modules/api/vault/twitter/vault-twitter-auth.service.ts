@@ -1,18 +1,21 @@
-import { Injectable } from '@nestjs/common';
+// Context: part of methods will be migrated to TwitterAuthService in vault-twitter-auth.service.ts in twitter module
 import { randomBytes } from 'crypto';
 import fetch from 'node-fetch';
+import { OnEvent } from '@nestjs/event-emitter';
+import { Injectable } from '@nestjs/common';
+
 import { ConfigService } from '../../../config';
 import { MessagesWithTitle } from '../../../ai/ai.service';
 import { ChatbotService } from '../../chatbot/chatbot.service';
 import { ConnectionStatus, UserService } from '../../user';
 import { VaultEmitter } from '../vault.emitter';
-import { OnEvent } from '@nestjs/event-emitter';
 import { TWITTER_CONNECTED_EVENT } from '../../../../core/constants';
 import { TUserID } from '../../user/user.types';
 import { ChatbotSource } from '../../chatbot/chatbot.types';
+import { TwitterAccountService } from '../../twitter/twitter-account.service';
 
 @Injectable()
-export class TwitterAuthService {
+export class VaultTwitterAuthService {
   private clientId: string;
   private clientSecret: string;
   private redirectUri: string;
@@ -29,6 +32,7 @@ export class TwitterAuthService {
     private readonly chatbotService: ChatbotService,
     private readonly userService: UserService,
     private readonly vaultEmitter: VaultEmitter,
+    private readonly twitterAccountService: TwitterAccountService,
   ) {
     this.clientId = this.configService.get<string>('TWITTER_CLIENT_ID');
     this.clientSecret = this.configService.get<string>('TWITTER_CLIENT_SECRET');
@@ -40,14 +44,14 @@ export class TwitterAuthService {
     this.codeVerifier = randomBytes(32).toString('base64url');
   }
 
-  public getAuthorizationUrl(): string {
+  public getAuthorizationUrl(callback?: string): string {
     const codeChallenge = this.codeVerifier;
     const codeChallengeMethod = 'plain';
 
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: this.clientId,
-      redirect_uri: this.redirectUri,
+      redirect_uri: callback || this.redirectUri,
       scope: this.scope,
       state: this.state,
       code_challenge: codeChallenge,
@@ -62,19 +66,20 @@ export class TwitterAuthService {
     state: string,
     userId: TUserID,
   ): Promise<void> {
-    if (state !== this.state) {
-      throw new Error('Invalid state');
-    }
-
     const tokenData = (await this.exchangeCodeForToken(code, state)) as Record<
       string,
       string
     >;
-    const twitterUserId = await this.getUserId(tokenData.access_token);
+
+    const account = await this.twitterAccountService.createAccount(userId, {
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token,
+    });
 
     await this.userService.update(userId, {
-      twitterRefreshToken: tokenData.refresh_token,
-      twitterUserId,
+      twitterRefreshToken: account.refresh_token,
+      twitterUserId: account.twitter_id,
+      twitterAccountId: account.id,
       twitterConnectionStatus: ConnectionStatus.CONNECTED,
     });
 
@@ -89,28 +94,33 @@ export class TwitterAuthService {
       return;
     }
 
-    const twitterRefreshToken = await this.userService.getTwitterRefreshToken(
-      user,
-    );
-
-    let { twitterUserId } = user;
-    if (!twitterRefreshToken) {
-      console.error('Twitter refresh token missing');
+    if (!user.twitterAccountId) {
+      console.error('Twitter account not found in User');
       return;
     }
 
-    try {
-      const accessToken = await this.refreshAccessToken(twitterRefreshToken);
+    const account = await this.twitterAccountService.getAccountWithActualTokens(
+      user.twitterAccountId,
+    );
 
-      if (!twitterUserId) {
-        twitterUserId = await this.getUserId(accessToken);
+    if (!account) {
+      console.error('Twitter account not found');
+      return;
+    }
+
+    const { access_token: accessToken } = account;
+
+    try {
+      if (!user.twitterUserId && account.twitter_id) {
         await this.userService.update(userId, {
-          twitterUserId,
+          twitterUserId: account.twitter_id,
         });
       }
-
       const userData = await this.getUserData(accessToken);
-      const tweetsData = await this.getUserTweets(accessToken, twitterUserId);
+      const tweetsData = await this.getUserTweets(
+        accessToken,
+        account.twitter_id,
+      );
 
       const mappedMessages: MessagesWithTitle = {
         title: `Tweets and replies of ${userData.name} (@${userData.username})`,
@@ -121,6 +131,7 @@ export class TwitterAuthService {
         [mappedMessages],
         userId,
         ChatbotSource.TWITTER,
+        account.id,
       );
       await this.userService.update(userId, {
         twitterConnectionStatus: ConnectionStatus.PROCESSED,
@@ -210,7 +221,7 @@ export class TwitterAuthService {
     userId: string,
     maxTweets = 500,
   ): Promise<Record<string, string>[]> {
-    const allTweets: Record<string, string>[] = [];
+    const allTweets = [];
     let nextToken: string | undefined;
 
     // let requests_count = 0;
@@ -238,9 +249,11 @@ export class TwitterAuthService {
       const data = (await response.json()) as Record<
         string,
         Record<string, string>
-      >;
+      > & {
+        data: string[];
+      };
       if (data.data) {
-        allTweets.push(...(data.data as Record<string, string>[]));
+        allTweets.push(...data.data);
       }
 
       if (data.meta?.next_token) {
@@ -256,6 +269,7 @@ export class TwitterAuthService {
     code: string,
     returnedState: string,
   ): Promise<any> {
+    console.log({ code, returnedState, state: this.state });
     if (!code || returnedState !== this.state) {
       throw new Error('Invalid state or no code returned');
     }
@@ -311,9 +325,18 @@ export class TwitterAuthService {
     }
   }
 
-  public async mobileAuth(userId: TUserID, twitterRefreshToken: string) {
+  public async mobileAuth(
+    userId: TUserID,
+    twitterRefreshToken: string,
+    twitterAccessToken: string,
+  ): Promise<void> {
+    const account = await this.twitterAccountService.createAccount(userId, {
+      access_token: twitterAccessToken,
+      refresh_token: twitterRefreshToken,
+    });
     await this.userService.update(userId, {
-      twitterRefreshToken,
+      twitterRefreshToken: account.refresh_token,
+      twitterAccountId: account.id,
       twitterConnectionStatus: ConnectionStatus.CONNECTED,
     });
     this.vaultEmitter.emitTwitterConnected(userId);

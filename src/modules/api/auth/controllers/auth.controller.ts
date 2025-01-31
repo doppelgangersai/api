@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { AuthService, LoginDTO, RegisterDTO, TokenDTO } from '..';
+import { AuthService, LoginDTO, RegisterDTO, TokenWithUserDTO } from '..';
 import { UserService } from '../../user';
 
 @Controller('api/auth')
@@ -11,27 +11,31 @@ export class AuthController {
     private readonly userService: UserService,
   ) {}
 
-  @Post('login')
   @ApiOperation({
     summary:
-      'Login via email and password: we have this opportunity, but not using it',
+      '[DEPRECARED] Login via email and password: we have this opportunity, but not using it',
   })
-  @ApiResponse({ status: 201, description: 'Successful Login', type: TokenDTO })
+  @ApiResponse({
+    status: 201,
+    description: 'Successful Login',
+    type: TokenWithUserDTO,
+  })
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async login(@Body() payload: LoginDTO): Promise<TokenDTO> {
+  @Post('login')
+  async login(@Body() payload: LoginDTO): Promise<TokenWithUserDTO> {
     const user = await this.authService.validateUser(payload);
     return await this.authService.createToken(user);
   }
 
   @Post('register')
   @ApiOperation({
-    summary: 'Register a new user via login, password and e-mail',
+    summary: '[DEPRECARED] Register a new user via login, password and e-mail',
   })
   @ApiResponse({
     status: 201,
     description: 'Successful Registration',
-    type: TokenDTO,
+    type: TokenWithUserDTO,
   })
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -44,7 +48,11 @@ export class AuthController {
   @Get('mock-login')
   @ApiOperation({ summary: 'Mock Login, disabled in production' })
   @ApiQuery({ name: 'id', required: false })
-  @ApiResponse({ status: 200, description: 'Successful Login', type: TokenDTO })
+  @ApiResponse({
+    status: 200,
+    description: 'Successful Login',
+    type: TokenWithUserDTO,
+  })
   async mockLogin(@Query('id') id = 1): Promise<any> {
     const user = await this.userService.get(id);
     return this.authService.createToken(user);
