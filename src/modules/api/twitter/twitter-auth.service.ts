@@ -59,7 +59,7 @@ export class TwitterAuthService {
 
   public async getAccountDetailsByAccessToken(
     access_token: string,
-  ): Promise<{ screen_name: string; twitter_account_id: string }> {
+  ): Promise<{ screen_name: string; twitter_id: string }> {
     const userResponse = await fetch('https://api.twitter.com/2/users/me', {
       headers: { Authorization: `Bearer ${access_token}` },
     });
@@ -75,7 +75,7 @@ export class TwitterAuthService {
     >;
     return {
       screen_name: userData.data.username,
-      twitter_account_id: userData.data.id,
+      twitter_id: userData.data.id,
     };
   }
 

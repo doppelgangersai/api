@@ -1,4 +1,5 @@
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiParam,
@@ -55,7 +56,7 @@ class FollowingDto {
     description:
       'Additional data from Twitter. Ignore it. Just an example string property.',
   })
-  other_data: string;
+  other_data: any;
 }
 
 @ApiTags('Twitter Accounts')
@@ -164,6 +165,8 @@ export class TwitterAccountController {
     );
   }
 
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
   @Get(':accountId/following')
   @ApiOperation({ summary: '[mock] Get Twitter Following' })
   @ApiParam({
@@ -176,33 +179,15 @@ export class TwitterAccountController {
     description: 'List of accounts the specified Twitter account follows.',
     type: [FollowingDto],
   })
-  getFollowing(@Param('accountId') accountId: number): FollowingDto[] {
-    return [
-      {
-        screen_name: 'Doppelgangerai',
-        is_verified: true,
-        other_data: 'can contain additional fields from twitter, ignore them',
-      },
-      {
-        screen_name: 'SpaceX',
-        is_verified: true,
-        other_data: 'can contain additional fields from twitter, ignore them',
-      },
-      {
-        screen_name: 'Tesla',
-        is_verified: true,
-        other_data: 'can contain additional fields from twitter, ignore them',
-      },
-      {
-        screen_name: 'Not verified',
-        is_verified: false,
-        other_data: 'can contain additional fields from twitter, ignore them',
-      },
-      {
-        screen_name: 'Not verified 2',
-        is_verified: false,
-        other_data: 'can contain additional fields from twitter, ignore them',
-      },
-    ];
+  async getFollowing(
+    @Param('accountId') accountId: number,
+    @CurrentUser() user: User,
+  ): Promise<FollowingDto[]> {
+    const following = await this.twitterAccountService.getFollowing(
+      accountId,
+      user.id,
+    );
+    console.log('following', following);
+    return following;
   }
 }

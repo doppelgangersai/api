@@ -4,6 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TUserID } from '../user/user.types';
 import { TwitterAuthService } from './twitter-auth.service';
+import axios from 'axios';
+import { ConfigService } from '../../config';
 
 @Injectable()
 export class TwitterAccountService {
@@ -11,6 +13,7 @@ export class TwitterAccountService {
     @InjectRepository(TwitterAccount)
     private readonly twitterAccountRepository: Repository<TwitterAccount>,
     private readonly twitterAuthService: TwitterAuthService,
+    private readonly configService: ConfigService,
   ) {}
 
   async getAccountById(accountId: number): Promise<TwitterAccount> {
@@ -31,6 +34,7 @@ export class TwitterAccountService {
         'access_token_expiry',
         'twitter_id',
         'screen_name',
+        'user_id',
       ],
     });
     if (!account) {
@@ -60,6 +64,35 @@ export class TwitterAccountService {
     return account;
   }
 
+  async getFollowing(accountId: number, userId: TUserID) {
+    const account = await this.getAccountWithActualTokens(accountId);
+    console.log({ account });
+    if (!account) {
+      throw new HttpException('Account not found', 404);
+    }
+    if (account.user_id !== userId) {
+      throw new HttpException('Access denied', 403);
+    }
+    return this.getFollowingByScreenName(account.screen_name);
+  }
+
+  async getFollowingByScreenName(screen_name: string) {
+    const apify_token = this.configService.get('APIFY_TOKEN');
+    const response = await axios.post(
+      `https://api.apify.com/v2/acts/apnow~twitter-user-following-scraper/run-sync-get-dataset-items?token=${apify_token}&method=POST`,
+      {
+        username: screen_name,
+        num: 1000,
+      },
+    );
+    return response.data.map((item) => ({
+      id: item.id,
+      screen_name: item.screen_name,
+      is_verified: item.is_blue_verified,
+      other_data: item,
+    }));
+  }
+
   async createAccount(
     userId: TUserID,
     createAccount: Partial<TwitterAccount>,
@@ -73,6 +106,7 @@ export class TwitterAccountService {
     account.refresh_token = createAccount.refresh_token;
 
     if (!createAccount.access_token) {
+      console.log('No access token provided, fetching new tokens');
       const tokens = await this.twitterAuthService.getTokensByRefreshToken(
         createAccount.refresh_token,
       );
@@ -80,21 +114,30 @@ export class TwitterAccountService {
       createAccount.refresh_token = tokens.refresh_token;
     }
 
-    const { screen_name, twitter_account_id } =
+    const { screen_name, twitter_id } =
       await this.twitterAuthService.getAccountDetailsByAccessToken(
         createAccount.access_token,
       );
 
+    const following = await this.getFollowingByScreenName(screen_name);
+    console.log('Following', following);
+
     account.screen_name = screen_name;
-    account.twitter_id = twitter_account_id;
+    account.twitter_id = twitter_id;
 
     const savedAccount = await this.twitterAccountRepository.save(account);
 
-    return this.saveTokens(
+    console.log('Saved account', savedAccount);
+
+    const saveTokensResult = await this.saveTokens(
       savedAccount.id,
       createAccount.access_token,
       createAccount.refresh_token,
     );
+
+    console.log('Saved tokens', saveTokensResult);
+
+    return saveTokensResult;
   }
 
   async updateAccountWithUserValidation(
@@ -149,6 +192,16 @@ export class TwitterAccountService {
       },
     );
 
-    return this.twitterAccountRepository.findOne(accountId);
+    return this.twitterAccountRepository.findOne(accountId, {
+      select: [
+        'twitter_id',
+        'screen_name',
+        'access_token',
+        'refresh_token',
+        'id',
+        'access_token_expiry',
+        'user_id',
+      ],
+    });
   }
 }
