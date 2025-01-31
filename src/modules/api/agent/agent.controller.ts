@@ -1,4 +1,12 @@
-import { Controller, Get, Patch, Post, Param, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Param,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -7,8 +15,18 @@ import {
   ApiBody,
   ApiProperty,
   ApiPropertyOptional,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { TUserID } from '../user/user.types';
+import { AuthGuard } from '@nestjs/passport';
+import {
+  ICommentSettings,
+  IPostSettings,
+  IUpdateAgent,
+} from './interfaces/update-agent.interface';
+import { AgentService } from './agent.service';
+import { User } from '../user';
+import { CurrentUser } from '../../common/decorator/current-user.decorator';
 
 export type TAgentID = number;
 class AgentDto {
@@ -22,12 +40,10 @@ class AgentDto {
   ownerId: TUserID;
 
   @ApiProperty({ description: 'Linked Twitter account ID' })
-  twitter_account_id: string;
-
-  @ApiProperty({ description: 'Whether comments are enabled' })
-  comments_enabled: boolean;
+  twitter_account_id: number;
 }
-class PostSettingsDto {
+
+class PostSettingsDto implements IPostSettings {
   @ApiProperty({ description: 'Whether posting is enabled' })
   enabled: boolean;
 
@@ -39,9 +55,12 @@ class PostSettingsDto {
 
   @ApiProperty({ description: 'Prompt for posting' })
   prompt: string;
+
+  @ApiProperty({ description: 'Number of posts per day' })
+  per_day: number;
 }
 
-class CommentSettingsDto {
+class CommentSettingsDto implements ICommentSettings {
   @ApiProperty({ description: 'Whether commenting is enabled' })
   enabled: boolean;
 
@@ -80,18 +99,9 @@ class GetAgentResponseDto {
   comment_settings: CommentSettingsDto;
 }
 
-class UpdateAgentDto {
-  @ApiPropertyOptional({ description: 'Creator ID of the agent' })
-  creatorId?: TUserID;
-
-  @ApiPropertyOptional({ description: 'Owner ID of the agent' })
-  ownerId?: TUserID;
-
+class UpdateAgentDto implements IUpdateAgent {
   @ApiPropertyOptional({ description: 'Twitter account linked to the agent' })
   twitter_account_id?: number;
-
-  @ApiPropertyOptional({ description: 'Whether comments are enabled' })
-  comments_enabled?: boolean;
 
   @ApiPropertyOptional({ description: 'Settings for posts' })
   post_settings?: PostSettingsDto;
@@ -113,6 +123,10 @@ class UpdateAgentResponseDto {
 @ApiTags('Agents')
 @Controller('api/agents')
 export class AgentController {
+  constructor(private readonly agentService: AgentService) {}
+
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
   @Get(':agentId')
   @ApiOperation({ summary: '[mock] Get Agent Data' })
   @ApiParam({ name: 'agentId', type: Number, description: 'ID of the agent' })
@@ -122,34 +136,15 @@ export class AgentController {
       'Agent data fetched successfully. *Notice:* `agent` object can contain additional data from `chatbot`',
     type: GetAgentResponseDto,
   })
-  getAgentData(@Param('agentId') agentId: number): GetAgentResponseDto {
-    return {
-      agent: {
-        id: typeof agentId !== 'number' ? parseInt(agentId) : agentId,
-        creatorId: 7,
-        ownerId: 7,
-        twitter_account_id: 'twitter_account_id_1',
-        comments_enabled: true,
-      },
-      post_settings: {
-        enabled: true,
-        accounts: ['elonmusk', 'NearProtocol'],
-        keywords: ['keyword1', 'keyword2'],
-        prompt: 'Prompt for posting',
-      },
-      comment_settings: {
-        enabled: true,
-        accounts: ['elonmusk', 'NearProtocol'],
-        reply_when_tagged: true,
-        x_accounts_replies: true,
-        my_accounts_replies: true,
-        prompt: 'Prompt for comments',
-        min_followers: 1000,
-        older_then: 7,
-      },
-    };
+  getAgentData(
+    @Param('agentId') agentId: number,
+    @CurrentUser() user: User,
+  ): Promise<GetAgentResponseDto> {
+    return this.agentService.getAgentSettings(agentId, user.id);
   }
 
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
   @Patch(':agentId')
   @ApiOperation({ summary: '[mock] Update Agent Data' })
   @ApiParam({ name: 'agentId', type: Number, description: 'ID of the agent' })
@@ -161,13 +156,10 @@ export class AgentController {
   })
   updateAgentData(
     @Param('agentId') agentId: TAgentID,
-    @Body() body: UpdateAgentDto,
-  ): UpdateAgentResponseDto {
-    return {
-      agent: {
-        id: typeof agentId !== 'number' ? parseInt(agentId) : agentId,
-        ...body,
-      },
-    };
+    @Body()
+    body: UpdateAgentDto,
+    @CurrentUser() user: User,
+  ): Promise<UpdateAgentResponseDto> {
+    return this.agentService.updateAgentSettings(agentId, user.id, body);
   }
 }
