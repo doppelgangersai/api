@@ -103,7 +103,9 @@ export class MissionController {
       ...m,
       status:
         m.action === 'connect'
-          ? (!!user.instagramFile || !!user.telegramAuthSession) &&
+          ? (!!user.instagramFile ||
+              !!user.telegramAuthSession ||
+              !!user.twitterAccountId) &&
             MissionStatus.DONE
           : m.action === 'refer'
           ? referralsCount > 0 && MissionStatus.DONE
