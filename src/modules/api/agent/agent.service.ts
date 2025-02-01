@@ -241,7 +241,7 @@ export class AgentService {
       .catch((err) => console.error(err))) as TwitterTimelineResponse;
 
     if (timeline.status === 429) {
-      throw new HttpException('Rate limit exceeded', 429);
+      throw new HttpException('fetchTimeline> Rate limit exceeded', 429);
     }
 
     return timeline;
@@ -253,7 +253,7 @@ export class AgentService {
     timeline: TwitterTimelineResponse,
   ) {
     if (this.lastTweetCache[account.id] + 1000 * 60 * 5 > Date.now()) {
-      console.error('::Rate limit exceeded');
+      console.error('processAgent> Rate limit exceeded');
       return;
     }
 
@@ -297,7 +297,7 @@ export class AgentService {
       .catch((err) => console.error(err))) as TwitterTimelineResponse;
 
     if (mentions.status === 429) {
-      throw new HttpException('Rate limit exceeded', 429);
+      throw new HttpException('fetchMentions> Rate limit exceeded', 429);
     }
 
     return mentions;
@@ -499,7 +499,7 @@ export class AgentService {
       ? tweet.referenced_tweets.some((ref) => ref.type === 'quoted')
       : false;
 
-    console.log('Is quote:', isQuote, tweet.text);
+    // console.log('Is quote:', isQuote, tweet.text);
     return isQuote;
   }
 
@@ -508,14 +508,14 @@ export class AgentService {
       ? tweet.referenced_tweets.some((ref) => ref.type === 'retweeted')
       : false;
 
-    console.log('Is retweet:', isRetweet, tweet.text);
+    // console.log('Is retweet:', isRetweet, tweet.text);
     return isRetweet;
   }
 
   private isReply(tweet: TwitterTweet): boolean {
     const isReply = !!tweet.in_reply_to_user_id;
 
-    console.log('Is reply:', isReply, tweet.text, tweet.in_reply_to_user_id);
+    // console.log('Is reply:', isReply, tweet.text, tweet.in_reply_to_user_id);
     return isReply;
   }
 
@@ -600,17 +600,20 @@ Rewrite:`;
     replyText: string,
   ) {
     if (this.lastTweetCache[account.id] + 1000 * 60 * 5 > Date.now()) {
-      console.error('::Rate limit exceeded');
-      return;
+      console.log(this.lastTweetCache[account.id] + 1000 * 60 * 5, Date.now());
+      throw new HttpException('replyToTweet> Rate limit exceeded', 429);
     }
     this.lastTweetCache[account.id] = Date.now();
-    return this.replyToTweet(account, tweetId, replyText);
+    return this.twitterAccountService.replyToTweet(
+      account.access_token,
+      tweetId,
+      replyText,
+    );
   }
 
   private tweet(account: TwitterAccount, postText: string) {
     if (this.lastTweetCache[account.id] + 1000 * 60 * 5 > Date.now()) {
-      console.error('::Rate limit exceeded');
-      return;
+      throw new HttpException('tweet> Rate limit exceeded', 429);
     }
     this.lastTweetCache[account.id] = Date.now();
     return this.twitterAccountService.tweet(account.access_token, postText);
