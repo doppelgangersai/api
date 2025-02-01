@@ -249,9 +249,11 @@ export class Chatbot implements IDoppelganger {
 }
 
 const avatarTransformer = (self: Chatbot): string => {
-  return self?.avatar
-    ? self.avatar.includes('http')
-      ? self.avatar
-      : `/avatars/${self.avatar}`
-    : null;
+  if (!self?.avatar) return null;
+  
+  if (self.avatar.includes('http')) {
+    return self.avatar;
+  }
+  
+  return `/api/storage/avatars/${self.avatar}`;
 };

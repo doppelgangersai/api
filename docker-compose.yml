@@ -28,8 +28,8 @@ services:
       sleep 15;
       mc alias set myminio http://localhost:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
       mc mb myminio/avatars;
-      mc anonymous set public myminio/avatars;
+      mc anonymous set download myminio/avatars;
       mc mb myminio/uploads;
-      mc anonymous set public myminio/uploads;
+      mc anonymous set download myminio/uploads;
       tail -f /dev/null
       "
