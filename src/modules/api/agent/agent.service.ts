@@ -340,7 +340,37 @@ export class AgentService {
     account: TwitterAccount,
     agent: Chatbot,
     timeline: TwitterTimelineResponse,
-  ) {}
+  ) {
+    const { accounts, keywords, prompt, per_day } =
+      this.mapAgentToSettings(agent).agent.post_settings;
+
+    const mappedTimeline = this.mapTweets(timeline);
+    const tweets = mappedTimeline.filter(
+      (tweet) =>
+        tweet.author.username !== account.screen_name &&
+        tweet.author &&
+        (!accounts?.length || accounts.includes(tweet.author.username)) && // есть в списке аккаунтов
+        // !this.isQuote(tweet) &&
+        // !this.isRetweet(tweet) &&
+        !this.isReply(tweet) &&
+        this.includesOneOfKeywords(tweet, keywords),
+    );
+
+    console.log('Tweets:', tweets.length);
+
+    for (let i = 0; i <= Math.min(tweets.length, 1); i++) {
+      const tweet = tweets[i];
+      if (!tweet) {
+        continue;
+      }
+
+      const prompt = this.performPromptForPost(agent, tweet);
+      console.log(prompt);
+      const postText = await this.aiService.processText(prompt);
+      console.log('Post text:', postText);
+      await this.twitterAccountService.tweet(account.access_token, postText);
+    }
+  }
 
   async processComments(
     account: TwitterAccount,
@@ -484,6 +514,19 @@ export class AgentService {
     return isReply;
   }
 
+  private includesOneOfKeywords(
+    tweet: TwitterTweet,
+    keywords: string[],
+  ): boolean {
+    if (!keywords?.length) {
+      return true;
+    }
+    // if lowercase tweet text includes lowercase keyword
+    return keywords.some((keyword) =>
+      tweet.text.toLowerCase().includes(keyword.toLowerCase()),
+    );
+  }
+
   private isReplyToMe(tweet: TwitterTweet, myUserId: string): boolean {
     return tweet.in_reply_to_user_id === myUserId;
   }
@@ -507,5 +550,25 @@ ${tweet.author?.username} tweeted:
 ${tweet.text}
 
 Reply:`;
+  }
+  private performPromptForPost(
+    agent: Chatbot,
+    tweet: TwitterTweet & { author?: TwitterUser },
+  ): string {
+    return `${agent.backstory}
+${
+  agent.comment_prompt
+    ? `User (as customer) added requirement:
+${agent.comment_prompt}`
+    : ''
+}
+
+You will have a tweet on input and you will need to rewrite it in style based on backstory, which will be immediately automatically posted.
+Use language of tweet. Avoid hashtags.
+
+Tweet:
+${tweet.text}
+
+Rewrite:`;
   }
 }
