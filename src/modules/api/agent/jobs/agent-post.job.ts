@@ -6,8 +6,11 @@ import { AgentService } from '../agent.service';
 export class AgentPostJob {
   constructor(private readonly agentService: AgentService) {}
 
-  @Cron('0 */5 * * * *')
+  @Cron('* * * * * *')
   async tick() {
-    await this.agentService.post();
+    if (Math.random() > 1 / 5 / 60) {
+      return;
+    }
+    await this.agentService.tick();
   }
 }

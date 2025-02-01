@@ -19,6 +19,7 @@ export interface ICommentSettings {
   prompt: string;
   min_followers: number;
   older_then: number;
+  verified_only: boolean;
 }
 
 export interface IUpdateAgent {

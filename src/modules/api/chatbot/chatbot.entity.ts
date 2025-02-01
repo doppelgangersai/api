@@ -166,6 +166,13 @@ export class Chatbot implements IDoppelganger {
   comment_enabled?: boolean;
 
   @Column({
+    type: 'boolean',
+    nullable: true,
+    default: false,
+  })
+  comment_verified_only?: boolean;
+
+  @Column({
     type: 'text',
     array: true,
     nullable: true,
@@ -250,10 +257,10 @@ export class Chatbot implements IDoppelganger {
 
 const avatarTransformer = (self: Chatbot): string => {
   if (!self?.avatar) return null;
-  
+
   if (self.avatar.includes('http')) {
     return self.avatar;
   }
-  
+
   return `/api/storage/avatars/${self.avatar}`;
 };
