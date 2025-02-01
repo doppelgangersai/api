@@ -71,17 +71,26 @@ export class VaultTwitterAuthService {
       string
     >;
 
+    console.log('exchangeCodeForToken response', tokenData);
+
     const account = await this.twitterAccountService.createAccount(userId, {
       access_token: tokenData.access_token,
       refresh_token: tokenData.refresh_token,
     });
 
-    await this.userService.update(userId, {
+    const update = {
       twitterRefreshToken: account.refresh_token,
       twitterUserId: account.twitter_id,
       twitterAccountId: account.id,
       twitterConnectionStatus: ConnectionStatus.CONNECTED,
-    });
+    };
+
+    console.log('update', update);
+
+    await this.userService.update(userId, update);
+
+    const updatedUser = await this.userService.get(userId);
+    console.log('updatedUser', updatedUser);
 
     this.vaultEmitter.emitTwitterConnected(userId);
   }
@@ -131,7 +140,7 @@ export class VaultTwitterAuthService {
         [mappedMessages],
         userId,
         ChatbotSource.TWITTER,
-        account.id,
+        user.twitterAccountId,
       );
       await this.userService.update(userId, {
         twitterConnectionStatus: ConnectionStatus.PROCESSED,

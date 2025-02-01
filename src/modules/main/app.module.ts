@@ -24,6 +24,7 @@ import { PointsModule } from '../points/points.module';
 import { PosterModule } from '../api/poster/poster.module';
 import { AgentModule } from '../api/agent/agent.module';
 import { TwitterModule } from '../api/twitter/twitter.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { TwitterModule } from '../api/twitter/twitter.module';
         } as TypeOrmModuleAsyncOptions;
       },
     }),
+    ScheduleModule.forRoot(),
     ConfigModule,
     // -------------------
 

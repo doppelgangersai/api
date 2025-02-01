@@ -45,7 +45,9 @@ export class TwitterAuthService {
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
-      throw new UnauthorizedException(`Error fetching tokens: ${errorText}`);
+      throw new UnauthorizedException(
+        `Error fetching tokens: ${JSON.stringify(errorText)}`,
+      );
     }
 
     const responseData = (await tokenResponse.json()) as TokenResponse;
