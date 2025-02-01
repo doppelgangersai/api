@@ -22,15 +22,20 @@ import {
   TwitterTweetReference,
   TwitterUser,
 } from './agent-twitter.types';
-import { UpdateAgentResponseDto } from './agent.controller';
+import { TAgentID, UpdateAgentResponseDto } from './agent.controller';
 
 @Injectable()
 export class AgentService {
+  private interactionCache: Record<string, TwitterTweet[]>;
+  private lastTweetCache: Record<string, number>;
   constructor(
     private readonly chatbotService: ChatbotService,
     private readonly twitterAccountService: TwitterAccountService,
     private readonly aiService: AIService,
-  ) {}
+  ) {
+    this.interactionCache = {};
+    this.lastTweetCache = {};
+  }
 
   async updateAgentSettings(
     agentId: number,
@@ -247,7 +252,10 @@ export class AgentService {
     agent: Chatbot,
     timeline: TwitterTimelineResponse,
   ) {
-    fs.writeFileSync('timeline.json', JSON.stringify(timeline, null, 2));
+    if (this.lastTweetCache[account.id] + 1000 * 60 * 5 > Date.now()) {
+      console.error('::Rate limit exceeded');
+      return;
+    }
 
     console.log('Timeline data example:', timeline?.data[0]);
 
@@ -353,7 +361,8 @@ export class AgentService {
         // !this.isQuote(tweet) &&
         // !this.isRetweet(tweet) &&
         !this.isReply(tweet) &&
-        this.includesOneOfKeywords(tweet, keywords),
+        this.includesOneOfKeywords(tweet, keywords) &&
+        this.isNotAlreadyInteracted(tweet, account.id),
     );
 
     console.log('Tweets:', tweets.length);
@@ -368,7 +377,8 @@ export class AgentService {
       console.log(prompt);
       const postText = await this.aiService.processText(prompt);
       console.log('Post text:', postText);
-      await this.twitterAccountService.tweet(account.access_token, postText);
+      this.addToInteractionCache(tweet, account.id);
+      await this.tweet(account, postText);
     }
   }
 
@@ -396,7 +406,8 @@ export class AgentService {
           (!accounts?.length || accounts.includes(tweet.author.username)) && // есть в списке аккаунтов
           !this.isQuote(tweet) &&
           !this.isRetweet(tweet) &&
-          !this.isReply(tweet),
+          !this.isReply(tweet) &&
+          this.isNotAlreadyInteracted(tweet, account.id),
       );
 
       for (let i = 0; i <= Math.min(tweets.length, 1); i++) {
@@ -406,11 +417,8 @@ export class AgentService {
         }
         const prompt = this.performPromptForComment(agent, tweet);
         const replyText = await this.aiService.processText(prompt);
-        await this.twitterAccountService.replyToTweet(
-          account.access_token,
-          tweets[0].id,
-          replyText,
-        );
+        this.addToInteractionCache(tweet, account.id);
+        await this.replyToTweet(account, tweets[0].id, replyText);
       }
     }
 
@@ -442,11 +450,8 @@ export class AgentService {
         }
         const prompt = this.performPromptForComment(agent, tweet);
         const replyText = await this.aiService.processText(prompt);
-        await this.twitterAccountService.replyToTweet(
-          account.access_token,
-          tweet.id,
-          replyText,
-        );
+        this.addToInteractionCache(tweet, account.id);
+        await this.replyToTweet(account, tweet.id, replyText);
         console.log('Reply text:', replyText);
       }
     }
@@ -514,6 +519,17 @@ export class AgentService {
     return isReply;
   }
 
+  private isNotAlreadyInteracted(
+    tweet: TwitterTweet,
+    agentId: string | number,
+  ): boolean {
+    const agentIdStr = agentId.toString();
+    if (!this.interactionCache[agentIdStr]?.length) {
+      return true;
+    }
+    return !this.interactionCache[agentIdStr]?.find((t) => t.id === tweet.id);
+  }
+
   private includesOneOfKeywords(
     tweet: TwitterTweet,
     keywords: string[],
@@ -529,6 +545,12 @@ export class AgentService {
 
   private isReplyToMe(tweet: TwitterTweet, myUserId: string): boolean {
     return tweet.in_reply_to_user_id === myUserId;
+  }
+  private addToInteractionCache(tweet: TwitterTweet, agentId: TAgentID) {
+    const agentIdStr = agentId.toString();
+    if (!this.interactionCache[agentIdStr]) {
+      this.interactionCache[agentIdStr] = [];
+    }
   }
 
   private performPromptForComment(
@@ -570,5 +592,27 @@ Tweet:
 ${tweet.text}
 
 Rewrite:`;
+  }
+
+  private replyToTweet(
+    account: TwitterAccount,
+    tweetId: string,
+    replyText: string,
+  ) {
+    if (this.lastTweetCache[account.id] + 1000 * 60 * 5 > Date.now()) {
+      console.error('::Rate limit exceeded');
+      return;
+    }
+    this.lastTweetCache[account.id] = Date.now();
+    return this.replyToTweet(account, tweetId, replyText);
+  }
+
+  private tweet(account: TwitterAccount, postText: string) {
+    if (this.lastTweetCache[account.id] + 1000 * 60 * 5 > Date.now()) {
+      console.error('::Rate limit exceeded');
+      return;
+    }
+    this.lastTweetCache[account.id] = Date.now();
+    return this.twitterAccountService.tweet(account.access_token, postText);
   }
 }
