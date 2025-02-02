@@ -13,7 +13,6 @@ import {
 import { TwitterAccountService } from '../twitter/twitter-account.service';
 import { AIService } from '../../ai/ai.service';
 import { Chatbot } from '../chatbot/chatbot.entity';
-import * as fs from 'node:fs';
 import { TwitterAccount } from '../twitter/twitter-account.entity';
 import {
   MappedTweet,
@@ -183,7 +182,7 @@ export class AgentService {
     };
   }
 
-  async getAgentToPost() {
+  async getAgentToPost(): Promise<Chatbot[]> {
     return this.chatbotService.getAgentToPost();
   }
 
@@ -192,6 +191,7 @@ export class AgentService {
     console.log('Posting for agents', agents.length);
     for (const agent of agents) {
       console.log('Posting for account', agent.twitterAccountId);
+      let last_checked_tweet_id: string;
       try {
         const twitterAccount =
           await this.twitterAccountService.getAccountWithActualTokens(
@@ -203,6 +203,10 @@ export class AgentService {
           agent.post_last_checked_tweet_id,
         );
 
+        last_checked_tweet_id = timeline.data[0].id;
+
+        // await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
+
         if (!timeline?.data) {
           console.error('No timeline data');
           return;
@@ -212,6 +216,10 @@ export class AgentService {
         console.error('Error posting:', e);
         agent.last_agent_error = new Date();
         agent.last_agent_error_message = e.message as string;
+        await this.chatbotService.updateChatbot(agent.id, agent);
+      }
+      if (last_checked_tweet_id) {
+        agent.post_last_checked_tweet_id = last_checked_tweet_id;
         await this.chatbotService.updateChatbot(agent.id, agent);
       }
     }
@@ -254,12 +262,12 @@ export class AgentService {
   ) {
     if (
       agent.last_agent_error &&
-      agent.last_agent_error.getTime() + 1000 * 60 * 15 > Date.now()
+      agent.last_agent_error.getTime() + 1000 * 60 * 5 > Date.now()
     ) {
-      console.error('processAgent> Last error was less then 15 minutes ago');
+      console.error('processAgent> Last error was less then 5 minutes ago');
       // error + 15 min - now
       console.error(
-        agent.last_agent_error.getTime() + 1000 * 60 * 15 - Date.now(),
+        agent.last_agent_error.getTime() + 1000 * 60 * 5 - Date.now(),
       );
 
       return;
@@ -274,10 +282,12 @@ export class AgentService {
 
     if (agent.post_enabled) {
       await this.processPosts(account, agent, timeline);
+      // await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
     }
 
     if (agent.comment_enabled) {
       await this.processComments(account, agent, timeline);
+      // await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
     }
   }
 
@@ -464,11 +474,6 @@ export class AgentService {
         console.log('Reply text:', replyText);
       }
     }
-
-    const post_last_checked_tweet_id = timeline.data[0].id;
-    console.log('Last checked tweet id:', post_last_checked_tweet_id);
-    agent.post_last_checked_tweet_id = post_last_checked_tweet_id;
-    await this.chatbotService.updateChatbot(agent.id, agent);
   }
 
   private mapTweets(timeline: TwitterTimelineResponse): (TwitterTweet & {
@@ -603,7 +608,7 @@ ${tweet.text}
 Rewrite:`;
   }
 
-  private replyToTweet(
+  private async replyToTweet(
     account: TwitterAccount,
     tweetId: string,
     replyText: string,
@@ -612,6 +617,7 @@ Rewrite:`;
       console.log(this.lastTweetCache[account.id] + 1000 * 60 * 5, Date.now());
       throw new HttpException('replyToTweet> Rate limit exceeded', 429);
     }
+    // await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
     this.lastTweetCache[account.id] = Date.now();
     return this.twitterAccountService.replyToTweet(
       account.access_token,
@@ -620,11 +626,12 @@ Rewrite:`;
     );
   }
 
-  private tweet(account: TwitterAccount, postText: string) {
+  private async tweet(account: TwitterAccount, postText: string) {
     if (this.lastTweetCache[account.id] + 1000 * 60 * 5 > Date.now()) {
       throw new HttpException('tweet> Rate limit exceeded', 429);
     }
     this.lastTweetCache[account.id] = Date.now();
+    // await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
     return this.twitterAccountService.tweet(account.access_token, postText);
   }
 }

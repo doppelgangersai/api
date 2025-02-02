@@ -219,6 +219,7 @@ export class TwitterAccountService {
     in_reply_to_tweet_id?: string,
   ): Promise<any> {
     try {
+      console.log('Tweeting:' + text);
       const response = await fetch('https://api.twitter.com/2/tweets', {
         method: 'POST',
         headers: {
