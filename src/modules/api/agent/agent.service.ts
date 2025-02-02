@@ -440,7 +440,7 @@ export class AgentService {
           );
           return (
             tweet.author.username !== account.screen_name &&
-            !this.isQuote(tweet) &&
+            // !this.isQuote(tweet) &&
             !this.isRetweet(tweet) &&
             !this.isReply(tweet) &&
             this.isNotAlreadyInteracted(tweet, account.id)
