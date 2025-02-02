@@ -252,6 +252,19 @@ export class AgentService {
     agent: Chatbot,
     timeline: TwitterTimelineResponse,
   ) {
+    if (
+      agent.last_agent_error &&
+      agent.last_agent_error.getTime() + 1000 * 60 * 15 > Date.now()
+    ) {
+      console.error('processAgent> Last error was less then 15 minutes ago');
+      // error + 15 min - now
+      console.error(
+        agent.last_agent_error.getTime() + 1000 * 60 * 15 - Date.now(),
+      );
+
+      return;
+    }
+
     if (this.lastTweetCache[account.id] + 1000 * 60 * 5 > Date.now()) {
       console.error('processAgent> Rate limit exceeded');
       return;
@@ -260,15 +273,11 @@ export class AgentService {
     console.log('Timeline data example:', timeline?.data[0]);
 
     if (agent.post_enabled) {
-      await this.processPosts(account, agent, timeline).catch((e) => {
-        console.error('Error processing posts:', e);
-      });
+      await this.processPosts(account, agent, timeline);
     }
 
     if (agent.comment_enabled) {
-      await this.processComments(account, agent, timeline).catch((e) => {
-        console.error('Error processing comments:', e);
-      });
+      await this.processComments(account, agent, timeline);
     }
   }
 
