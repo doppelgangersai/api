@@ -329,6 +329,7 @@ export class AgentService {
     verified: boolean,
   ): boolean {
     const matchByFollowers =
+      !min_followers ||
       tweet.author?.public_metrics?.followers_count >= min_followers;
     const matchByAge =
       tweet.author?.created_at &&
