@@ -238,7 +238,7 @@ export class AgentService {
     const timeline = (await fetch(
       `https://api.x.com/2/users/${
         twitterAccount.twitter_id
-      }/timelines/reverse_chronological?user.fields=connection_status,is_identity_verified,verified_type,public_metrics&tweet.fields=conversation_id,referenced_tweets,in_reply_to_user_id&expansions=author_id${
+      }/timelines/reverse_chronological?user.fields=connection_status,is_identity_verified,verified_type,public_metrics&tweet.fields=conversation_id,referenced_tweets,in_reply_to_user_id&expansions=author_id&max_results=100${
         post_last_checked_tweet_id
           ? '&since_id=' + post_last_checked_tweet_id
           : ''
@@ -249,7 +249,7 @@ export class AgentService {
       .catch((err) => console.error(err))) as TwitterTimelineResponse;
 
     if (timeline.status === 429) {
-      throw new HttpException('fetchTimeline> Rate limit exceeded', 429);
+      throw new Error('fetchTimeline> Rate limit exceeded');
     }
 
     return timeline;
@@ -307,7 +307,7 @@ export class AgentService {
     const mentions = (await fetch(
       `https://api.x.com/2/users/${
         twitterAccount.twitter_id
-      }/mentions?user.fields=connection_status,is_identity_verified,verified_type&tweet.fields=conversation_id,referenced_tweets,in_reply_to_user_id&expansions=author_id${
+      }/mentions?user.fields=connection_status,is_identity_verified,verified_type,public_metrics&tweet.fields=conversation_id,referenced_tweets,in_reply_to_user_id&expansions=author_id${
         since_id ? '&since_id=' + since_id : ''
       }`,
       options,
@@ -316,7 +316,7 @@ export class AgentService {
       .catch((err) => console.error(err))) as TwitterTimelineResponse;
 
     if (mentions.status === 429) {
-      throw new HttpException('fetchMentions> Rate limit exceeded', 429);
+      throw new Error('fetchMentions> Rate limit exceeded');
     }
 
     return mentions;
@@ -342,6 +342,7 @@ export class AgentService {
       matchByFollowers,
       tweet.author?.public_metrics?.followers_count,
       min_followers,
+      tweet.author,
     );
     console.log(
       'Match by age:',
@@ -661,7 +662,7 @@ Rewrite:`;
   ) {
     if (this.lastTweetCache[account.id] + 1000 * 60 * 5 > Date.now()) {
       console.log(this.lastTweetCache[account.id] + 1000 * 60 * 5, Date.now());
-      throw new HttpException('replyToTweet> Rate limit exceeded', 429);
+      throw new Error('replyToTweet> Rate limit exceeded');
     }
     // await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
     this.lastTweetCache[account.id] = Date.now();
@@ -674,7 +675,7 @@ Rewrite:`;
 
   private async tweet(account: TwitterAccount, postText: string) {
     if (this.lastTweetCache[account.id] + 1000 * 60 * 5 > Date.now()) {
-      throw new HttpException('tweet> Rate limit exceeded', 429);
+      throw new Error('tweet> Rate limit exceeded');
     }
     this.lastTweetCache[account.id] = Date.now();
     // await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
