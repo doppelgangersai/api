@@ -335,6 +335,7 @@ export class AgentService {
       new Date(tweet.author.created_at) <
         new Date(Date.now() - older_then * 365 * 24 * 3600 * 1000);
     const matchByVerified = !verified || tweet.author?.is_identity_verified;
+    console.log(tweet.author?.is_identity_verified);
 
     console.log(
       'Match by followers:',
@@ -418,16 +419,31 @@ export class AgentService {
     const mappedTimeline = this.mapTweets(timeline);
     if (x_accounts_replies) {
       console.log('X Accounts Replies enabled', accounts);
-      const tweets = mappedTimeline.filter(
-        (tweet) =>
-          tweet.author.username !== account.screen_name &&
-          tweet.author &&
-          (!accounts?.length || accounts.includes(tweet.author.username)) && // есть в списке аккаунтов
-          !this.isQuote(tweet) &&
-          !this.isRetweet(tweet) &&
-          !this.isReply(tweet) &&
-          this.isNotAlreadyInteracted(tweet, account.id),
-      );
+      const tweets = mappedTimeline
+        .filter(
+          (tweet) =>
+            !accounts?.length ||
+            accounts.find(
+              (a) => a.toLowerCase() === tweet.author.username.toLowerCase(),
+            ),
+        )
+        .filter((tweet) => {
+          console.log(
+            'Tweet:',
+            tweet.author.username,
+            tweet.text,
+            tweet.author.id,
+            account.id,
+            this.isNotAlreadyInteracted(tweet, account.id),
+          );
+          return (
+            tweet.author.username !== account.screen_name &&
+            !this.isQuote(tweet) &&
+            !this.isRetweet(tweet) &&
+            !this.isReply(tweet) &&
+            this.isNotAlreadyInteracted(tweet, account.id)
+          );
+        });
 
       for (let i = 0; i <= Math.min(tweets.length, 1); i++) {
         const tweet = tweets[i];
@@ -441,26 +457,56 @@ export class AgentService {
       }
     }
 
-    if (reply_when_tagged || my_accounts_replies) {
+    if (my_accounts_replies) {
       const mentions = await this.fetchMentions(
         account,
         agent.post_last_checked_tweet_id,
       );
       const mappedMentions = this.mapTweets(mentions);
-      const filteredMentions = !reply_when_tagged
-        ? mappedMentions.filter(
-            (tweet) =>
-              tweet.author &&
-              !this.isQuote(tweet) &&
-              !this.isRetweet(tweet) &&
-              this.isAuthorMatchRequirements(
-                tweet,
-                min_followers,
-                older_then,
-                agent.comment_verified_only,
-              ),
-          )
-        : mappedMentions;
+      const filteredMentions = mappedMentions.filter(
+        (tweet) =>
+          tweet.author &&
+          !this.isQuote(tweet) &&
+          !this.isRetweet(tweet) &&
+          this.isAuthorMatchRequirements(
+            tweet,
+            min_followers,
+            older_then,
+            agent.comment_verified_only,
+          ),
+      );
+
+      for (let i = 0; i <= Math.min(filteredMentions.length, 1); i++) {
+        const tweet = filteredMentions[i];
+        if (!tweet) {
+          continue;
+        }
+        const prompt = this.performPromptForComment(agent, tweet);
+        const replyText = await this.aiService.processText(prompt);
+        this.addToInteractionCache(tweet, account.id);
+        await this.replyToTweet(account, tweet.id, replyText);
+        console.log('Reply text:', replyText);
+      }
+    }
+
+    if (reply_when_tagged) {
+      const mentions = await this.fetchMentions(
+        account,
+        agent.post_last_checked_tweet_id,
+      );
+      const mappedMentions = this.mapTweets(mentions);
+      const filteredMentions = mappedMentions.filter(
+        (tweet) =>
+          tweet.author &&
+          !this.isQuote(tweet) &&
+          !this.isRetweet(tweet) &&
+          this.isAuthorMatchRequirements(
+            tweet,
+            min_followers,
+            older_then,
+            agent.comment_verified_only,
+          ),
+      );
 
       for (let i = 0; i <= Math.min(filteredMentions.length, 1); i++) {
         const tweet = filteredMentions[i];
