@@ -48,6 +48,8 @@ export class ChatbotService {
 
     const user = await this.usersService.get(userId);
 
+    console.log('SOURCE:', source);
+
     let chatbot = await this.chatbotRepository.findOne({
       where: {
         creatorId: userId,
@@ -57,11 +59,19 @@ export class ChatbotService {
 
     if (chatbot) {
       console.log('Chatbot with source', source, 'found. Updating.');
+      console.log(
+        'twitterAccountId',
+        chatbot.twitterAccountId || twitterAccountId,
+      );
 
-      await this.chatbotRepository.update(chatbot.id, {
+      chatbot = await this.chatbotRepository.save({
+        ...chatbot,
         backstory,
         twitterAccountId: chatbot.twitterAccountId || twitterAccountId,
       });
+
+      console.log('chatbot', chatbot);
+
       return chatbot;
     }
 
@@ -348,5 +358,13 @@ Title:`,
     }
 
     await this.chatbotRepository.restore(chatbotId);
+  }
+
+  async getAgentToPost() {
+    return this.chatbotRepository.find({
+      where: {
+        post_enabled: true,
+      },
+    });
   }
 }

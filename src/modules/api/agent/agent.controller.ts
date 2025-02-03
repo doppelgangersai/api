@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Patch,
-  Post,
-  Param,
-  Body,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Patch, Param, Body, UseGuards } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -86,6 +78,29 @@ class CommentSettingsDto implements ICommentSettings {
     description: 'Comment on posts older than this number of days',
   })
   older_then: number;
+
+  @ApiProperty({
+    description: 'Whether to comment only on verified accounts',
+    required: false,
+  })
+  verified_only: boolean;
+}
+
+export class UpdateAgentDto implements IUpdateAgent {
+  @ApiPropertyOptional({ description: 'Twitter account linked to the agent' })
+  twitter_account_id?: number;
+
+  @ApiPropertyOptional({
+    description: 'Settings for posts',
+    type: PostSettingsDto,
+  })
+  post_settings?: PostSettingsDto;
+
+  @ApiPropertyOptional({
+    description: 'Settings for comments',
+    type: CommentSettingsDto,
+  })
+  comment_settings?: CommentSettingsDto;
 }
 
 class GetAgentResponseDto {
@@ -99,25 +114,17 @@ class GetAgentResponseDto {
   comment_settings: CommentSettingsDto;
 }
 
-class UpdateAgentDto implements IUpdateAgent {
-  @ApiPropertyOptional({ description: 'Twitter account linked to the agent' })
-  twitter_account_id?: number;
-
-  @ApiPropertyOptional({ description: 'Settings for posts' })
-  post_settings?: PostSettingsDto;
-
-  @ApiPropertyOptional({ description: 'Settings for comments' })
-  comment_settings?: CommentSettingsDto;
-}
-
 class AgentResponseDto extends UpdateAgentDto {
   @ApiProperty({ description: 'ID of the agent' })
   id: TAgentID;
 }
 
-class UpdateAgentResponseDto {
-  @ApiProperty({ description: 'Updated data of the agent' })
-  agent: AgentResponseDto;
+export class UpdateAgentResponseDto {
+  @ApiProperty({
+    description: 'Updated data of the agent',
+    type: AgentResponseDto,
+  })
+  agent: Partial<AgentResponseDto>;
 }
 
 @ApiTags('Agents')
@@ -161,5 +168,11 @@ export class AgentController {
     @CurrentUser() user: User,
   ): Promise<UpdateAgentResponseDto> {
     return this.agentService.updateAgentSettings(agentId, user.id, body);
+  }
+
+  @Get('test/tick')
+  async testTick() {
+    await this.agentService.tick();
+    return { message: 'Tick done' };
   }
 }

@@ -6,6 +6,7 @@ import { TUserID } from '../user/user.types';
 import { TwitterAuthService } from './twitter-auth.service';
 import axios from 'axios';
 import { ConfigService } from '../../config';
+import fetch from 'node-fetch';
 
 @Injectable()
 export class TwitterAccountService {
@@ -45,11 +46,18 @@ export class TwitterAccountService {
       throw new HttpException('Refresh token is required', 400);
     }
 
+    console.log('Account', account);
+
+    console.log('Access token:', account.access_token);
+    console.log('Access token expiry:', account.access_token_expiry);
+    console.log('Current date:', new Date());
+
     if (
       !account.access_token ||
       !account.access_token_expiry ||
       account.access_token_expiry < new Date()
     ) {
+      console.log('TwitterAccountService: ', 'Refreshing tokens');
       const tokens = await this.twitterAuthService.getTokensByRefreshToken(
         account.refresh_token,
       );
@@ -57,8 +65,11 @@ export class TwitterAccountService {
       account.refresh_token = tokens.refresh_token;
       account.access_token_expiry = new Date();
       account.access_token_expiry.setHours(
-        account.access_token_expiry.getHours() + 1,
+        account.access_token_expiry.getHours() + 2,
       );
+      console.log('New access token:', account.access_token);
+      console.log('New refresh token:', account.refresh_token);
+      console.log('New access token expiry:', account.access_token_expiry);
       await this.twitterAccountRepository.save(account);
     }
     return account;
@@ -118,9 +129,6 @@ export class TwitterAccountService {
       await this.twitterAuthService.getAccountDetailsByAccessToken(
         createAccount.access_token,
       );
-
-    const following = await this.getFollowingByScreenName(screen_name);
-    console.log('Following', following);
 
     account.screen_name = screen_name;
     account.twitter_id = twitter_id;
@@ -203,5 +211,43 @@ export class TwitterAccountService {
         'user_id',
       ],
     });
+  }
+
+  public async tweet(
+    accessToken: string,
+    text: string,
+    in_reply_to_tweet_id?: string,
+  ): Promise<any> {
+    try {
+      console.log('Tweeting:' + text);
+      const response = await fetch('https://api.twitter.com/2/tweets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          text,
+          ...(in_reply_to_tweet_id ? { reply: { in_reply_to_tweet_id } } : {}),
+        }), // The body must be a JSON object with a `text` property
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error posting tweet: ${errorText}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  public replyToTweet(
+    accessToken: string,
+    tweetId: string,
+    text: string,
+  ): Promise<any> {
+    return this.tweet(accessToken, text, tweetId);
   }
 }

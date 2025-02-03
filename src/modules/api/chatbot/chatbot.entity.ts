@@ -166,6 +166,13 @@ export class Chatbot implements IDoppelganger {
   comment_enabled?: boolean;
 
   @Column({
+    type: 'boolean',
+    nullable: true,
+    default: false,
+  })
+  comment_verified_only?: boolean;
+
+  @Column({
     type: 'text',
     array: true,
     nullable: true,
@@ -222,6 +229,25 @@ export class Chatbot implements IDoppelganger {
   })
   comment_last_check?: Date;
 
+  // last_agent_error and last_agent_error_message
+  @Column({
+    type: 'timestamp',
+    nullable: true,
+  })
+  last_agent_error?: Date;
+
+  @Column({
+    type: 'text',
+    nullable: true,
+  })
+  last_agent_error_message?: string;
+
+  @Column({
+    type: 'text',
+    nullable: true,
+  })
+  post_last_checked_tweet_id?: string;
+
   toJSON() {
     const { backstory, ...self } = this;
     const mapped = { ...self, avatar: avatarTransformer(this) };
@@ -231,10 +257,10 @@ export class Chatbot implements IDoppelganger {
 
 const avatarTransformer = (self: Chatbot): string => {
   if (!self?.avatar) return null;
-  
+
   if (self.avatar.includes('http')) {
     return self.avatar;
   }
-  
+
   return `/api/storage/avatars/${self.avatar}`;
 };

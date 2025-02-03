@@ -15,15 +15,14 @@ export class TwitterAuthService {
   private readonly clientSecret: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.tokenUrl = 'https://api.twitter.com/oauth2/2/token';
-    this.clientId = this.configService.get<string>('TWITTER_API_CLIENT_ID');
-    this.clientSecret = this.configService.get<string>(
-      'TWITTER_API_CLIENT_SECRET',
-    );
+    this.tokenUrl = 'https://api.twitter.com/2/oauth2/token';
+    this.clientId = this.configService.get<string>('TWITTER_CLIENT_ID');
+    this.clientSecret = this.configService.get<string>('TWITTER_CLIENT_SECRET');
   }
 
   async getTokensByRefreshToken(refresh_token: string): Promise<TokenResponse> {
     console.log({ refresh_token });
+    console.log(this.clientId, this.clientSecret);
     const authHeader = this.generateAuthHeader(
       this.clientId,
       this.clientSecret,
@@ -45,7 +44,9 @@ export class TwitterAuthService {
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
-      throw new UnauthorizedException(`Error fetching tokens: ${errorText}`);
+      throw new UnauthorizedException(
+        `Error fetching tokens: ${JSON.stringify(errorText)}`,
+      );
     }
 
     const responseData = (await tokenResponse.json()) as TokenResponse;
