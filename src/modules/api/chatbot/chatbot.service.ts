@@ -361,7 +361,7 @@ Title:`,
   }
 
   async getAgentToPost() {
-    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
     return await this.chatbotRepository
       .createQueryBuilder('agent')
@@ -371,8 +371,8 @@ Title:`,
         { postEnabled: true, commentEnabled: true },
       )
       .andWhere(
-        'agent.last_agent_error IS NULL OR agent.last_agent_error < :fifteenMinutesAgo',
-        { fifteenMinutesAgo },
+        'agent.last_agent_error IS NULL OR agent.last_agent_error < :hourAgo',
+        { hourAgo },
       )
       .andWhere(
         `(
