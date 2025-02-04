@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   JoinTable,
   ManyToMany,
+  DeleteDateColumn,
 } from 'typeorm';
 import { PasswordTransformer } from './password.transformer';
 import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
@@ -209,6 +210,9 @@ export class User implements IDoppelganger {
     nullable: true,
   })
   referrerId?: number;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }
 
 export class UserFillableFields {
@@ -219,11 +223,11 @@ export class UserFillableFields {
 
 const avatarTransformer = (self: User) => {
   if (!self?.avatar) return null;
-  
+
   if (self.avatar.includes('http')) {
     return self.avatar;
   }
-  
+
   return `/api/storage/avatars/${self.avatar}`;
 };
 

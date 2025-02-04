@@ -111,4 +111,8 @@ export class UserService {
     }
     return user;
   }
+
+  async delete(id: number) {
+    return await this.usersRepository.softDelete(id);
+  }
 }
