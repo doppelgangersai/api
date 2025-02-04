@@ -33,6 +33,12 @@ class AgentDto {
 
   @ApiProperty({ description: 'Linked Twitter account ID' })
   twitter_account_id: number;
+
+  @ApiProperty({ description: 'Is experimental' })
+  experimental: boolean;
+
+  @ApiProperty({ description: 'Is enabled' })
+  enabled: boolean;
 }
 
 class PostSettingsDto implements IPostSettings {
@@ -89,6 +95,12 @@ class CommentSettingsDto implements ICommentSettings {
 export class UpdateAgentDto implements IUpdateAgent {
   @ApiPropertyOptional({ description: 'Twitter account linked to the agent' })
   twitter_account_id?: number;
+
+  @ApiPropertyOptional({ description: 'Is enabled' })
+  enabled?: boolean;
+
+  @ApiPropertyOptional({ description: 'Is experimental' })
+  experimental?: boolean;
 
   @ApiPropertyOptional({
     description: 'Settings for posts',

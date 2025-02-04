@@ -248,6 +248,18 @@ export class Chatbot implements IDoppelganger {
   })
   post_last_checked_tweet_id?: string;
 
+  @Column({
+    type: 'boolean',
+    nullable: true,
+  })
+  agent_experimental?: boolean;
+
+  @Column({
+    type: 'boolean',
+    nullable: true,
+  })
+  agent_enabled: boolean;
+
   toJSON() {
     const { backstory, ...self } = this;
     const mapped = { ...self, avatar: avatarTransformer(this) };

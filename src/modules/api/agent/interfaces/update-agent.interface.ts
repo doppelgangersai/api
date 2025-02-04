@@ -28,4 +28,6 @@ export interface IUpdateAgent {
   twitter_account_id?: number;
   post_settings?: IPostSettings;
   comment_settings?: ICommentSettings;
+  enabled?: boolean;
+  experimental?: boolean;
 }
