@@ -21,6 +21,7 @@ export class MandrillEmailService implements EmailService {
       template_content: [],
       message: {
         to: [{ email: options.to, type: 'to' }],
+        subject: options.subject,
         global_merge_vars: [
           { name: 'code', content: options.code },
         ],

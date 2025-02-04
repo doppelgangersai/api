@@ -68,6 +68,7 @@ export class MagicLinkService {
     // const magicLink = `${appUrl}/auth/mail?token=${token}`;
     await this.emailService.sendEmail({
       to: email,
+      subject: `Your Sign-in Code ${code}`,
       code,
       templateName: 'sign_in'
     });
