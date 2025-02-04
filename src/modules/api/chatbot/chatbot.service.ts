@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { AIService } from '../../ai/ai.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Chatbot } from './chatbot.entity';
+import { MandrillEmailService } from 'modules/mail/mandrill-email.service';
 import { IsNull, Not, Repository } from 'typeorm';
+import { AIService } from '../../ai/ai.service';
+import { FilterService } from '../../filter/filter.service';
 import { UserService } from '../user';
 import { TUserID } from '../user/user.types';
-import { FilterService } from '../../filter/filter.service';
+import { Chatbot } from './chatbot.entity';
 import { ChatbotSource } from './chatbot.types';
 
 interface MessagesWithTitle {
@@ -22,6 +23,7 @@ export class ChatbotService {
 
     @InjectRepository(Chatbot)
     private readonly chatbotRepository: Repository<Chatbot>,
+    private readonly emailService: MandrillEmailService,
   ) {}
 
   async createOrUpdateChatbotWithSameSource(
@@ -136,7 +138,10 @@ export class ChatbotService {
       chatbotId,
     });
 
-    // todo: send email to user. allevkas
+    await this.sendModelIsReadyEmail({
+      email: user.email,
+      userName: user.fullName
+    });
 
     return chatbot;
   }
@@ -403,6 +408,21 @@ Title:`,
       post_session_count: 0,
       comment_session_count: 0,
       agent_session_reset: new Date(),
+    });
+  }
+
+  private async sendModelIsReadyEmail({
+    email,
+    userName,
+  }: {
+    email: string,
+    userName: string
+  }): Promise<void> {
+    await this.emailService.sendEmail({
+      to: email,
+      subject: 'Your Personal AI Model is Ready 🚀',
+      userName,
+      templateName: 'model-is-ready'
     });
   }
 }
