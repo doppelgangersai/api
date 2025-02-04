@@ -22,7 +22,7 @@ import {
   TwitterUser,
 } from './agent-twitter.types';
 import { TAgentID } from './agent.controller';
-import { UpdateAgentResponseDto } from './agent.dtos';
+import { GetAgentResponseDto } from './agent.dtos';
 
 @Injectable()
 export class AgentService {
@@ -41,7 +41,7 @@ export class AgentService {
     agentId: number,
     userId: number,
     settings: IUpdateAgent,
-  ): Promise<UpdateAgentResponseDto> {
+  ): Promise<GetAgentResponseDto> {
     const chatbot = await this.chatbotService.getChatbotById(agentId);
     if (!chatbot) {
       throw new NotFoundException('Agent not found');
@@ -51,32 +51,53 @@ export class AgentService {
       throw new ForbiddenException('You are not the owner of this agent');
     }
 
-    const {
-      experimental,
-      twitter_account_id,
-      post_settings: {
-        enabled: post_enabled,
-        accounts: post_accounts,
-        keywords: post_keywords,
-        prompt: post_prompt,
-        per_day: post_per_day,
-      },
-      comment_settings: {
-        enabled: comment_enabled,
-        accounts: comment_accounts,
-        reply_when_tagged: comment_reply_when_tagged,
-        x_accounts_replies: comment_x_accounts_replies,
-        my_accounts_replies: comment_my_accounts_replies,
-        prompt: comment_prompt,
-        min_followers: comment_min_followers,
-        older_then: comment_older_then,
-        verified_only: comment_verified_only,
-      },
-    } = settings;
+    const experimental =
+      settings.experimental ?? chatbot.agent_experimental ?? false;
+    const twitter_account_id =
+      settings.twitter_account_id ?? chatbot.twitterAccountId;
+    const enabled = settings.enabled ?? chatbot.agent_enabled ?? false;
+
+    const postSettingsInput = settings.post_settings ?? ({} as IPostSettings);
+    const post_enabled =
+      postSettingsInput.enabled ?? chatbot.post_enabled ?? false;
+    const post_accounts = postSettingsInput.accounts ?? chatbot.post_accounts;
+    const post_keywords = postSettingsInput.keywords ?? chatbot.post_keywords;
+    const post_prompt = postSettingsInput.prompt ?? chatbot.post_prompt;
+    const post_per_day = postSettingsInput.per_day ?? chatbot.post_per_day;
+
+    const commentSettingsInput =
+      settings.comment_settings ?? ({} as ICommentSettings);
+    const comment_enabled =
+      commentSettingsInput.enabled ?? chatbot.comment_enabled ?? false;
+    const comment_accounts =
+      commentSettingsInput.accounts ?? chatbot.comment_accounts;
+    const comment_reply_when_tagged =
+      commentSettingsInput.reply_when_tagged ??
+      chatbot.comment_reply_when_tagged ??
+      false;
+    const comment_x_accounts_replies =
+      commentSettingsInput.x_accounts_replies ??
+      chatbot.comment_x_accounts_replies ??
+      false;
+    const comment_my_accounts_replies =
+      commentSettingsInput.my_accounts_replies ??
+      chatbot.comment_my_accounts_replies ??
+      false;
+    const comment_prompt =
+      commentSettingsInput.prompt ?? chatbot.comment_prompt;
+    const comment_min_followers =
+      commentSettingsInput.min_followers ?? chatbot.comment_min_followers;
+    const comment_older_then =
+      commentSettingsInput.older_then ?? chatbot.comment_older_then;
+    const comment_verified_only =
+      commentSettingsInput.verified_only ??
+      chatbot.comment_verified_only ??
+      false;
 
     const updatedChatbot = await this.chatbotService.updateChatbot(agentId, {
       agent_experimental: experimental,
       twitterAccountId: twitter_account_id,
+      agent_enabled: enabled,
       post_enabled,
       post_accounts,
       post_keywords,
@@ -93,28 +114,34 @@ export class AgentService {
       comment_verified_only,
     });
 
+    // Формирование ответа в том же формате, что и в getAgentData, с проверкой булевых значений (fallback в false)
     return {
       agent: {
-        comment_settings: {
-          accounts: updatedChatbot.comment_accounts,
-          enabled: updatedChatbot.comment_enabled,
-          my_accounts_replies: updatedChatbot.comment_my_accounts_replies,
-          min_followers: updatedChatbot.comment_min_followers,
-          older_then: updatedChatbot.comment_older_then,
-          prompt: updatedChatbot.comment_prompt,
-          reply_when_tagged: updatedChatbot.comment_reply_when_tagged,
-          x_accounts_replies: updatedChatbot.comment_x_accounts_replies,
-          verified_only: updatedChatbot.comment_verified_only,
-        },
         id: agentId,
-        post_settings: {
-          accounts: updatedChatbot.post_accounts,
-          enabled: updatedChatbot.post_enabled,
-          keywords: updatedChatbot.post_keywords,
-          per_day: updatedChatbot.post_per_day,
-          prompt: updatedChatbot.post_prompt,
-        },
+        creatorId: updatedChatbot.creatorId,
+        ownerId: updatedChatbot.ownerId,
         twitter_account_id: updatedChatbot.twitterAccountId,
+        experimental: updatedChatbot.agent_experimental ?? false,
+        enabled: updatedChatbot.agent_enabled ?? false,
+      },
+      post_settings: {
+        enabled: updatedChatbot.post_enabled ?? false,
+        accounts: updatedChatbot.post_accounts,
+        keywords: updatedChatbot.post_keywords,
+        prompt: updatedChatbot.post_prompt,
+        per_day: updatedChatbot.post_per_day,
+      },
+      comment_settings: {
+        enabled: updatedChatbot.comment_enabled ?? false,
+        accounts: updatedChatbot.comment_accounts,
+        reply_when_tagged: updatedChatbot.comment_reply_when_tagged ?? false,
+        x_accounts_replies: updatedChatbot.comment_x_accounts_replies ?? false,
+        my_accounts_replies:
+          updatedChatbot.comment_my_accounts_replies ?? false,
+        prompt: updatedChatbot.comment_prompt,
+        min_followers: updatedChatbot.comment_min_followers,
+        older_then: updatedChatbot.comment_older_then,
+        verified_only: updatedChatbot.comment_verified_only ?? false,
       },
     };
   }

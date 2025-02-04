@@ -5,17 +5,9 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
-  ApiProperty,
-  ApiPropertyOptional,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { TUserID } from '../user/user.types';
 import { AuthGuard } from '@nestjs/passport';
-import {
-  ICommentSettings,
-  IPostSettings,
-  IUpdateAgent,
-} from './interfaces/update-agent.interface';
 import { AgentService } from './agent.service';
 import { User } from '../user';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
@@ -66,7 +58,7 @@ export class AgentController {
     @Body()
     body: UpdateAgentDto,
     @CurrentUser() user: User,
-  ): Promise<UpdateAgentResponseDto> {
+  ): Promise<GetAgentResponseDto> {
     return this.agentService.updateAgentSettings(agentId, user.id, body);
   }
 
