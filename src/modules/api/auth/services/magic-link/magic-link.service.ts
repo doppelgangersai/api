@@ -64,17 +64,12 @@ export class MagicLinkService {
     token,
     code,
   }: IEmailCode & ITokenCode): Promise<void> {
-    const appUrl = this.configService.get(APP_URL);
-    const magicLink = `${appUrl}/auth/mail?token=${token}`;
+    // const appUrl = this.configService.get(APP_URL);
+    // const magicLink = `${appUrl}/auth/mail?token=${token}`;
     await this.emailService.sendEmail({
       to: email,
-      subject: 'Magic Link',
-      text:
-        'Click the following link to log in or sign up. Your code is ' +
-        code +
-        '.',
-      buttonText: 'Click me',
-      buttonUrl: magicLink,
+      code,
+      templateName: 'sign_in'
     });
   }
 
