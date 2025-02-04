@@ -1,13 +1,9 @@
 export interface EmailOptions {
   to: string;
-  subject?: string;
+  templateName: string;
 
-  from?: string;
-  text?: string;
-  html?: string;
-  buttonText?: string;
-  buttonUrl?: string;
-  templateName?: string;
+  subject?: string;
+  userName?: string;
   code?: string;
 }
 

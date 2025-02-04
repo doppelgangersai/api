@@ -136,6 +136,8 @@ export class ChatbotService {
       chatbotId,
     });
 
+    // todo: send email to user. allevkas
+
     return chatbot;
   }
 

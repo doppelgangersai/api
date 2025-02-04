@@ -1,7 +1,8 @@
 import { Injectable, NotAcceptableException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Not, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
+import { MandrillEmailService } from 'modules/mail/mandrill-email.service';
 import { User, UserFillableFields } from './user.entity';
 import { TUserID } from './user.types';
 
@@ -10,6 +11,7 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    private readonly emailService: MandrillEmailService,
   ) {}
 
   async get(id: number) {
@@ -68,7 +70,14 @@ export class UserService {
       );
     }
 
-    return await this.usersRepository.save(payload);
+    return await this.usersRepository.save(payload).then(async(userData) => {
+      await this.sendWelcomeEmail({
+        email: userData.email,
+        userName: userData.fullName
+      });
+
+      return userData;
+    });
   }
 
   async update(id, user: Partial<User>) {
@@ -94,7 +103,7 @@ export class UserService {
     return user?.friends || [];
   }
 
-  async reward(id: number, points: number = 20) {
+  async reward(id: number, points = 20) {
     return await this.usersRepository.increment({ id }, 'points', points);
   }
 
@@ -114,5 +123,20 @@ export class UserService {
 
   async delete(id: number) {
     return await this.usersRepository.softDelete(id);
+  }
+
+  private async sendWelcomeEmail({
+    email,
+    userName,
+  }: {
+    email: string,
+    userName: string
+  }): Promise<void> {
+    await this.emailService.sendEmail({
+      to: email,
+      subject: 'Welcome to Doppelgangers AI!',
+      userName,
+      templateName: 'welcome'
+    });
   }
 }

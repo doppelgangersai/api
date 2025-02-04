@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { MandrillEmailService } from '../../../../mail/mandrill-email.service';
-import { AuthService } from '../auth';
 import { ConfigService } from '../../../../config';
+import { MandrillEmailService } from '../../../../mail/mandrill-email.service';
 import { User, UserService } from '../../../user';
-import { APP_URL } from '../../../../../core/constants/environment.constants';
+import { AuthService } from '../auth';
 
 interface ITokenCode {
   token: string;
@@ -61,11 +60,8 @@ export class MagicLinkService {
 
   async sendEmail({
     email,
-    token,
     code,
   }: IEmailCode & ITokenCode): Promise<void> {
-    // const appUrl = this.configService.get(APP_URL);
-    // const magicLink = `${appUrl}/auth/mail?token=${token}`;
     await this.emailService.sendEmail({
       to: email,
       subject: `Your Sign-in Code ${code}`,
