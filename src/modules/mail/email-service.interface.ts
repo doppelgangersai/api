@@ -1,11 +1,14 @@
 export interface EmailOptions {
-  from?: string;
   to: string;
-  subject: string;
+  subject?: string;
+
+  from?: string;
   text?: string;
   html?: string;
   buttonText?: string;
   buttonUrl?: string;
+  templateName?: string;
+  code?: string;
 }
 
 export interface EmailService {

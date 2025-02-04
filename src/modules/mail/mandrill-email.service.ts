@@ -4,7 +4,7 @@ import axios from 'axios';
 import { ConfigService } from '../config';
 import { MANDRILL_API_KEY } from '../../core/constants/environment.constants';
 
-const DEFAULT_TEMPLATE_ID = 'template-with-button';
+const DEFAULT_TEMPLATE_ID = 'sign_in';
 
 @Injectable()
 export class MandrillEmailService implements EmailService {
@@ -14,21 +14,16 @@ export class MandrillEmailService implements EmailService {
 
   async sendEmail(options: EmailOptions): Promise<any> {
     const key = this.configService.get(MANDRILL_API_KEY);
+
     const payload = {
       key,
-      template_name: DEFAULT_TEMPLATE_ID,
+      template_name: options.templateName ?? DEFAULT_TEMPLATE_ID,
       template_content: [],
       message: {
-        from_email: options.from || 'tmp@vvm.space',
         to: [{ email: options.to, type: 'to' }],
-        subject: options.subject,
-        global_merge_vars: this.generateMergeVars({
-          button:
-            options.buttonText && options.buttonUrl
-              ? `<a class="button mceButtonLink" href="${options.buttonUrl}">${options.buttonText}</a>`
-              : '',
-          ...options,
-        }),
+        global_merge_vars: [
+          { name: 'code', content: options.code },
+        ],
       },
     };
 
@@ -42,15 +37,5 @@ export class MandrillEmailService implements EmailService {
       );
       throw error;
     }
-  }
-
-  private generateMergeVars(options: Record<string, string>) {
-    let mergeVars = [{ name: 'text', content: options.text || '' }];
-
-    if (options.buttonText && options.buttonUrl) {
-      mergeVars.push({ name: 'button', content: options.button });
-    }
-
-    return mergeVars;
   }
 }
