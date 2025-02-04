@@ -1,32 +1,32 @@
-// Интерфейс для объекта с информацией о твите
+// Interface for tweet information object
 export interface TwitterTweet {
   id: string;
   text: string;
   author_id: string;
   conversation_id: string;
   edit_history_tweet_ids: string[];
-  /** ID пользователя, если твит является ответом */
+  /** User ID if the tweet is a reply */
   in_reply_to_user_id?: string;
-  /** Массив с информацией о связанных твитах (например, ретвит, ответ, квот) */
+  /** Array with information about related tweets (e.g., retweet, reply, quote) */
   referenced_tweets?: TwitterTweetReference[];
 }
 
-// Интерфейс для описания объекта в массиве referenced_tweets
+// Interface for describing an object in the referenced_tweets array
 export interface TwitterTweetReference {
-  /** Тип ссылки: "retweeted", "replied_to" или "quoted" */
+  /** Type of reference: "retweeted", "replied_to" or "quoted" */
   type: 'retweeted' | 'replied_to' | 'quoted';
   id: string;
 }
 
-// Интерфейс для описания пользователя
+// Interface for describing a user
 export interface TwitterUser {
   id: string;
   name: string;
   username: string;
-  connection_status: string[]; // например: ['following', 'followed_by']
-  verified_type: 'none' | 'blue' | string; // можно расширить при необходимости
+  connection_status: string[]; // e.g., ['following', 'followed_by']
+  verified_type: 'none' | 'blue' | string; // can be extended if necessary
   is_identity_verified: boolean;
-  /** Дата регистрации пользователя (если запрашивалась) */
+  /** User registration date (if requested) */
   created_at?: string;
   public_metrics?: {
     followers_count: number;
@@ -36,19 +36,19 @@ export interface TwitterUser {
   };
 }
 
-// Интерфейс для секции includes
+// Interface for the includes section
 export interface TwitterIncludes {
   users: TwitterUser[];
 }
 
-// Интерфейс для метаданных запроса
+// Interface for request metadata
 export interface TwitterMeta {
   result_count: number;
   newest_id: string;
   oldest_id: string;
 }
 
-// Основной интерфейс ответа Twitter API
+// Main interface for Twitter API response
 export interface TwitterTimelineResponse {
   data: TwitterTweet[];
   includes?: TwitterIncludes;

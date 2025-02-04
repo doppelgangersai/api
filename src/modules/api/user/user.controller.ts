@@ -9,6 +9,7 @@ import {
   Get,
   Param,
   Post,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiConsumes,
@@ -139,5 +140,16 @@ export class UserController {
   async getFriends(@CurrentUser() user: Partial<User>) {
     const friends = await this.usersService.getFriends(user.id);
     return friends;
+  }
+
+  // delete /api/user/me
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
+  @ApiOperation({ summary: 'Delete the logged in user' })
+  @ApiResponse({ status: 200, description: 'User deleted successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Delete('me')
+  async deleteLoggedInUser(@CurrentUser() user: User): Promise<void> {
+    await this.usersService.delete(user.id);
   }
 }
