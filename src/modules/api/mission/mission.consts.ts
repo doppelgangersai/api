@@ -30,6 +30,8 @@ export const MISSIONS_LIST = [
     done: false,
     points: 300,
     link: 'https://x.com/Doppelgangerai',
+    iosLink: 'x://profile?username=Doppelgangerai',
+    androidLink: 'x://profile?username=Doppelgangerai',
   },
   {
     id: 3,
@@ -40,6 +42,8 @@ export const MISSIONS_LIST = [
     done: false,
     points: 500,
     link: 'https://x.com/compose/post',
+    iosLink: 'x://post',
+    androidLink: 'x://post',
   },
   {
     id: 4,
@@ -50,6 +54,8 @@ export const MISSIONS_LIST = [
     done: false,
     points: 300,
     link: 'https://www.instagram.com/doppelgangerscommunity',
+    iosLink: 'instagram://user?username=doppelgangerscommunity',
+    androidLink: 'instagram://user?username=doppelgangerscommunity',
   },
   {
     id: 5,
@@ -61,6 +67,8 @@ export const MISSIONS_LIST = [
     done: false,
     points: 500,
     link: 'https://instagram.com',
+    iosLink: 'instagram://',
+    androidLink: 'instagram://',
   },
   {
     id: 6,
@@ -71,6 +79,8 @@ export const MISSIONS_LIST = [
     done: false,
     points: 600,
     link: 'https://discord.gg/8DAGgN3G',
+    iosLink: 'discord://discord.gg/8DAGgN3G',
+    androidLink: 'discord://discord.gg/8DAGgN3G',
   },
   {
     id: 7,
@@ -81,6 +91,8 @@ export const MISSIONS_LIST = [
     done: false,
     points: 600,
     link: 'https://t.me/doppelgangers_ai',
+    iosLink: 'tg://resolve?domain=doppelgangers_ai',
+    androidLink: 'tg://resolve?domain=doppelgangers_ai',
   },
   {
     id: 8,
