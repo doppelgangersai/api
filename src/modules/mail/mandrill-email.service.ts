@@ -4,8 +4,6 @@ import axios from 'axios';
 import { ConfigService } from '../config';
 import { MANDRILL_API_KEY } from '../../core/constants/environment.constants';
 
-const DEFAULT_TEMPLATE_ID = 'sign_in';
-
 @Injectable()
 export class MandrillEmailService implements EmailService {
   constructor(private readonly configService: ConfigService) {}
@@ -17,12 +15,14 @@ export class MandrillEmailService implements EmailService {
 
     const payload = {
       key,
-      template_name: options.templateName ?? DEFAULT_TEMPLATE_ID,
+      template_name: options.templateName,
       template_content: [],
       message: {
         to: [{ email: options.to, type: 'to' }],
+        subject: options.subject,
         global_merge_vars: [
           { name: 'code', content: options.code },
+          { name: 'user_name', content: options.userName },
         ],
       },
     };
