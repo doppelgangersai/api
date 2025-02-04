@@ -361,10 +361,46 @@ Title:`,
   }
 
   async getAgentToPost() {
-    return this.chatbotRepository.find({
-      where: {
-        post_enabled: true,
-      },
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+
+    return await this.chatbotRepository
+      .createQueryBuilder('agent')
+      .where('agent.agent_enabled = :enabled', { enabled: true })
+      .andWhere(
+        '(agent.post_enabled = :postEnabled OR agent.comment_enabled = :commentEnabled)',
+        { postEnabled: true, commentEnabled: true },
+      )
+      .andWhere(
+        'agent.last_agent_error IS NULL OR agent.last_agent_error < :fifteenMinutesAgo',
+        { fifteenMinutesAgo },
+      )
+      .andWhere(
+        `(
+      (agent.post_enabled = true AND 
+        (agent.post_session_count IS NULL OR 
+         agent.post_session_count < (
+           COALESCE(agent.post_per_day, 10) * (EXTRACT(EPOCH FROM (NOW() - agent.agent_session_reset)) / 86400)
+         )
+        )
+      )
+      OR
+      (agent.comment_enabled = true AND 
+        (agent.comment_session_count IS NULL OR 
+         agent.comment_session_count < (
+           COALESCE(agent.comment_per_day, 10) * (EXTRACT(EPOCH FROM (NOW() - agent.agent_session_reset)) / 86400)
+         )
+        )
+      )
+    )`,
+      )
+      .getMany();
+  }
+
+  async resetAgentSession(chatbotId: number) {
+    await this.chatbotRepository.update(chatbotId, {
+      post_session_count: 0,
+      comment_session_count: 0,
+      agent_session_reset: new Date(),
     });
   }
 }
