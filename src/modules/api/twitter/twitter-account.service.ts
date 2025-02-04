@@ -112,10 +112,6 @@ export class TwitterAccountService {
       throw new HttpException('Refresh token is required', 400);
     }
 
-    const account = new TwitterAccount();
-    account.user_id = userId;
-    account.refresh_token = createAccount.refresh_token;
-
     if (!createAccount.access_token) {
       console.log('No access token provided, fetching new tokens');
       const tokens = await this.twitterAuthService.getTokensByRefreshToken(
@@ -129,6 +125,18 @@ export class TwitterAccountService {
       await this.twitterAuthService.getAccountDetailsByAccessToken(
         createAccount.access_token,
       );
+
+    let account = await this.twitterAccountRepository.findOne({
+      where: { twitter_id, user_id: userId },
+    });
+
+    if (!account) {
+      console.log('Creating new account');
+      account = new TwitterAccount();
+    }
+
+    account.user_id = userId;
+    account.refresh_token = createAccount.refresh_token;
 
     account.screen_name = screen_name;
     account.twitter_id = twitter_id;

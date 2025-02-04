@@ -121,7 +121,6 @@ export class Chatbot implements IDoppelganger {
   })
   twitterAccountId: number;
 
-  // Fields for post_settings (internal use)
   @Column({
     type: 'boolean',
     nullable: true,
