@@ -1,11 +1,7 @@
 import { DeleteDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 import { Column } from 'typeorm';
-import {
-  ApiProperty,
-  ApiPropertyOptional,
-  ApiResponseProperty,
-} from '@nestjs/swagger';
+import { ApiProperty, ApiResponseProperty } from '@nestjs/swagger';
 import { IDoppelganger } from '../../doppelganger/doppelganger.interace';
 import { ChatbotSource } from './chatbot.types';
 
@@ -155,10 +151,10 @@ export class Chatbot implements IDoppelganger {
   @Column({
     type: 'integer',
     nullable: true,
+    default: 10,
   })
   post_per_day?: number;
 
-  // Fields for comment_settings (internal use)
   @Column({
     type: 'boolean',
     nullable: true,
@@ -215,7 +211,12 @@ export class Chatbot implements IDoppelganger {
   })
   comment_older_then?: number;
 
-  // New internal fields: post_last_check and comment_last_check
+  @Column({
+    type: 'integer',
+    nullable: true,
+    default: 10,
+  })
+  comment_per_day?: number;
 
   @Column({
     type: 'timestamp',
@@ -259,6 +260,24 @@ export class Chatbot implements IDoppelganger {
     nullable: true,
   })
   agent_enabled: boolean;
+
+  @Column({
+    type: 'integer',
+    nullable: true,
+  })
+  post_session_count: number;
+
+  @Column({
+    type: 'timestamp',
+    nullable: true,
+  })
+  agent_session_reset: Date;
+
+  @Column({
+    type: 'integer',
+    nullable: true,
+  })
+  comment_session_count: number;
 
   toJSON() {
     const { backstory, ...self } = this;

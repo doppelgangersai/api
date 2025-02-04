@@ -384,4 +384,12 @@ Title:`,
       )
       .getMany();
   }
+
+  async resetAgentSession(chatbotId: number) {
+    await this.chatbotRepository.update(chatbotId, {
+      post_session_count: 0,
+      comment_session_count: 0,
+      agent_session_reset: new Date(),
+    });
+  }
 }

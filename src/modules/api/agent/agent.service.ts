@@ -114,7 +114,8 @@ export class AgentService {
       comment_verified_only,
     });
 
-    // Формирование ответа в том же формате, что и в getAgentData, с проверкой булевых значений (fallback в false)
+    await this.resetSession(agentId);
+
     return {
       agent: {
         id: agentId,
@@ -173,6 +174,10 @@ export class AgentService {
       },
     };
   };
+
+  async resetSession(agentId: TAgentID) {
+    await this.chatbotService.resetAgentSession(agentId);
+  }
 
   async getAgentSettings(agentId: number, userId: number) {
     const chatbot = await this.chatbotService.getChatbotById(agentId);
@@ -243,7 +248,14 @@ export class AgentService {
           console.error('No timeline data');
           return;
         }
-        await this.processAgent(twitterAccount, agent, timeline);
+        const { comments, posts } = await this.processAgent(
+          twitterAccount,
+          agent,
+          timeline,
+        );
+        agent.post_session_count = (agent.post_session_count ?? 0) + posts;
+        agent.comment_session_count =
+          (agent.comment_session_count ?? 0) + comments;
       } catch (e) {
         console.error('Error posting:', e);
         agent.last_agent_error = new Date();
@@ -291,13 +303,12 @@ export class AgentService {
     account: TwitterAccount,
     agent: Chatbot,
     timeline: TwitterTimelineResponse,
-  ) {
+  ): Promise<{ comments: number; posts: number }> {
     if (
       agent.last_agent_error &&
       agent.last_agent_error.getTime() + 1000 * 60 * 5 > Date.now()
     ) {
       console.error('processAgent> Last error was less then 5 minutes ago');
-      // error + 15 min - now
       console.error(
         agent.last_agent_error.getTime() + 1000 * 60 * 5 - Date.now(),
       );
@@ -312,15 +323,13 @@ export class AgentService {
 
     console.log('Timeline data example:', timeline?.data[0]);
 
-    if (agent.post_enabled) {
-      await this.processPosts(account, agent, timeline);
-      // await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
-    }
+    const posts = await this.processPosts(account, agent, timeline);
+    const comments = await this.processComments(account, agent, timeline);
 
-    if (agent.comment_enabled) {
-      await this.processComments(account, agent, timeline);
-      // await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
-    }
+    return {
+      comments,
+      posts,
+    };
   }
 
   /**
@@ -402,7 +411,8 @@ export class AgentService {
     account: TwitterAccount,
     agent: Chatbot,
     timeline: TwitterTimelineResponse,
-  ) {
+  ): Promise<number> {
+    let posts = 0;
     const { accounts, keywords, prompt, per_day } =
       this.mapAgentToSettings(agent).agent.post_settings;
 
@@ -432,15 +442,18 @@ export class AgentService {
       const postText = await this.aiService.processText(prompt);
       console.log('Post text:', postText);
       this.addToInteractionCache(tweet, account.id);
-      await this.tweet(account, postText);
+      await this.tweet(account, postText).then(() => posts++);
     }
+
+    return posts;
   }
 
   async processComments(
     account: TwitterAccount,
     agent: Chatbot,
     timeline: TwitterTimelineResponse,
-  ) {
+  ): Promise<number> {
+    let comments = 0;
     const {
       accounts,
       x_accounts_replies,
@@ -487,8 +500,12 @@ export class AgentService {
         const prompt = this.performPromptForComment(agent, tweet);
         const replyText = await this.aiService.processText(prompt);
         this.addToInteractionCache(tweet, account.id);
-        await this.replyToTweet(account, tweets[0].id, replyText);
+        await this.replyToTweet(account, tweets[0].id, replyText).then(
+          () => comments++,
+        );
       }
+
+      return comments;
     }
 
     if (my_accounts_replies) {
@@ -518,7 +535,9 @@ export class AgentService {
         const prompt = this.performPromptForComment(agent, tweet);
         const replyText = await this.aiService.processText(prompt);
         this.addToInteractionCache(tweet, account.id);
-        await this.replyToTweet(account, tweet.id, replyText);
+        await this.replyToTweet(account, tweet.id, replyText).then(
+          () => comments++,
+        );
         console.log('Reply text:', replyText);
       }
     }
@@ -550,7 +569,9 @@ export class AgentService {
         const prompt = this.performPromptForComment(agent, tweet);
         const replyText = await this.aiService.processText(prompt);
         this.addToInteractionCache(tweet, account.id);
-        await this.replyToTweet(account, tweet.id, replyText);
+        await this.replyToTweet(account, tweet.id, replyText).then(
+          () => comments++,
+        );
         console.log('Reply text:', replyText);
       }
     }
