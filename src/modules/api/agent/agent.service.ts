@@ -21,7 +21,8 @@ import {
   TwitterTweetReference,
   TwitterUser,
 } from './agent-twitter.types';
-import { TAgentID, UpdateAgentResponseDto } from './agent.controller';
+import { TAgentID } from './agent.controller';
+import { UpdateAgentResponseDto } from './agent.dtos';
 
 @Injectable()
 export class AgentService {
@@ -51,6 +52,7 @@ export class AgentService {
     }
 
     const {
+      experimental,
       twitter_account_id,
       post_settings: {
         enabled: post_enabled,
@@ -73,6 +75,7 @@ export class AgentService {
     } = settings;
 
     const updatedChatbot = await this.chatbotService.updateChatbot(agentId, {
+      agent_experimental: experimental,
       twitterAccountId: twitter_account_id,
       post_enabled,
       post_accounts,
@@ -160,6 +163,8 @@ export class AgentService {
         creatorId: chatbot.creatorId,
         ownerId: chatbot.ownerId,
         twitter_account_id: chatbot.twitterAccountId,
+        enabled: chatbot.agent_enabled,
+        experimental: chatbot.agent_experimental,
       },
       comment_settings: {
         accounts: chatbot.comment_accounts,
