@@ -7,6 +7,7 @@ import { TwitterAuthService } from './twitter-auth.service';
 import axios from 'axios';
 import { ConfigService } from '../../config';
 import fetch from 'node-fetch';
+import { TwitterTimelineResponse } from '../agent/agent-twitter.types';
 
 @Injectable()
 export class TwitterAccountService {
@@ -257,5 +258,93 @@ export class TwitterAccountService {
     text: string,
   ): Promise<any> {
     return this.tweet(accessToken, text, tweetId);
+  }
+
+  async fetchTimeline(
+    twitterAccount: TwitterAccount,
+    post_last_checked_tweet_id?: string,
+  ): Promise<TwitterTimelineResponse> {
+    console.log('Fetching timeline for account', twitterAccount.twitter_id);
+    const options = {
+      method: 'GET',
+      headers: { Authorization: 'Bearer ' + twitterAccount.access_token },
+    };
+
+    const expansions = 'author_id';
+    const tweetFields = [
+      'conversation_id',
+      'referenced_tweets',
+      'in_reply_to_user_id',
+    ].join(',');
+    const userFields = [
+      'connection_status',
+      'is_identity_verified',
+      'verified_type',
+      'public_metrics',
+    ].join(',');
+    const max_results = 100;
+
+    const timeline = (await fetch(
+      `https://api.x.com/2/users/${
+        twitterAccount.twitter_id
+      }/timelines/reverse_chronological?user.fields=${userFields}&tweet.fields=${tweetFields}&expansions=${expansions}&max_results=${max_results}${
+        post_last_checked_tweet_id
+          ? '&since_id=' + post_last_checked_tweet_id
+          : ''
+      }`,
+      options,
+    )
+      .then((response) => response.json())
+      .catch((err) => console.error(err))) as TwitterTimelineResponse;
+
+    if (timeline.status === 429) {
+      throw new Error('fetchTimeline> Rate limit exceeded');
+    }
+
+    return timeline;
+  }
+
+  /**
+   * fetchMentions
+   */
+  async fetchMentions(
+    twitterAccount: TwitterAccount,
+    since_id?: string,
+  ): Promise<TwitterTimelineResponse> {
+    console.log('Fetching mentions for account', twitterAccount.twitter_id);
+    const options = {
+      method: 'GET',
+      headers: { Authorization: 'Bearer ' + twitterAccount.access_token },
+    };
+
+    const expansions = 'author_id';
+    const tweetFields = [
+      'conversation_id',
+      'referenced_tweets',
+      'in_reply_to_user_id',
+    ].join(',');
+    const userFields = [
+      'connection_status',
+      'is_identity_verified',
+      'verified_type',
+      'public_metrics',
+    ].join(',');
+
+    const mentions = (await fetch(
+      `https://api.x.com/2/users/${
+        twitterAccount.twitter_id
+      }/mentions?user.fields=${userFields}&${tweetFields}&expansions=${expansions}${
+        since_id ? '&since_id=' + since_id : ''
+      }`,
+      options,
+    )
+      .then((response) => response.json())
+      .catch((err) => console.error(err))) as TwitterTimelineResponse;
+
+    if (mentions.status === 429) {
+      throw new Error('fetchMentions> Rate limit exceeded');
+    }
+
+    return mentions;
   }
 }

@@ -1,4 +1,12 @@
-import { Controller, Get, Patch, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Param,
+  Body,
+  UseGuards,
+  Post,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -66,5 +74,15 @@ export class AgentController {
   async testTick() {
     await this.agentService.tick();
     return { message: 'Tick done' };
+  }
+
+  @Post('debug/user/:userId')
+  async debugUser(@Param('userId') userId: number) {
+    await this.agentService.processAgentsByUserId(userId);
+  }
+
+  @Post('debug/agent/:agentId')
+  async debugAgent(@Param('agentId') agentId: number) {
+    await this.agentService.processAgentById(agentId);
   }
 }

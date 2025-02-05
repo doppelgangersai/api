@@ -227,140 +227,92 @@ export class AgentService {
     const agents = await this.getAgentToPost();
     console.log('Posting for agents', agents.length);
     for (const agent of agents) {
-      console.log('Posting for account', agent.twitterAccountId);
-      let last_checked_tweet_id: string;
-      try {
-        const twitterAccount =
-          await this.twitterAccountService.getAccountWithActualTokens(
-            agent.twitterAccountId,
-          );
-
-        const timeline = await this.fetchTimeline(
-          twitterAccount,
-          agent.post_last_checked_tweet_id,
-        );
-
-        last_checked_tweet_id = timeline.data[0].id;
-
-        // await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
-
-        if (!timeline?.data) {
-          console.error('No timeline data');
-          return;
-        }
-        const { comments, posts } = await this.processAgent(
-          twitterAccount,
-          agent,
-          timeline,
-        );
-        agent.post_session_count = (agent.post_session_count ?? 0) + posts;
-        agent.comment_session_count =
-          (agent.comment_session_count ?? 0) + comments;
-      } catch (e) {
-        console.error('Error posting:', e);
-        agent.last_agent_error = new Date();
-        agent.last_agent_error_message = e.message as string;
-        await this.chatbotService.updateChatbot(agent.id, agent);
-      }
-      if (last_checked_tweet_id) {
-        agent.post_last_checked_tweet_id = last_checked_tweet_id;
-        await this.chatbotService.updateChatbot(agent.id, agent);
-      }
+      await this.processAgent(agent).catch((e) =>
+        console.error(
+          'Error processing agent:',
+          agent.id,
+          agent.twitterAccountId,
+          agent.twitterUsername,
+          e.message,
+        ),
+      );
     }
   }
 
-  async fetchTimeline(
-    twitterAccount: TwitterAccount,
-    post_last_checked_tweet_id?: string,
-  ): Promise<TwitterTimelineResponse> {
-    console.log('Fetching timeline for account', twitterAccount.twitter_id);
-    const options = {
-      method: 'GET',
-      headers: { Authorization: 'Bearer ' + twitterAccount.access_token },
-    };
+  async processAgent(agent: Chatbot): Promise<void> {
+    console.log('Posting for account', agent.twitterAccountId);
 
-    const timeline = (await fetch(
-      `https://api.x.com/2/users/${
-        twitterAccount.twitter_id
-      }/timelines/reverse_chronological?user.fields=connection_status,is_identity_verified,verified_type,public_metrics&tweet.fields=conversation_id,referenced_tweets,in_reply_to_user_id&expansions=author_id&max_results=100${
-        post_last_checked_tweet_id
-          ? '&since_id=' + post_last_checked_tweet_id
-          : ''
-      }`,
-      options,
-    )
-      .then((response) => response.json())
-      .catch((err) => console.error(err))) as TwitterTimelineResponse;
+    try {
+      const twitterAccount =
+        await this.twitterAccountService.getAccountWithActualTokens(
+          agent.twitterAccountId,
+        );
 
-    if (timeline.status === 429) {
-      throw new Error('fetchTimeline> Rate limit exceeded');
-    }
+      if (
+        agent.last_agent_error &&
+        agent.last_agent_error.getTime() + 1000 * 60 * 5 > Date.now()
+      ) {
+        console.error('processAgent> Last error was less than 5 minutes ago');
+        console.error(
+          agent.last_agent_error.getTime() + 1000 * 60 * 5 - Date.now(),
+        );
+        return;
+      }
 
-    return timeline;
-  }
+      if (this.lastTweetCache[twitterAccount.id] + 1000 * 60 * 5 > Date.now()) {
+        console.error('processAgent> Rate limit exceeded');
+        return;
+      }
 
-  async processAgent(
-    account: TwitterAccount,
-    agent: Chatbot,
-    timeline: TwitterTimelineResponse,
-  ): Promise<{ comments: number; posts: number }> {
-    if (
-      agent.last_agent_error &&
-      agent.last_agent_error.getTime() + 1000 * 60 * 5 > Date.now()
-    ) {
-      console.error('processAgent> Last error was less then 5 minutes ago');
-      console.error(
-        agent.last_agent_error.getTime() + 1000 * 60 * 5 - Date.now(),
+      const timeline = await this.twitterAccountService.fetchTimeline(
+        twitterAccount,
+        agent.post_last_checked_tweet_id,
       );
 
-      return;
+      if (!timeline?.data) {
+        console.error('No timeline data');
+        return;
+      }
+
+      console.log('Timeline data example:', timeline.data[0]);
+
+      const posts = await this.processPosts(twitterAccount, agent, timeline);
+      const comments = await this.processComments(
+        twitterAccount,
+        agent,
+        timeline,
+      );
+
+      agent.post_session_count = (agent.post_session_count ?? 0) + posts;
+      agent.comment_session_count =
+        (agent.comment_session_count ?? 0) + comments;
+
+      if (timeline.data[0] && timeline.data[0].id) {
+        agent.post_last_checked_tweet_id = timeline.data[0].id;
+      }
+
+      await this.chatbotService.updateChatbot(agent.id, agent);
+    } catch (e) {
+      console.error('Error posting:', e);
+      agent.last_agent_error = new Date();
+      agent.last_agent_error_message = e.message as string;
+      await this.chatbotService.updateChatbot(agent.id, agent);
     }
-
-    if (this.lastTweetCache[account.id] + 1000 * 60 * 5 > Date.now()) {
-      console.error('processAgent> Rate limit exceeded');
-      return;
-    }
-
-    console.log('Timeline data example:', timeline?.data[0]);
-
-    const posts = await this.processPosts(account, agent, timeline);
-    const comments = await this.processComments(account, agent, timeline);
-
-    return {
-      comments,
-      posts,
-    };
   }
 
-  /**
-   * fetchMentions
-   */
-  async fetchMentions(
-    twitterAccount: TwitterAccount,
-    since_id?: string,
-  ): Promise<TwitterTimelineResponse> {
-    console.log('Fetching mentions for account', twitterAccount.twitter_id);
-    const options = {
-      method: 'GET',
-      headers: { Authorization: 'Bearer ' + twitterAccount.access_token },
-    };
-
-    const mentions = (await fetch(
-      `https://api.x.com/2/users/${
-        twitterAccount.twitter_id
-      }/mentions?user.fields=connection_status,is_identity_verified,verified_type,public_metrics&tweet.fields=conversation_id,referenced_tweets,in_reply_to_user_id&expansions=author_id${
-        since_id ? '&since_id=' + since_id : ''
-      }`,
-      options,
-    )
-      .then((response) => response.json())
-      .catch((err) => console.error(err))) as TwitterTimelineResponse;
-
-    if (mentions.status === 429) {
-      throw new Error('fetchMentions> Rate limit exceeded');
+  async processAgentById(agentId: number): Promise<void> {
+    const agent = await this.chatbotService.getChatbotById(agentId);
+    if (!agent) {
+      throw new NotFoundException('Agent not found');
     }
+    await this.processAgent(agent);
+  }
 
-    return mentions;
+  async processAgentsByUserId(userId: number): Promise<void> {
+    const agents = await this.chatbotService.getAvailableChatbots(userId);
+    for (const agent of agents) {
+      await this.processAgent(agent);
+    }
   }
 
   isAuthorMatchRequirements(
@@ -509,7 +461,7 @@ export class AgentService {
     }
 
     if (my_accounts_replies) {
-      const mentions = await this.fetchMentions(
+      const mentions = await this.twitterAccountService.fetchMentions(
         account,
         agent.post_last_checked_tweet_id,
       );
@@ -543,7 +495,7 @@ export class AgentService {
     }
 
     if (reply_when_tagged) {
-      const mentions = await this.fetchMentions(
+      const mentions = await this.twitterAccountService.fetchMentions(
         account,
         agent.post_last_checked_tweet_id,
       );
