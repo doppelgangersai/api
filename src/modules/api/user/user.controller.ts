@@ -57,6 +57,12 @@ export class UserController {
           type: 'string',
           nullable: true,
         },
+        fcmToken: {
+          type: 'string',
+          description: 'Firebase Cloud Messaging token for push notifications',
+          example: 'eB_JLEYzSYqk-PtxmqDtbf:APA91bHqpNGFN...',
+          nullable: true,
+        },
         avatar: {
           type: 'string',
           format: 'binary',
@@ -77,7 +83,8 @@ export class UserController {
       throw new BadRequestException('Name is required');
     }
 
-    const updateData: any = { fullName };
+    const updateData: Partial<User> = { fullName };
+
     if (files && files.length > 0) {
       const fileNames = files.map((file) => file.filename);
       updateData.avatar = fileNames[0];
@@ -85,6 +92,10 @@ export class UserController {
 
     if (req.body.username) {
       updateData.username = req.body.username;
+    }
+
+    if (req.body.fcmToken) {
+      updateData.fcmToken = req.body.fcmToken;
     }
 
     await this.usersService.update(req.user.id, updateData);
