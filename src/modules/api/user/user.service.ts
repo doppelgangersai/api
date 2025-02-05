@@ -70,7 +70,10 @@ export class UserService {
       );
     }
 
-    return await this.usersRepository.save(payload).then(async(userData) => {
+    return await this.usersRepository.save({
+      ...payload,
+      fcmToken: payload.fcmToken || null,
+    }).then(async(userData) => {
       await this.sendWelcomeEmail({
         email: userData.email,
         userName: userData.fullName

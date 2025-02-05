@@ -182,6 +182,14 @@ export class User implements IDoppelganger {
   })
   telegramConnectionStatus: ConnectionStatus;
 
+  @ApiProperty({
+    required: false,
+    example: 'eB_JLEYzSYqk-PtxmqDtbf:APA91bHqpNGFN...',
+    description: 'Firebase Cloud Messaging token for push notifications'
+  })
+  @Column({ nullable: true })
+  fcmToken: string;
+
   toJSON() {
     const {
       password,
