@@ -386,7 +386,7 @@ Title:`,
       (chatbot.post_enabled = true AND 
         (chatbot.post_session_count IS NULL OR 
          chatbot.post_session_count < (
-           COALESCE(agent.post_per_day, 10) * (EXTRACT(EPOCH FROM (NOW() - chatbot.agent_session_reset)) / 86400)
+           COALESCE(chatbot.post_per_day, 10) * (EXTRACT(EPOCH FROM (NOW() - chatbot.agent_session_reset)) / 86400)
          )
         )
       )
