@@ -221,12 +221,12 @@ export class AgentService {
     };
   }
 
-  async getAgentToPost(): Promise<Chatbot[]> {
+  async getAgentsToPost(): Promise<Chatbot[]> {
     return this.chatbotService.getAgentToPost();
   }
 
   async tick() {
-    const agents = await this.getAgentToPost();
+    const agents = await this.getAgentsToPost();
     log('Posting for agents', agents.length);
     for (const agent of agents) {
       await this.processAgent(agent).catch((e) =>

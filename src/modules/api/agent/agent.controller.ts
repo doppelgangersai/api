@@ -24,6 +24,7 @@ import {
   UpdateAgentDto,
   UpdateAgentResponseDto,
 } from './agent.dtos';
+import { Chatbot } from '../chatbot/chatbot.entity';
 
 export type TAgentID = number;
 
@@ -84,5 +85,17 @@ export class AgentController {
   @Post('debug/agent/:agentId')
   async debugAgent(@Param('agentId') agentId: number) {
     await this.agentService.processAgentById(agentId);
+  }
+
+  // agents to post (list): 200, just return list to debug
+  @ApiOperation({ summary: 'Create chatbot' })
+  @ApiResponse({
+    status: 200,
+    description: 'Agent/Chatbot',
+    type: [Chatbot],
+  })
+  @Get('debug/list')
+  async debugList() {
+    return await this.agentService.getAgentsToPost();
   }
 }
