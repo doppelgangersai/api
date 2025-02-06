@@ -456,8 +456,6 @@ export class AgentService {
           () => comments++,
         );
       }
-
-      return comments;
     }
 
     if (my_accounts_replies) {
@@ -527,6 +525,7 @@ export class AgentService {
         console.log('Reply text:', replyText);
       }
     }
+    return comments;
   }
 
   private mapTweets(timeline: TwitterTimelineResponse): (TwitterTweet & {
