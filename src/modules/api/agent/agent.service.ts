@@ -282,6 +282,7 @@ export class AgentService {
 
       if (!timeline?.data) {
         error_log('No timeline data');
+        console.log(timeline);
         return;
       }
 
