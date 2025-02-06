@@ -377,29 +377,29 @@ Title:`,
         '(chatbot.post_enabled = :postEnabled OR chatbot.comment_enabled = :commentEnabled)',
         { postEnabled: true, commentEnabled: true },
       )
-      .andWhere(
-        '(chatbot.last_agent_error IS NULL OR chatbot.last_agent_error < :hourAgo)',
-        { hourAgo },
-      )
-      .andWhere(
-        `(
-      (chatbot.post_enabled = true AND 
-        (chatbot.post_session_count IS NULL OR 
-         chatbot.post_session_count < (
-           COALESCE(chatbot.post_per_day, 10) * (EXTRACT(EPOCH FROM (NOW() - chatbot.agent_session_reset)) / 86400)
-         )
-        )
-      )
-      OR
-      (chatbot.comment_enabled = true AND 
-        (chatbot.comment_session_count IS NULL OR 
-         chatbot.comment_session_count < (
-           COALESCE(chatbot.comment_per_day, 10) * (EXTRACT(EPOCH FROM (NOW() - chatbot.agent_session_reset)) / 86400)
-         )
-        )
-      )
-    )`,
-      )
+      //   .andWhere(
+      //     '(chatbot.last_agent_error IS NULL OR chatbot.last_agent_error < :hourAgo)',
+      //     { hourAgo },
+      //   )
+      //   .andWhere(
+      //     `(
+      //   (chatbot.post_enabled = true AND
+      //     (chatbot.post_session_count IS NULL OR
+      //      chatbot.post_session_count < (
+      //        COALESCE(chatbot.post_per_day, 10) * (EXTRACT(EPOCH FROM (NOW() - chatbot.agent_session_reset)) / 86400)
+      //      )
+      //     )
+      //   )
+      //   OR
+      //   (chatbot.comment_enabled = true AND
+      //     (chatbot.comment_session_count IS NULL OR
+      //      chatbot.comment_session_count < (
+      //        COALESCE(chatbot.comment_per_day, 10) * (EXTRACT(EPOCH FROM (NOW() - chatbot.agent_session_reset)) / 86400)
+      //      )
+      //     )
+      //   )
+      // )`,
+      //   )
       .getMany();
   }
 
