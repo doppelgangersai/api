@@ -68,14 +68,14 @@ export class TwitterAccountService {
   }
 
   async getFollowing(accountId: number, userId: TUserID) {
-    const account = await this.getAccountWithActualTokens(accountId);
+    const account = await this.getAccountById(accountId);
     console.log({ account });
     if (!account) {
       throw new HttpException('Account not found', 404);
     }
-    if (account.user_id !== userId) {
-      throw new HttpException('Access denied', 403);
-    }
+    // if (account.user_id !== userId) {
+    //   throw new HttpException('Access denied', 403);
+    // }
     return this.getFollowingByScreenName(account.screen_name);
   }
 
