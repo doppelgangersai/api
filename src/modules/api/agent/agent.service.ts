@@ -1,6 +1,5 @@
 import {
   ForbiddenException,
-  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -23,6 +22,9 @@ import {
 } from './agent-twitter.types';
 import { TAgentID } from './agent.controller';
 import { GetAgentResponseDto } from './agent.dtos';
+
+const log = console.log;
+const error_log = console.error;
 
 @Injectable()
 export class AgentService {
@@ -225,10 +227,10 @@ export class AgentService {
 
   async tick() {
     const agents = await this.getAgentToPost();
-    console.log('Posting for agents', agents.length);
+    log('Posting for agents', agents.length);
     for (const agent of agents) {
       await this.processAgent(agent).catch((e) =>
-        console.error(
+        error_log(
           'Error processing agent:',
           agent.id,
           agent.twitterAccountId,
@@ -240,7 +242,11 @@ export class AgentService {
   }
 
   async processAgent(agent: Chatbot): Promise<void> {
-    console.log('Posting for account', agent.twitterAccountId);
+    log('Posting for account', agent.twitterAccountId);
+    if (!agent.agent_enabled) {
+      error_log('processAgent> Agent is disabled');
+      return;
+    }
 
     try {
       const twitterAccount =
@@ -252,15 +258,15 @@ export class AgentService {
         agent.last_agent_error &&
         agent.last_agent_error.getTime() + 1000 * 60 * 5 > Date.now()
       ) {
-        console.error('processAgent> Last error was less than 5 minutes ago');
-        console.error(
+        error_log('processAgent> Last error was less than 5 minutes ago');
+        error_log(
           agent.last_agent_error.getTime() + 1000 * 60 * 5 - Date.now(),
         );
         return;
       }
 
       if (this.lastTweetCache[twitterAccount.id] + 1000 * 60 * 5 > Date.now()) {
-        console.error('processAgent> Rate limit exceeded');
+        error_log('processAgent> Rate limit protection');
         return;
       }
 
@@ -270,11 +276,11 @@ export class AgentService {
       );
 
       if (!timeline?.data) {
-        console.error('No timeline data');
+        error_log('No timeline data');
         return;
       }
 
-      console.log('Timeline data example:', timeline.data[0]);
+      log('Timeline data example:', timeline.data[0]);
 
       const posts = await this.processPosts(twitterAccount, agent, timeline);
       const comments = await this.processComments(
@@ -293,7 +299,7 @@ export class AgentService {
 
       await this.chatbotService.updateChatbot(agent.id, agent);
     } catch (e) {
-      console.error('Error posting:', e);
+      error_log('Error posting:', e);
       agent.last_agent_error = new Date();
       agent.last_agent_error_message = e.message as string;
       await this.chatbotService.updateChatbot(agent.id, agent);
@@ -329,22 +335,17 @@ export class AgentService {
       new Date(tweet.author.created_at) <
         new Date(Date.now() - older_then * 365 * 24 * 3600 * 1000);
     const matchByVerified = !verified || tweet.author?.is_identity_verified;
-    console.log(tweet.author?.is_identity_verified);
+    log(tweet.author?.is_identity_verified);
 
-    console.log(
+    log(
       'Match by followers:',
       matchByFollowers,
       tweet.author?.public_metrics?.followers_count,
       min_followers,
       tweet.author,
     );
-    console.log(
-      'Match by age:',
-      matchByAge,
-      tweet.author?.created_at,
-      older_then,
-    );
-    console.log(
+    log('Match by age:', matchByAge, tweet.author?.created_at, older_then);
+    log(
       'Match by verified:',
       matchByVerified,
       tweet.author?.is_identity_verified,
@@ -374,14 +375,12 @@ export class AgentService {
         tweet.author.username !== account.screen_name &&
         tweet.author &&
         (!accounts?.length || accounts.includes(tweet.author.username)) && // есть в списке аккаунтов
-        // !this.isQuote(tweet) &&
-        // !this.isRetweet(tweet) &&
         !this.isReply(tweet) &&
         this.includesOneOfKeywords(tweet, keywords) &&
         this.isNotAlreadyInteracted(tweet, account.id),
     );
 
-    console.log('Tweets:', tweets.length);
+    log('Tweets:', tweets.length);
 
     for (let i = 0; i <= Math.min(tweets.length, 1); i++) {
       const tweet = tweets[i];
@@ -390,9 +389,9 @@ export class AgentService {
       }
 
       const prompt = this.performPromptForPost(agent, tweet);
-      console.log(prompt);
+      log(prompt);
       const postText = await this.aiService.processText(prompt);
-      console.log('Post text:', postText);
+      log('Post text:', postText);
       this.addToInteractionCache(tweet, account.id);
       await this.tweet(account, postText).then(() => posts++);
     }
@@ -417,7 +416,7 @@ export class AgentService {
 
     const mappedTimeline = this.mapTweets(timeline);
     if (x_accounts_replies) {
-      console.log('X Accounts Replies enabled', accounts);
+      log('X Accounts Replies enabled', accounts);
       const tweets = mappedTimeline
         .filter(
           (tweet) =>
@@ -427,7 +426,7 @@ export class AgentService {
             ),
         )
         .filter((tweet) => {
-          console.log(
+          log(
             'Tweet:',
             tweet.author.username,
             tweet.text,
@@ -488,7 +487,7 @@ export class AgentService {
         await this.replyToTweet(account, tweet.id, replyText).then(
           () => comments++,
         );
-        console.log('Reply text:', replyText);
+        log('Reply text:', replyText);
       }
     }
 
@@ -522,7 +521,7 @@ export class AgentService {
         await this.replyToTweet(account, tweet.id, replyText).then(
           () => comments++,
         );
-        console.log('Reply text:', replyText);
+        log('Reply text:', replyText);
       }
     }
     return comments;
@@ -565,7 +564,7 @@ export class AgentService {
       ? tweet.referenced_tweets.some((ref) => ref.type === 'quoted')
       : false;
 
-    // console.log('Is quote:', isQuote, tweet.text);
+    // log('Is quote:', isQuote, tweet.text);
     return isQuote;
   }
 
@@ -574,14 +573,14 @@ export class AgentService {
       ? tweet.referenced_tweets.some((ref) => ref.type === 'retweeted')
       : false;
 
-    // console.log('Is retweet:', isRetweet, tweet.text);
+    // log('Is retweet:', isRetweet, tweet.text);
     return isRetweet;
   }
 
   private isReply(tweet: TwitterTweet): boolean {
     const isReply = !!tweet.in_reply_to_user_id;
 
-    // console.log('Is reply:', isReply, tweet.text, tweet.in_reply_to_user_id);
+    // log('Is reply:', isReply, tweet.text, tweet.in_reply_to_user_id);
     return isReply;
   }
 
@@ -603,7 +602,6 @@ export class AgentService {
     if (!keywords?.length) {
       return true;
     }
-    // if lowercase tweet text includes lowercase keyword
     return keywords.some((keyword) =>
       tweet.text.toLowerCase().includes(keyword.toLowerCase()),
     );
@@ -666,10 +664,9 @@ Rewrite:`;
     replyText: string,
   ) {
     if (this.lastTweetCache[account.id] + 1000 * 60 * 5 > Date.now()) {
-      console.log(this.lastTweetCache[account.id] + 1000 * 60 * 5, Date.now());
-      throw new Error('replyToTweet> Rate limit exceeded');
+      log(this.lastTweetCache[account.id] + 1000 * 60 * 5, Date.now());
+      throw new Error('replyToTweet> Rate limit protection');
     }
-    // await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
     this.lastTweetCache[account.id] = Date.now();
     return this.twitterAccountService.replyToTweet(
       account.access_token,
@@ -680,10 +677,9 @@ Rewrite:`;
 
   private async tweet(account: TwitterAccount, postText: string) {
     if (this.lastTweetCache[account.id] + 1000 * 60 * 5 > Date.now()) {
-      throw new Error('tweet> Rate limit exceeded');
+      throw new Error('tweet> Rate limit protection');
     }
     this.lastTweetCache[account.id] = Date.now();
-    // await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
     return this.twitterAccountService.tweet(account.access_token, postText);
   }
 }
