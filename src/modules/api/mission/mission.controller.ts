@@ -1,22 +1,23 @@
-import {
-  ApiOperation,
-  ApiTags,
-  ApiResponse,
-  ApiProperty,
-  ApiBearerAuth,
-  ApiResponseProperty,
-} from '@nestjs/swagger';
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiProperty,
+  ApiResponse,
+  ApiResponseProperty,
+  ApiTags,
+} from '@nestjs/swagger';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
 import { User, UserService } from '../user';
-import { InjectRepository } from '@nestjs/typeorm';
 import {
   MissionStatus,
   UserMissionEntity,
 } from './entites/user-mission.entity';
-import { Repository } from 'typeorm';
 import { MISSIONS_LIST } from './mission.consts';
+import { MissionService } from './mission.service';
 
 class Mission {
   @ApiProperty({ example: 1, description: 'Unique identifier for the mission' })
@@ -76,6 +77,7 @@ export class StartMissionDto {
 export class MissionController {
   constructor(
     private readonly userService: UserService,
+    private readonly missionService: MissionService,
     @InjectRepository(UserMissionEntity)
     private readonly userMissionRepository: Repository<UserMissionEntity>,
   ) {}
@@ -141,6 +143,24 @@ export class MissionController {
         userId: user.id,
         status: userMission.status,
       },
+    };
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({
+    summary: 'Reward user for Android app installation'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully rewarded user for Android app installation'
+  })
+  @HttpCode(200)
+  @Post('android-reward')
+  async handleAndroidReward(@CurrentUser() user: User) {
+    await this.missionService.androidReward(user);
+    return {
+      success: true
     };
   }
 }
