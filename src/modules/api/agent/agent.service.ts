@@ -394,10 +394,10 @@ export class AgentService {
         continue;
       }
 
-      const prompt = this.performPromptForPost(agent, tweet);
-      log(prompt);
+      const prompt = this.performPromptForPost(agent, tweet) as string;
       const postText = await this.aiService.processText(prompt);
-      log('Post text:', postText);
+      log(`@${tweet.author.username}:`, tweet.text);
+      log(`@${account.screen_name}:`, postText);
       this.addToInteractionCache(tweet, account.id);
       await this.tweet(account, postText).then(() => posts++);
     }
