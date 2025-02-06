@@ -47,12 +47,6 @@ export class TwitterAccountService {
       throw new HttpException('Refresh token is required', 400);
     }
 
-    console.log('Account', account);
-
-    console.log('Access token:', account.access_token);
-    console.log('Access token expiry:', account.access_token_expiry);
-    console.log('Current date:', new Date());
-
     if (
       !account.access_token ||
       !account.access_token_expiry ||
@@ -68,9 +62,6 @@ export class TwitterAccountService {
       account.access_token_expiry.setHours(
         account.access_token_expiry.getHours() + 2,
       );
-      console.log('New access token:', account.access_token);
-      console.log('New refresh token:', account.refresh_token);
-      console.log('New access token expiry:', account.access_token_expiry);
       await this.twitterAccountRepository.save(account);
     }
     return account;
