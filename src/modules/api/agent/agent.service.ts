@@ -196,7 +196,7 @@ export class AgentService {
         ownerId: chatbot.ownerId,
         twitter_account_id: chatbot.twitterAccountId,
         enabled: chatbot.agent_enabled,
-        experimental: chatbot.agent_experimental,
+        experimental: true,
       },
       comment_settings: {
         accounts: chatbot.comment_accounts,
