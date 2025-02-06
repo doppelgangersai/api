@@ -88,7 +88,7 @@ export class AgentController {
   }
 
   // agents to post (list): 200, just return list to debug
-  @ApiOperation({ summary: 'Create chatbot' })
+  @ApiOperation({ summary: 'List of agents to debug' })
   @ApiResponse({
     status: 200,
     description: 'Agent/Chatbot',
