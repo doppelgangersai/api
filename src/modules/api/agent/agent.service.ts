@@ -248,6 +248,11 @@ export class AgentService {
       return;
     }
 
+    console.log({
+      comment_enabled: agent.comment_enabled,
+      post_enabled: agent.post_enabled,
+    });
+
     try {
       const twitterAccount =
         await this.twitterAccountService.getAccountWithActualTokens(
