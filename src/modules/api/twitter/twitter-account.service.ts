@@ -11,6 +11,8 @@ import { TwitterTimelineResponse } from '../agent/agent-twitter.types';
 
 @Injectable()
 export class TwitterAccountService {
+  private followingCache: Record<string, any[]> = {};
+  private followingCacheExpiry: Record<string, Date> = {};
   constructor(
     @InjectRepository(TwitterAccount)
     private readonly twitterAccountRepository: Repository<TwitterAccount>,
@@ -76,7 +78,7 @@ export class TwitterAccountService {
     // if (account.user_id !== userId) {
     //   throw new HttpException('Access denied', 403);
     // }
-    return this.getFollowingByScreenName(account.screen_name);
+    return this.getFollowingByScreenNameWithCache(account.screen_name);
   }
 
   async getFollowingByScreenName(screen_name: string) {
@@ -94,6 +96,22 @@ export class TwitterAccountService {
       is_verified: item.is_blue_verified,
       other_data: item,
     }));
+  }
+
+  async getFollowingByScreenNameWithCache(screen_name: string) {
+    if (
+      this.followingCache[screen_name] &&
+      this.followingCacheExpiry[screen_name] > new Date()
+    ) {
+      return this.followingCache[screen_name];
+    }
+    const following = await this.getFollowingByScreenName(screen_name);
+    this.followingCache[screen_name] = following;
+    this.followingCacheExpiry[screen_name] = new Date();
+    this.followingCacheExpiry[screen_name].setHours(
+      this.followingCacheExpiry[screen_name].getHours() + 1,
+    );
+    return this.followingCache[screen_name];
   }
 
   async createAccount(
