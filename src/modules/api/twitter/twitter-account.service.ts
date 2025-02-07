@@ -105,13 +105,18 @@ export class TwitterAccountService {
     ) {
       return this.followingCache[screen_name];
     }
-    const following = await this.getFollowingByScreenName(screen_name);
+    let following = await this.getFollowingByScreenName(screen_name).catch(() =>
+      console.log('Following 2nd attempt'),
+    );
+    if (!following) {
+      following = await this.getFollowingByScreenName(screen_name);
+    }
     this.followingCache[screen_name] = following;
     this.followingCacheExpiry[screen_name] = new Date();
     this.followingCacheExpiry[screen_name].setHours(
       this.followingCacheExpiry[screen_name].getHours() + 1,
     );
-    return this.followingCache[screen_name];
+    return following;
   }
 
   async createAccount(
