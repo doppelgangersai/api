@@ -183,11 +183,6 @@ export class TwitterAccountController {
     @Param('accountId') accountId: number,
     @CurrentUser() user: User,
   ): Promise<FollowingDto[]> {
-    const following = await this.twitterAccountService.getFollowing(
-      accountId,
-      user.id,
-    );
-    console.log('following', following);
-    return following;
+    return this.twitterAccountService.getFollowing(accountId, user.id);
   }
 }
