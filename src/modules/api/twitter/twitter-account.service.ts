@@ -7,9 +7,18 @@ import { TwitterAuthService } from './twitter-auth.service';
 import axios from 'axios';
 import { ConfigService } from '../../config';
 import fetch from 'node-fetch';
+import { TwitterTimelineResponse } from '../agent/agent-twitter.types';
+import { OnEvent } from '@nestjs/event-emitter';
+import { TWITTER_ACCOUNT_CREATED_EVENT } from '../../../core/constants';
+import { TwitterAccountEmitter } from './twitter-account.emitter';
+
+const log = console.log;
 
 @Injectable()
 export class TwitterAccountService {
+  private followingCache: Record<string, any[]> = {};
+  private followingCacheExpiry: Record<string, Date> = {};
+  private twitterAccountEmitter: TwitterAccountEmitter;
   constructor(
     @InjectRepository(TwitterAccount)
     private readonly twitterAccountRepository: Repository<TwitterAccount>,
@@ -46,12 +55,6 @@ export class TwitterAccountService {
       throw new HttpException('Refresh token is required', 400);
     }
 
-    console.log('Account', account);
-
-    console.log('Access token:', account.access_token);
-    console.log('Access token expiry:', account.access_token_expiry);
-    console.log('Current date:', new Date());
-
     if (
       !account.access_token ||
       !account.access_token_expiry ||
@@ -67,24 +70,21 @@ export class TwitterAccountService {
       account.access_token_expiry.setHours(
         account.access_token_expiry.getHours() + 2,
       );
-      console.log('New access token:', account.access_token);
-      console.log('New refresh token:', account.refresh_token);
-      console.log('New access token expiry:', account.access_token_expiry);
       await this.twitterAccountRepository.save(account);
     }
     return account;
   }
 
   async getFollowing(accountId: number, userId: TUserID) {
-    const account = await this.getAccountWithActualTokens(accountId);
+    const account = await this.getAccountById(accountId);
     console.log({ account });
     if (!account) {
       throw new HttpException('Account not found', 404);
     }
-    if (account.user_id !== userId) {
-      throw new HttpException('Access denied', 403);
-    }
-    return this.getFollowingByScreenName(account.screen_name);
+    // if (account.user_id !== userId) {
+    //   throw new HttpException('Access denied', 403);
+    // }
+    return this.getFollowingByScreenNameWithCache(account.screen_name);
   }
 
   async getFollowingByScreenName(screen_name: string) {
@@ -102,6 +102,27 @@ export class TwitterAccountService {
       is_verified: item.is_blue_verified,
       other_data: item,
     }));
+  }
+
+  async getFollowingByScreenNameWithCache(screen_name: string) {
+    if (
+      this.followingCache[screen_name] &&
+      this.followingCacheExpiry[screen_name] > new Date()
+    ) {
+      return this.followingCache[screen_name];
+    }
+    let following = await this.getFollowingByScreenName(screen_name).catch(() =>
+      console.log('Following 2nd attempt'),
+    );
+    if (!following) {
+      following = await this.getFollowingByScreenName(screen_name);
+    }
+    this.followingCache[screen_name] = following;
+    this.followingCacheExpiry[screen_name] = new Date();
+    this.followingCacheExpiry[screen_name].setHours(
+      this.followingCacheExpiry[screen_name].getHours() + 1,
+    );
+    return following;
   }
 
   async createAccount(
@@ -151,9 +172,18 @@ export class TwitterAccountService {
       createAccount.refresh_token,
     );
 
-    console.log('Saved tokens', saveTokensResult);
+    this.twitterAccountEmitter.emitTwitterAccountCreated(savedAccount.id);
 
     return saveTokensResult;
+  }
+
+  @OnEvent(TWITTER_ACCOUNT_CREATED_EVENT)
+  async warmUpCache(accountId: number) {
+    const account = await this.getAccountById(accountId);
+    if (!account) {
+      return;
+    }
+    return this.getFollowingByScreenNameWithCache(account.screen_name);
   }
 
   async updateAccountWithUserValidation(
@@ -257,5 +287,93 @@ export class TwitterAccountService {
     text: string,
   ): Promise<any> {
     return this.tweet(accessToken, text, tweetId);
+  }
+
+  async fetchTimeline(
+    twitterAccount: TwitterAccount,
+    post_last_checked_tweet_id?: string,
+  ): Promise<TwitterTimelineResponse> {
+    console.log('Fetching timeline for account', twitterAccount.twitter_id);
+    const options = {
+      method: 'GET',
+      headers: { Authorization: 'Bearer ' + twitterAccount.access_token },
+    };
+
+    const expansions = 'author_id';
+    const tweetFields = [
+      'conversation_id',
+      'referenced_tweets',
+      'in_reply_to_user_id',
+    ].join(',');
+    const userFields = [
+      'connection_status',
+      'is_identity_verified',
+      'verified_type',
+      'public_metrics',
+    ].join(',');
+    const max_results = 100;
+
+    const timeline = (await fetch(
+      `https://api.x.com/2/users/${
+        twitterAccount.twitter_id
+      }/timelines/reverse_chronological?user.fields=${userFields}&tweet.fields=${tweetFields}&expansions=${expansions}&max_results=${max_results}${
+        post_last_checked_tweet_id
+          ? '&since_id=' + post_last_checked_tweet_id
+          : ''
+      }`,
+      options,
+    )
+      .then((response) => response.json())
+      .catch((err) => console.error(err))) as TwitterTimelineResponse;
+
+    if (timeline.status === 429) {
+      throw new Error('fetchTimeline> Rate limit exceeded');
+    }
+
+    return timeline;
+  }
+
+  /**
+   * fetchMentions
+   */
+  async fetchMentions(
+    twitterAccount: TwitterAccount,
+    since_id?: string,
+  ): Promise<TwitterTimelineResponse> {
+    console.log('Fetching mentions for account', twitterAccount.twitter_id);
+    const options = {
+      method: 'GET',
+      headers: { Authorization: 'Bearer ' + twitterAccount.access_token },
+    };
+
+    const expansions = 'author_id';
+    const tweetFields = [
+      'conversation_id',
+      'referenced_tweets',
+      'in_reply_to_user_id',
+    ].join(',');
+    const userFields = [
+      'connection_status',
+      'is_identity_verified',
+      'verified_type',
+      'public_metrics',
+    ].join(',');
+
+    const mentions = (await fetch(
+      `https://api.x.com/2/users/${
+        twitterAccount.twitter_id
+      }/mentions?user.fields=${userFields}&${tweetFields}&expansions=${expansions}${
+        since_id ? '&since_id=' + since_id : ''
+      }`,
+      options,
+    )
+      .then((response) => response.json())
+      .catch((err) => console.error(err))) as TwitterTimelineResponse;
+
+    if (mentions.status === 429) {
+      throw new Error('fetchMentions> Rate limit exceeded');
+    }
+
+    return mentions;
   }
 }

@@ -1,4 +1,12 @@
-import { Controller, Get, Patch, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Param,
+  Body,
+  UseGuards,
+  Post,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -16,6 +24,7 @@ import {
   UpdateAgentDto,
   UpdateAgentResponseDto,
 } from './agent.dtos';
+import { Chatbot } from '../chatbot/chatbot.entity';
 
 export type TAgentID = number;
 
@@ -66,5 +75,27 @@ export class AgentController {
   async testTick() {
     await this.agentService.tick();
     return { message: 'Tick done' };
+  }
+
+  @Post('debug/user/:userId')
+  async debugUser(@Param('userId') userId: number) {
+    await this.agentService.processAgentsByUserId(userId);
+  }
+
+  @Post('debug/agent/:agentId')
+  async debugAgent(@Param('agentId') agentId: number) {
+    await this.agentService.processAgentById(agentId);
+  }
+
+  // agents to post (list): 200, just return list to debug
+  @ApiOperation({ summary: 'List of agents to debug' })
+  @ApiResponse({
+    status: 200,
+    description: 'Agent/Chatbot',
+    type: [Chatbot],
+  })
+  @Get('debug/list')
+  async debugList() {
+    return await this.agentService.getAgentsToPost();
   }
 }

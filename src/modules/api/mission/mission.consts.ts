@@ -1,5 +1,8 @@
 import { MissionStatus } from './entites/user-mission.entity';
 
+export const ANDROID_BONUS_POINTS = 1000;
+export const ANDROID_BONUS_MISSION_ID = 11;
+
 export enum MissionAction {
   REFER = 'refer',
   FOLLOW = 'follow',
@@ -7,6 +10,7 @@ export enum MissionAction {
   JOIN = 'join',
   CONNECT = 'connect',
   MERGE = 'merge',
+  CREATE_ACCOUNT = 'create_account',
 }
 
 export const MISSIONS_LIST = [
@@ -125,4 +129,15 @@ export const MISSIONS_LIST = [
     points: 5000,
     link: 'link to Vault',
   },
+  // {
+  //   id: ANDROID_BONUS_MISSION_ID,
+  //   title: 'Create Account on Android',
+  //   description: 'Start your journey with us by creating an account on Android',
+  //   action: MissionAction.CREATE_ACCOUNT,
+  //   status: MissionStatus.DONE,
+  //   points: ANDROID_BONUS_POINTS,
+  //   done: false,
+  //   link: null,
+  //   androidOnly: true,
+  // },
 ];

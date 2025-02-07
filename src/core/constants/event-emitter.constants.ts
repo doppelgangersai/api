@@ -2,3 +2,4 @@ export const INSTAGRAM_UPLOADED_EVENT = 'instagram.uploaded';
 export const INSTAGRAM_PREPROCESSED_EVENT = 'instagram.preprocessed';
 export const TELEGRAM_UPLOADED_EVENT = 'telegram.uploaded';
 export const TWITTER_CONNECTED_EVENT = 'twitter.connected';
+export const TWITTER_ACCOUNT_CREATED_EVENT = 'twitter.account.created';
