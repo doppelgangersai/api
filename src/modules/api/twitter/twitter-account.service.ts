@@ -183,7 +183,9 @@ export class TwitterAccountService {
     if (!account) {
       return;
     }
-    return this.getFollowingByScreenNameWithCache(account.screen_name);
+    await this.getFollowingByScreenNameWithCache(account.screen_name).catch(
+      () => log('Failed to warm up cache'),
+    );
   }
 
   async updateAccountWithUserValidation(
