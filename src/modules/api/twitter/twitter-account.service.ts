@@ -8,11 +8,17 @@ import axios from 'axios';
 import { ConfigService } from '../../config';
 import fetch from 'node-fetch';
 import { TwitterTimelineResponse } from '../agent/agent-twitter.types';
+import { OnEvent } from '@nestjs/event-emitter';
+import { TWITTER_ACCOUNT_CREATED_EVENT } from '../../../core/constants';
+import { TwitterAccountEmitter } from './twitter-account.emitter';
+
+const log = console.log;
 
 @Injectable()
 export class TwitterAccountService {
   private followingCache: Record<string, any[]> = {};
   private followingCacheExpiry: Record<string, Date> = {};
+  private twitterAccountEmitter: TwitterAccountEmitter;
   constructor(
     @InjectRepository(TwitterAccount)
     private readonly twitterAccountRepository: Repository<TwitterAccount>,
@@ -166,9 +172,18 @@ export class TwitterAccountService {
       createAccount.refresh_token,
     );
 
-    console.log('Saved tokens', saveTokensResult);
+    this.twitterAccountEmitter.emitTwitterAccountCreated(savedAccount.id);
 
     return saveTokensResult;
+  }
+
+  @OnEvent(TWITTER_ACCOUNT_CREATED_EVENT)
+  async warmUpCache(accountId: number) {
+    const account = await this.getAccountById(accountId);
+    if (!account) {
+      return;
+    }
+    return this.getFollowingByScreenNameWithCache(account.screen_name);
   }
 
   async updateAccountWithUserValidation(
