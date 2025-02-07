@@ -140,7 +140,7 @@ export class ChatbotService {
 
     await this.sendModelIsReadyEmail({
       email: user.email,
-      userName: user.fullName
+      userName: user.fullName,
     });
 
     return chatbot;
@@ -371,34 +371,34 @@ Title:`,
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
     return await this.chatbotRepository
-      .createQueryBuilder('agent')
-      .where('agent.agent_enabled = :enabled', { enabled: true })
+      .createQueryBuilder('chatbot')
+      .where('chatbot.agent_enabled = :enabled', { enabled: true })
       .andWhere(
-        '(agent.post_enabled = :postEnabled OR agent.comment_enabled = :commentEnabled)',
+        '(chatbot.post_enabled = :postEnabled OR chatbot.comment_enabled = :commentEnabled)',
         { postEnabled: true, commentEnabled: true },
       )
       .andWhere(
-        'agent.last_agent_error IS NULL OR agent.last_agent_error < :hourAgo',
+        '(chatbot.last_agent_error IS NULL OR chatbot.last_agent_error < :hourAgo)',
         { hourAgo },
       )
       .andWhere(
         `(
-      (agent.post_enabled = true AND 
-        (agent.post_session_count IS NULL OR 
-         agent.post_session_count < (
-           COALESCE(agent.post_per_day, 10) * (EXTRACT(EPOCH FROM (NOW() - agent.agent_session_reset)) / 86400)
-         )
+        (chatbot.post_enabled = true AND
+          (chatbot.post_session_count IS NULL OR
+           chatbot.post_session_count < (
+             COALESCE(chatbot.post_per_day, 10) * (EXTRACT(EPOCH FROM (NOW() - chatbot.agent_session_reset)) / 86400)
+           )
+          )
         )
-      )
-      OR
-      (agent.comment_enabled = true AND 
-        (agent.comment_session_count IS NULL OR 
-         agent.comment_session_count < (
-           COALESCE(agent.comment_per_day, 10) * (EXTRACT(EPOCH FROM (NOW() - agent.agent_session_reset)) / 86400)
-         )
+        OR
+        (chatbot.comment_enabled = true AND
+          (chatbot.comment_session_count IS NULL OR
+           chatbot.comment_session_count < (
+             COALESCE(chatbot.comment_per_day, 10) * (EXTRACT(EPOCH FROM (NOW() - chatbot.agent_session_reset)) / 86400)
+           )
+          )
         )
-      )
-    )`,
+      )`,
       )
       .getMany();
   }
@@ -415,14 +415,14 @@ Title:`,
     email,
     userName,
   }: {
-    email: string,
-    userName: string
+    email: string;
+    userName: string;
   }): Promise<void> {
     await this.emailService.sendEmail({
       to: email,
       subject: 'Your Personal AI Model is Ready 🚀',
       userName,
-      templateName: 'model-is-ready'
+      templateName: 'model-is-ready',
     });
   }
 }

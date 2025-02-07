@@ -24,18 +24,10 @@ import { Chatbot } from './chatbot.entity';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
 import { User } from '../user';
 
-// export class MergeChatbotDto {
-//   @ApiResponseProperty({
-//     type: Chatbot,
-//   })
-//   chatbot: Chatbot;
-// }
-
 @ApiTags('chatbot')
 @Controller('api/chatbot')
 export class ChatbotController {
   constructor(private readonly chatbotService: ChatbotService) {}
-  // GET /api/chatbot/merged - isModified = true, userId = user.id?
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get merged chatbots: isModified = true, userId = user.id?',

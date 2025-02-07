@@ -8,7 +8,6 @@ export class AgentPostJob {
 
   @Cron('* * * * * *')
   async tick() {
-    return;
     if (Math.random() > 1 / 30 / 60) {
       return;
     }
