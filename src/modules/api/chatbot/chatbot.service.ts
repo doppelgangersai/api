@@ -74,6 +74,11 @@ export class ChatbotService {
 
       console.log('chatbot', chatbot);
 
+      await this.sendModelIsReadyEmail({
+        email: user.email,
+        userName: user.fullName,
+      });
+
       return chatbot;
     }
 
@@ -94,6 +99,11 @@ export class ChatbotService {
     const chatbotId = chatbot.id;
     await this.usersService.update(userId, {
       chatbotId,
+    });
+
+    await this.sendModelIsReadyEmail({
+      email: user.email,
+      userName: user.fullName,
     });
 
     return chatbot;
@@ -420,7 +430,7 @@ Title:`,
   }): Promise<void> {
     await this.emailService.sendEmail({
       to: email,
-      subject: 'Your Personal AI Model is Ready 🚀',
+      subject: 'Your Personal AI Model is Ready',
       userName,
       templateName: 'model-is-ready',
     });
