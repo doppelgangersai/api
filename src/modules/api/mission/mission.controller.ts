@@ -81,6 +81,7 @@ export class MissionController {
     @InjectRepository(UserMissionEntity)
     private readonly userMissionRepository: Repository<UserMissionEntity>,
   ) {}
+
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Retrieve all missions and total points' })
@@ -161,6 +162,27 @@ export class MissionController {
     await this.missionService.androidReward(user);
     return {
       success: true
+    };
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({
+    summary: 'Complete mission',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully completed the mission and rewarded points.',
+  })
+  @HttpCode(200)
+  @Post('complete')
+  async completeMission(
+    @Body() mission: StartMissionDto,
+    @CurrentUser() user: User,
+  ) {
+    const completedMission = await this.missionService.completeMission(user, mission.id);
+    return {
+      mission: completedMission,
     };
   }
 }

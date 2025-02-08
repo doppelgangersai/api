@@ -26,4 +26,7 @@ export class UserMissionEntity {
     nullable: true,
   })
   status: MissionStatus;
+
+  @Column({ type: 'timestamp', nullable: true })
+  completedAt?: Date;
 }
