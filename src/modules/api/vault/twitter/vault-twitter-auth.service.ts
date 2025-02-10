@@ -208,7 +208,7 @@ export class VaultTwitterAuthService {
     };
   }
 
-  public async getUserId(accessToken: string): Promise<string> {
+  public async getUserIdByAccessToken(accessToken: string): Promise<string> {
     const userResponse = await fetch('https://api.twitter.com/2/users/me', {
       headers: { Authorization: `Bearer ${accessToken}` },
     });

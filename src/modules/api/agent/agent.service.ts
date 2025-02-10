@@ -14,17 +14,26 @@ import { AIService } from '../../ai/ai.service';
 import { Chatbot } from '../chatbot/chatbot.entity';
 import { TwitterAccount } from '../twitter/twitter-account.entity';
 import {
-  MappedTweet,
-  TwitterTimelineResponse,
   TwitterTweet,
   TwitterTweetReference,
   TwitterUser,
 } from './agent-twitter.types';
 import { TAgentID } from './agent.controller';
 import { GetAgentResponseDto } from './agent.dtos';
+import * as fs from 'node:fs';
+import { shuffleArray } from '../../../utils/random';
 
 const log = console.log;
 const error_log = console.error;
+
+export type MappedTweet = TwitterTweet & {
+  author?: TwitterUser;
+  extended_referenced_tweets?: Array<
+    TwitterTweetReference & {
+      tweet?: TwitterTweet & { author?: TwitterUser };
+    }
+  >;
+};
 
 @Injectable()
 export class AgentService {
@@ -275,32 +284,50 @@ export class AgentService {
         return;
       }
 
-      const timeline = await this.twitterAccountService.fetchTimeline(
+      const tweetsForPosting =
+        agent.post_enabled && agent.post_accounts
+          ? await this.twitterAccountService.getTweetsByList(
+              agent.post_accounts,
+              twitterAccount,
+              agent.post_last_checked_tweet_id,
+            )
+          : [];
+
+      const tweetsForComments =
+        agent.comment_enabled &&
+        agent.comment_x_accounts_replies &&
+        agent.comment_accounts
+          ? await this.twitterAccountService.getTweetsByList(
+              agent.comment_accounts,
+              twitterAccount,
+              agent.post_last_checked_tweet_id,
+            )
+          : [];
+
+      const posts = await this.processPosts(
         twitterAccount,
-        agent.post_last_checked_tweet_id,
+        agent,
+        tweetsForPosting,
       );
-
-      if (!timeline?.data) {
-        error_log('No timeline data');
-        console.log(timeline);
-        return;
-      }
-
-      log('Timeline data example:', timeline.data[0]);
-
-      const posts = await this.processPosts(twitterAccount, agent, timeline);
       const comments = await this.processComments(
         twitterAccount,
         agent,
-        timeline,
+        tweetsForComments,
       );
 
       agent.post_session_count = (agent.post_session_count ?? 0) + posts;
       agent.comment_session_count =
         (agent.comment_session_count ?? 0) + comments;
 
-      if (timeline.data[0] && timeline.data[0].id) {
-        agent.post_last_checked_tweet_id = timeline.data[0].id;
+      const allTweets = this.twitterAccountService.flattenUniqueMappedTweets([
+        tweetsForComments,
+        tweetsForPosting,
+      ]);
+
+      const maxId = this.twitterAccountService.getMaxTweetId(allTweets);
+
+      if (maxId?.length) {
+        agent.post_last_checked_tweet_id = maxId;
       }
 
       await this.chatbotService.updateChatbot(agent.id, agent);
@@ -369,13 +396,12 @@ export class AgentService {
   async processPosts(
     account: TwitterAccount,
     agent: Chatbot,
-    timeline: TwitterTimelineResponse,
+    mappedTimeline: MappedTweet[],
   ): Promise<number> {
     let posts = 0;
-    const { accounts, keywords, prompt, per_day } =
+    const { accounts, keywords } =
       this.mapAgentToSettings(agent).agent.post_settings;
 
-    const mappedTimeline = this.mapTweets(timeline);
     const tweets = mappedTimeline.filter(
       (tweet) =>
         tweet.author.username !== account.screen_name &&
@@ -394,7 +420,7 @@ export class AgentService {
         continue;
       }
 
-      const prompt = this.performPromptForPost(agent, tweet) as string;
+      const prompt = this.performPromptForPost(agent, tweet);
       const postText = await this.aiService.processText(prompt);
       log(`@${tweet.author.username}:`, tweet.text);
       log(`@${account.screen_name}:`, postText);
@@ -408,7 +434,7 @@ export class AgentService {
   async processComments(
     account: TwitterAccount,
     agent: Chatbot,
-    timeline: TwitterTimelineResponse,
+    mappedTimeline: MappedTweet[],
   ): Promise<number> {
     let comments = 0;
     const {
@@ -420,7 +446,6 @@ export class AgentService {
       older_then,
     } = this.mapAgentToSettings(agent).agent.comment_settings;
 
-    const mappedTimeline = this.mapTweets(timeline);
     if (x_accounts_replies) {
       log('X Accounts Replies enabled', accounts);
       const tweets = mappedTimeline
@@ -468,7 +493,7 @@ export class AgentService {
         account,
         agent.post_last_checked_tweet_id,
       );
-      const mappedMentions = this.mapTweets(mentions);
+      const mappedMentions = this.twitterAccountService.mapTweets(mentions);
       const filteredMentions = mappedMentions.filter(
         (tweet) =>
           tweet.author &&
@@ -502,7 +527,7 @@ export class AgentService {
         account,
         agent.post_last_checked_tweet_id,
       );
-      const mappedMentions = this.mapTweets(mentions);
+      const mappedMentions = this.twitterAccountService.mapTweets(mentions);
       const filteredMentions = mappedMentions.filter(
         (tweet) =>
           tweet.author &&
@@ -531,38 +556,6 @@ export class AgentService {
       }
     }
     return comments;
-  }
-
-  private mapTweets(timeline: TwitterTimelineResponse): (TwitterTweet & {
-    author?: TwitterUser;
-    extended_referenced_tweets?: Array<
-      TwitterTweetReference & {
-        tweet?: TwitterTweet & { author?: TwitterUser };
-      }
-    >;
-  })[] {
-    if (!timeline.data || !timeline.includes || !timeline.includes.users) {
-      return [];
-    }
-
-    return timeline.data.map((tweet) => {
-      const author = timeline.includes.users.find(
-        (user) => user.id === tweet.author_id,
-      );
-
-      const extended_referenced_tweets = tweet.referenced_tweets?.map((ref) => {
-        const refTweet = timeline.data.find((t) => t.id === ref.id);
-        const refAuthor = refTweet
-          ? timeline.includes.users.find((u) => u.id === refTweet.author_id)
-          : undefined;
-        return {
-          ...ref,
-          tweet: refTweet ? { ...refTweet, author: refAuthor } : undefined,
-        };
-      });
-
-      return { ...tweet, author, extended_referenced_tweets };
-    });
   }
 
   private isQuote(tweet: TwitterTweet): boolean {

@@ -98,4 +98,9 @@ export class AgentController {
   async debugList() {
     return await this.agentService.getAgentsToPost();
   }
+
+  @Post('debug/process/:agentId')
+  async debugProcess(@Param('agentId') agentId: number) {
+    await this.agentService.processAgentById(agentId);
+  }
 }

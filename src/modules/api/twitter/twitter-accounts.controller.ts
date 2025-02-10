@@ -136,6 +136,33 @@ export class TwitterAccountController {
     };
   }
 
+  @Get('screen_name/:screenName/tweets/:accountId')
+  @ApiOperation({ summary: 'Get Tweets by Screen Name' })
+  @ApiParam({
+    name: 'screenName',
+    type: String,
+    description: 'Screen name of the Twitter account',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of tweets by the specified Twitter account.',
+  })
+  async getTweetsByScreenName(
+    @Param('screenName') screenName: string,
+    @Param('accountId') accountId: number,
+  ) {
+    const account = await this.twitterAccountService.getAccountWithActualTokens(
+      accountId,
+    );
+
+    console.log('account', account);
+    return this.twitterAccountService.getTweetsByScreenNameWithCache(
+      screenName,
+      account,
+      '1888438983111172548',
+    );
+  }
+
   @UseGuards(AuthGuard('jwt'))
   @Patch(':accountId')
   @ApiOperation({ summary: 'Update Twitter Account' })

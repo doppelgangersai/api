@@ -1,28 +1,28 @@
 import {
-  Controller,
-  Get,
-  Patch,
-  Param,
   Body,
-  UseGuards,
-  Post,
+  Controller,
   Delete,
+  Get,
   HttpCode,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
 } from '@nestjs/common';
 import {
-  ApiOperation,
-  ApiTags,
-  ApiResponse,
-  ApiParam,
-  ApiBody,
   ApiBearerAuth,
-  // ApiResponseProperty,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { ChatbotService } from './chatbot.service';
 import { Chatbot } from './chatbot.entity';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
 import { User } from '../user';
+import { ChatbotSource } from './chatbot.types';
 
 @ApiTags('chatbot')
 @Controller('api/chatbot')

@@ -7,10 +7,16 @@ import { TwitterAuthService } from './twitter-auth.service';
 import axios from 'axios';
 import { ConfigService } from '../../config';
 import fetch from 'node-fetch';
-import { TwitterTimelineResponse } from '../agent/agent-twitter.types';
+import {
+  TwitterTimelineResponse,
+  TwitterTweet,
+  TwitterTweetReference,
+  TwitterUser,
+} from '../agent/agent-twitter.types';
 import { OnEvent } from '@nestjs/event-emitter';
 import { TWITTER_ACCOUNT_CREATED_EVENT } from '../../../core/constants';
 import { TwitterAccountEmitter } from './twitter-account.emitter';
+import { MappedTweet } from '../agent/agent.service';
 
 const log = console.log;
 
@@ -18,12 +24,20 @@ const log = console.log;
 export class TwitterAccountService {
   private followingCache: Record<string, any[]> = {};
   private followingCacheExpiry: Record<string, Date> = {};
-  private twitterAccountEmitter: TwitterAccountEmitter;
+  private twitterIdCache: Record<string, string> = {};
+  private cachedTweets: Record<
+    string,
+    {
+      lastCheckedTweetId: string;
+      tweets: Record<string, any>;
+    }
+  > = {};
   constructor(
     @InjectRepository(TwitterAccount)
     private readonly twitterAccountRepository: Repository<TwitterAccount>,
     private readonly twitterAuthService: TwitterAuthService,
     private readonly configService: ConfigService,
+    private readonly twitterAccountEmitter: TwitterAccountEmitter,
   ) {}
 
   async getAccountById(accountId: number): Promise<TwitterAccount> {
@@ -104,6 +118,195 @@ export class TwitterAccountService {
     }));
   }
 
+  async getTwitterIdByScreenNameWithCache(
+    screen_name: string,
+    accessToken: string,
+  ) {
+    // no expiration for ids
+    if (this.twitterIdCache[screen_name]) {
+      return this.twitterIdCache[screen_name];
+    }
+    const response = await fetch(
+      `https://api.twitter.com/2/users/by/username/${screen_name}`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      },
+    );
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error fetching user data: ${errorText}`);
+    }
+
+    const userData = (await response.json()) as Record<
+      string,
+      Record<string, string>
+    >;
+    this.twitterIdCache[screen_name] = userData.data.id;
+    return userData.data.id;
+  }
+
+  async getTweetsByTwitterIdWithCache(
+    twitterId: string,
+    account: TwitterAccount,
+    since_id?: string,
+  ) {
+    console.log(since_id, this.cachedTweets[twitterId]);
+    if (
+      this.cachedTweets[twitterId] &&
+      this.cachedTweets[twitterId].lastCheckedTweetId &&
+      since_id &&
+      BigInt(this.cachedTweets[twitterId].lastCheckedTweetId) > BigInt(since_id)
+    ) {
+      return this.cachedTweets[twitterId].tweets;
+    }
+    // fetch tweets, not timeline
+    const options = {
+      method: 'GET',
+      headers: { Authorization: 'Bearer ' + account.access_token },
+    };
+    const tweetFields = [
+      'conversation_id',
+      'referenced_tweets',
+      'in_reply_to_user_id',
+    ].join(',');
+    const userFields = [
+      'connection_status',
+      'is_identity_verified',
+      'verified_type',
+      'public_metrics',
+    ].join(',');
+    const max_results = 100;
+    const tweets = (await fetch(
+      `https://api.twitter.com/2/users/${twitterId}/tweets?user.fields=${userFields}&tweet.fields=${tweetFields}&max_results=${max_results}${
+        since_id ? '&since_id=' + since_id : ''
+      }`,
+      options,
+    )
+      .then((response) => response.json())
+      .catch((err) => console.error(err))) as TwitterTimelineResponse;
+
+    if (tweets.status === 429) {
+      throw new Error('getTweetsByTwitterIdWithCache> Rate limit exceeded');
+    }
+
+    this.cachedTweets[twitterId] = {
+      lastCheckedTweetId: tweets.meta.newest_id,
+      tweets,
+    };
+
+    return tweets;
+  }
+
+  public mapTweets(
+    timeline: TwitterTimelineResponse,
+    extraUser?: Partial<TwitterUser>,
+  ): MappedTweet[] {
+    if (!timeline.data) {
+      return [];
+    }
+
+    const includedUsers: TwitterUser[] = timeline.includes?.users ?? [];
+
+    const getAuthor = (authorId?: string): TwitterUser | undefined => {
+      return includedUsers.find((u) => u.id && u.id === authorId);
+    };
+
+    return timeline.data.map((tweet) => {
+      const author = (extraUser as TwitterUser) ?? getAuthor(tweet.author_id);
+      console.log({
+        author,
+      });
+      const extended_referenced_tweets = tweet.referenced_tweets?.map((ref) => {
+        const refTweet = timeline.data.find((t) => t.id === ref.id);
+        const refAuthor = refTweet ? getAuthor(refTweet.author_id) : undefined;
+        return {
+          ...ref,
+          tweet: refTweet ? { ...refTweet, author: refAuthor } : undefined,
+        };
+      });
+      return { ...tweet, author, extended_referenced_tweets };
+    });
+  }
+
+  public flattenUniqueMappedTweets(
+    mappedTweets2D: MappedTweet[][],
+  ): MappedTweet[] {
+    const flattened: MappedTweet[] = mappedTweets2D.flat();
+
+    const seenIds = new Set<string>();
+    const uniqueTweets: MappedTweet[] = flattened.filter((tweet) => {
+      if (seenIds.has(tweet.id)) {
+        return false;
+      }
+      seenIds.add(tweet.id);
+      return true;
+    });
+
+    return uniqueTweets;
+  }
+
+  public getMaxTweetId(tweets: MappedTweet[]): string {
+    let maxId: string | undefined;
+
+    for (const tweet of tweets) {
+      if (tweet && tweet.id) {
+        if (maxId === undefined || BigInt(tweet.id) > BigInt(maxId)) {
+          maxId = tweet.id;
+        }
+      }
+    }
+    return maxId || '';
+  }
+  public getTweetsByList(
+    accounts: string[],
+    twitterAccount: TwitterAccount,
+    last_checked_tweet_id: string,
+  ) {
+    return Promise.all(
+      accounts.map(async (account) => {
+        try {
+          const account_id = await this.getTwitterIdByScreenNameWithCache(
+            account,
+            twitterAccount.access_token,
+          );
+
+          const tweets = (await this.getTweetsByScreenNameWithCache(
+            account,
+            twitterAccount,
+            last_checked_tweet_id,
+          )) as TwitterTimelineResponse;
+
+          const mappedTweets = this.mapTweets(tweets, {
+            username: account,
+            id: account_id,
+          });
+
+          console.log({
+            account,
+            account_id,
+            mappedTweets: mappedTweets.slice(0, 3),
+          });
+
+          return mappedTweets;
+        } catch (e) {
+          return [];
+        }
+      }),
+    ).then(this.flattenUniqueMappedTweets);
+  }
+
+  async getTweetsByScreenNameWithCache(
+    screen_name: string,
+    account: TwitterAccount,
+    since_id?: string,
+  ) {
+    const twitterId = await this.getTwitterIdByScreenNameWithCache(
+      screen_name,
+      account.access_token,
+    );
+    return this.getTweetsByTwitterIdWithCache(twitterId, account, since_id);
+  }
+
   async getFollowingByScreenNameWithCache(screen_name: string) {
     if (
       this.followingCache[screen_name] &&
@@ -172,6 +375,11 @@ export class TwitterAccountService {
       createAccount.refresh_token,
     );
 
+    console.log(
+      'Emitting this.twitterAccountEmitter.emitTwitterAccountCreated(savedAccount.id);',
+      savedAccount,
+      savedAccount.id,
+    );
     this.twitterAccountEmitter.emitTwitterAccountCreated(savedAccount.id);
 
     return saveTokensResult;
