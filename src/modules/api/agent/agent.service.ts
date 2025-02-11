@@ -598,6 +598,7 @@ export class AgentService {
     tweet: TwitterTweet,
     keywords: string[],
   ): boolean {
+    console.log('Checking for keywords', tweet, keywords);
     if (!keywords?.length) {
       return true;
     }

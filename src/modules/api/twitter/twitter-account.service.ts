@@ -104,7 +104,7 @@ export class TwitterAccountService {
   async getFollowingByScreenName(screen_name: string) {
     const apify_token = this.configService.get('APIFY_TOKEN');
     const response = await axios.post(
-      `https://api.apify.com/v2/acts/apnow~twitter-user-following-scraper/run-sync-get-dataset-items?token=${apify_token}&method=POST`,
+      `https://api.apify.com/v2/acts/twittapi~twitter-user-following-scraper/run-sync-get-dataset-items?token=${apify_token}&method=POST`,
       {
         username: screen_name,
         num: 1000,
@@ -314,8 +314,11 @@ export class TwitterAccountService {
     ) {
       return this.followingCache[screen_name];
     }
-    let following = await this.getFollowingByScreenName(screen_name).catch(() =>
-      console.log('Following 2nd attempt'),
+    let following = await this.getFollowingByScreenName(screen_name).catch(
+      (e) => {
+        console.log(e.message);
+        console.log('Following 2nd attempt');
+      },
     );
     if (!following) {
       following = await this.getFollowingByScreenName(screen_name);
