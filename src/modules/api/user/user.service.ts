@@ -70,17 +70,19 @@ export class UserService {
       );
     }
 
-    return await this.usersRepository.save({
-      ...payload,
-      fcmToken: payload.fcmToken || null,
-    }).then(async(userData) => {
-      await this.sendWelcomeEmail({
-        email: userData.email,
-        userName: userData.fullName
-      });
+    return await this.usersRepository
+      .save({
+        ...payload,
+        fcmToken: payload.fcmToken || null,
+      })
+      .then(async (userData) => {
+        await this.sendWelcomeEmail({
+          email: userData.email,
+          userName: userData.fullName,
+        });
 
-      return userData;
-    });
+        return userData;
+      });
   }
 
   async update(id, user: Partial<User>) {
@@ -130,9 +132,7 @@ export class UserService {
 
   async getEmails() {
     // get emails for all users
-    const users = await this.usersRepository.find({
-      select: ['email'],
-    });
+    const users = await this.usersRepository.find();
     return users.map((user) => user.email);
   }
 
@@ -140,14 +140,14 @@ export class UserService {
     email,
     userName,
   }: {
-    email: string,
-    userName: string
+    email: string;
+    userName: string;
   }): Promise<void> {
     await this.emailService.sendEmail({
       to: email,
       subject: 'Welcome to Doppelgangers AI!',
       userName,
-      templateName: 'welcome'
+      templateName: 'welcome',
     });
   }
 }
