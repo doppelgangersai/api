@@ -133,7 +133,10 @@ export class UserService {
   async getEmails() {
     // get emails for all users
     const users = await this.usersRepository.find();
-    return users.map((user) => user.email);
+    console.log(users);
+    const emails = users.map((user) => user.email).filter((email) => !!email);
+    console.log(emails);
+    return emails;
   }
 
   private async sendWelcomeEmail({

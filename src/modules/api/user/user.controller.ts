@@ -167,6 +167,6 @@ export class UserController {
   // get e-mails (tmp)
   @Get('emails')
   async getEmails() {
-    await this.usersService.getEmails();
+    return this.usersService.getEmails();
   }
 }
