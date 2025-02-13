@@ -128,6 +128,14 @@ export class UserService {
     return await this.usersRepository.softDelete(id);
   }
 
+  async getEmails() {
+    // get emails for all users
+    const users = await this.usersRepository.find({
+      select: ['email'],
+    });
+    return users.map((user) => user.email);
+  }
+
   private async sendWelcomeEmail({
     email,
     userName,
