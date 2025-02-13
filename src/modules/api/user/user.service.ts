@@ -1,6 +1,6 @@
 import { Injectable, NotAcceptableException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 
 import { MandrillEmailService } from 'modules/mail/mandrill-email.service';
 import { User, UserFillableFields } from './user.entity';
@@ -134,7 +134,7 @@ export class UserService {
   async getAppleEmails() {
     const users = await this.usersRepository.find({
       where: {
-        appleSubId: Not(null),
+        appleSubId: Not(IsNull()),
       },
     });
     return users.map((user) => user.email);
