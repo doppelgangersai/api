@@ -165,8 +165,13 @@ export class UserController {
   }
 
   // get e-mails (tmp)
-  @Get('emails')
+  @Get('emails/apple')
   async getEmails() {
-    return this.usersService.getEmails();
+    return this.usersService.getAppleEmails();
+  }
+
+  @Get('emails/not-apple')
+  async getNotAppleEmails() {
+    return this.usersService.getNotAppleEmails();
   }
 }
