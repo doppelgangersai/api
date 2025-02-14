@@ -1,24 +1,33 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { TUserID } from '../../user/user.types';
-
-export enum MissionStatus {
-  TODO = 'todo',
-  STARTED = 'started',
-  REVIEW = 'review',
-  DONE = 'done',
-}
+import { MissionStatus } from '../types/mission.enums';
 
 @Entity()
 export class UserMissionEntity {
+  /**
+   * Unique identifier for the user mission.
+   * @type {number}
+   */
   @PrimaryGeneratedColumn()
   id: number;
 
+  /**
+   * Unique identifier for the mission.
+   * @type {number}
+   */
   @Column()
   missionId: number;
 
+  /**
+   * Unique identifier for the user.
+   * @type {number}
+   */
   @Column()
-  userId: TUserID; // be careful on type change
+  userId: number;
 
+  /**
+   * Status of the mission.
+   * @type {MissionStatus}
+   */
   @Column({
     type: 'enum',
     enum: MissionStatus,
@@ -27,6 +36,10 @@ export class UserMissionEntity {
   })
   status: MissionStatus;
 
+  /**
+   * Date when the mission was completed.
+   * @type {Date}
+   */
   @Column({ type: 'timestamp', nullable: true })
   completedAt?: Date;
 }
