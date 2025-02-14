@@ -20,10 +20,9 @@ import {
 } from './agent-twitter.types';
 import { TAgentID } from './agent.controller';
 import { GetAgentResponseDto } from './agent.dtos';
-import * as fs from 'node:fs';
-import { shuffleArray } from '../../../utils/random';
+import * as process from 'node:process';
 
-const log = console.log;
+const log = process.env.NODE_ENV === 'local' ? console.log : (...x) => {};
 const error_log = console.error;
 
 export type MappedTweet = TwitterTweet & {
@@ -256,11 +255,6 @@ export class AgentService {
       error_log('processAgent> Agent is disabled');
       return;
     }
-
-    console.log({
-      comment_enabled: agent.comment_enabled,
-      post_enabled: agent.post_enabled,
-    });
 
     try {
       const twitterAccount =
