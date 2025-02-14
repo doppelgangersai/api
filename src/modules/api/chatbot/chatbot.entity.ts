@@ -278,6 +278,19 @@ export class Chatbot implements IDoppelganger {
   })
   comment_session_count: number;
 
+  // comments and posts last interacted tweets
+  @Column({
+    type: 'text',
+    nullable: true,
+  })
+  post_last_interacted_tweet_id?: string;
+
+  @Column({
+    type: 'text',
+    nullable: true,
+  })
+  comment_last_interacted_tweet_id?: string;
+
   toJSON() {
     const { backstory, ...self } = this;
     const mapped = { ...self, avatar: avatarTransformer(this) };
