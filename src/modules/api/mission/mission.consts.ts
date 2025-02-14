@@ -1,17 +1,7 @@
-import { MissionStatus } from './entites/user-mission.entity';
+import { MissionStatus, MissionAction } from './types/mission.enums';
 
 export const ANDROID_BONUS_POINTS = 1000;
 export const ANDROID_BONUS_MISSION_ID = 11;
-
-export enum MissionAction {
-  REFER = 'refer',
-  FOLLOW = 'follow',
-  TAG = 'tag',
-  JOIN = 'join',
-  CONNECT = 'connect',
-  MERGE = 'merge',
-  CREATE_ACCOUNT = 'create_account',
-}
 
 export const MISSIONS_LIST = [
   {
