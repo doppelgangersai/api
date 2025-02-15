@@ -290,7 +290,8 @@ export class AgentService {
           ? await this.twitterAccountService.getTweetsByList(
               agent.post_accounts,
               twitterAccount,
-              agent.post_last_checked_tweet_id,
+              agent.post_last_interacted_tweet_id ??
+                agent.post_last_checked_tweet_id,
             )
           : [];
 
@@ -317,7 +318,8 @@ export class AgentService {
           ? await this.twitterAccountService.getTweetsByList(
               agent.comment_accounts,
               twitterAccount,
-              agent.post_last_checked_tweet_id,
+              agent.post_last_interacted_tweet_id ??
+                agent.post_last_checked_tweet_id,
             )
           : [];
 
@@ -533,7 +535,6 @@ export class AgentService {
             // !this.isQuote(tweet) &&
             !this.isRetweet(tweet) &&
             !this.isReply(tweet) &&
-            this.isNotAlreadyInteracted(tweet, account.id) &&
             (!agent.comment_last_interacted_tweet_id ||
               (agent.comment_last_interacted_tweet_id &&
                 BigInt(tweet.id) >
