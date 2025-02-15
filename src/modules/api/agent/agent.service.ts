@@ -250,6 +250,7 @@ export class AgentService {
   }
 
   async processAgent(agent: Chatbot): Promise<void> {
+    console.log('Processing agent', agent.id);
     log('Posting for account', agent.twitterAccountId);
     if (!agent.agent_enabled) {
       error_log('processAgent> Agent is disabled');
@@ -261,6 +262,12 @@ export class AgentService {
         await this.twitterAccountService.getAccountWithActualTokens(
           agent.twitterAccountId,
         );
+
+      console.log(
+        'Retrieved account',
+        twitterAccount.id,
+        twitterAccount.screen_name,
+      );
 
       if (
         agent.last_agent_error &&
@@ -287,6 +294,22 @@ export class AgentService {
             )
           : [];
 
+      console.log('Retrieved tweets for posting', tweetsForPosting.length);
+      console.log(
+        'Max id:',
+        // Math.max(...tweetsForPosting.map((t) => BigInt(t.id))),
+        // do same but for BigInt
+        tweetsForPosting.reduce(
+          (max, t) => (BigInt(t.id) > max ? BigInt(t.id) : max),
+          BigInt(0),
+        ),
+      );
+      // last interacted tweet id
+      console.log(
+        'Posting last interacted tweet id',
+        agent.post_last_interacted_tweet_id,
+      );
+
       const tweetsForComments =
         agent.comment_enabled &&
         agent.comment_x_accounts_replies &&
@@ -298,19 +321,48 @@ export class AgentService {
             )
           : [];
 
+      console.log('Retrieved tweets for comments', tweetsForComments.length);
+      console.log(
+        'Max id:',
+        tweetsForComments.reduce(
+          (max, t) => (BigInt(t.id) > max ? BigInt(t.id) : max),
+          BigInt(0),
+        ),
+      );
+
+      console.log(
+        'Comments last interacted tweet id',
+        agent.comment_last_interacted_tweet_id,
+      );
+
       const { posts, post_last_interacted_tweet_id } = await this.processPosts(
         twitterAccount,
         agent,
         tweetsForPosting,
       );
+      console.log('Processed posts', posts);
+      console.log(
+        'Last interacted tweet id after processing',
+        post_last_interacted_tweet_id,
+      );
       const { comments, comment_last_interacted_tweet_id } =
         await this.processComments(twitterAccount, agent, tweetsForComments);
+      console.log('Processed comments', comments);
+      console.log(
+        'Last interacted tweet id after processing',
+        comment_last_interacted_tweet_id,
+      );
 
       agent.post_session_count = (agent.post_session_count ?? 0) + posts;
       agent.comment_session_count =
         (agent.comment_session_count ?? 0) + comments;
       agent.post_last_interacted_tweet_id = post_last_interacted_tweet_id;
       agent.comment_last_interacted_tweet_id = comment_last_interacted_tweet_id;
+
+      agent.post_last_check = new Date();
+      agent.comment_last_check = new Date();
+
+      console.log('Updating agent', agent.id, agent.twitterAccountId);
 
       const allTweets = this.twitterAccountService.flattenUniqueMappedTweets([
         tweetsForComments,
@@ -324,6 +376,7 @@ export class AgentService {
       }
 
       await this.chatbotService.updateChatbot(agent.id, agent);
+      console.log('Updated agent', agent.id, agent.twitterAccountId);
     } catch (e) {
       error_log('Error posting:', e);
       agent.last_agent_error = new Date();
