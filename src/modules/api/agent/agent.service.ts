@@ -356,8 +356,11 @@ export class AgentService {
       agent.post_session_count = (agent.post_session_count ?? 0) + posts;
       agent.comment_session_count =
         (agent.comment_session_count ?? 0) + comments;
-      agent.post_last_interacted_tweet_id = post_last_interacted_tweet_id;
-      agent.comment_last_interacted_tweet_id = comment_last_interacted_tweet_id;
+      agent.post_last_interacted_tweet_id =
+        post_last_interacted_tweet_id ?? agent.post_last_interacted_tweet_id;
+      agent.comment_last_interacted_tweet_id =
+        comment_last_interacted_tweet_id ??
+        agent.comment_last_interacted_tweet_id;
 
       agent.post_last_check = new Date();
       agent.comment_last_check = new Date();
