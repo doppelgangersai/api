@@ -341,14 +341,24 @@ export class AgentService {
         twitterAccount,
         agent,
         tweetsForPosting,
-      );
+      ).catch((e) => {
+        error_log('Error posting:', e);
+        return { posts: 0 };
+      });
       console.log('Processed posts', posts);
       console.log(
         'Last interacted tweet id after processing',
         post_last_interacted_tweet_id,
       );
       const { comments, comment_last_interacted_tweet_id } =
-        await this.processComments(twitterAccount, agent, tweetsForComments);
+        await this.processComments(
+          twitterAccount,
+          agent,
+          tweetsForComments,
+        ).catch((e) => {
+          error_log('Error posting:', e);
+          return { comments: 0 };
+        });
       console.log('Processed comments', comments);
       console.log(
         'Last interacted tweet id after processing',
@@ -485,8 +495,13 @@ export class AgentService {
       await this.tweet(account, postText)
         .then(() => posts++)
         .then(() => {
+          console.log('Setting post_last_interacted_tweet_id', tweet.id);
           post_last_interacted_tweet_id = tweet.id;
         });
+      console.log(
+        'post_last_interacted_tweet_id',
+        post_last_interacted_tweet_id,
+      );
     }
 
     return { posts, post_last_interacted_tweet_id };
@@ -553,8 +568,13 @@ export class AgentService {
         await this.replyToTweet(account, tweets[0].id, replyText)
           .then(() => comments++)
           .then(() => {
+            console.log('Setting comment_last_interacted_tweet_id', tweet.id);
             comment_last_interacted_tweet_id = tweet.id;
           });
+        console.log(
+          'comment_last_interacted_tweet_id',
+          comment_last_interacted_tweet_id,
+        );
       }
     }
 
