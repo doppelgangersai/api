@@ -13,6 +13,10 @@ import { TWITTER_CONNECTED_EVENT } from '../../../../core/constants';
 import { TUserID } from '../../user/user.types';
 import { ChatbotSource } from '../../chatbot/chatbot.types';
 import { TwitterAccountService } from '../../twitter/twitter-account.service';
+import {
+  MappedTweet,
+  TwitterTimelineResponse,
+} from '../../agent/agent-twitter.types';
 
 @Injectable()
 export class VaultTwitterAuthService {
@@ -93,6 +97,42 @@ export class VaultTwitterAuthService {
     console.log('updatedUser', updatedUser);
 
     this.vaultEmitter.emitTwitterConnected(userId);
+  }
+
+  public async forceCreateChatbotByTwitter(
+    screenName: string,
+    userId: TUserID,
+  ) {
+    console.log(screenName);
+    const account = await this.twitterAccountService.getAccountWithActualTokens(
+      2,
+    );
+
+    console.log('account', account);
+    const twitterId =
+      await this.twitterAccountService.getTwitterIdByScreenNameWithCache(
+        screenName,
+        account.access_token,
+      );
+    const tweets =
+      (await this.twitterAccountService.getTweetsByTwitterIdWithCache(
+        twitterId,
+        account,
+      )) as TwitterTimelineResponse;
+    const mappedMessages: MessagesWithTitle = {
+      title: `Tweets and replies of ${screenName}`,
+      messages: tweets.data
+        .filter((tweet) => tweet.in_reply_to_user_id === null)
+        .map((tweet) => tweet.text),
+    };
+    console.log('mappedMessages', mappedMessages);
+
+    await this.chatbotService.createOrUpdateChatbotWithSameSource(
+      [mappedMessages],
+      userId,
+      ChatbotSource.TWITTER,
+      account.id,
+    );
   }
 
   @OnEvent(TWITTER_CONNECTED_EVENT)
@@ -188,10 +228,14 @@ export class VaultTwitterAuthService {
 
   private async getUserData(
     accessToken: string,
+    userId = 'me',
   ): Promise<{ name: string; username: string }> {
-    const userResponse = await fetch('https://api.twitter.com/2/users/me', {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    const userResponse = await fetch(
+      'https://api.twitter.com/2/users/' + userId,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      },
+    );
 
     if (!userResponse.ok) {
       const errorText = await userResponse.text();
