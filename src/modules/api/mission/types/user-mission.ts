@@ -1,5 +1,4 @@
-import { IMission } from "./mission";
-import { MissionStatus } from "./mission.enums";
+import { MissionStatus } from './mission.enums';
 
 /**
  * Interface representing a user's mission.

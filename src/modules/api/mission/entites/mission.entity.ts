@@ -2,7 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 import { MissionAction } from '../types/mission.enums';
 import { IMission } from '../types/mission';
 
-@Entity()
+@Entity('missions')
 export class MissionEntity implements IMission {
   @PrimaryGeneratedColumn()
   id: number;

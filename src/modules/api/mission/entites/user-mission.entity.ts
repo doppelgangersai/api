@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { MissionStatus } from '../types/mission.enums';
 
-@Entity()
+@Entity('user_missions')
 export class UserMissionEntity {
   /**
    * Unique identifier for the user mission.

@@ -1,4 +1,4 @@
-import { MissionAction, MissionStatus } from 'modules/api/mission/types/mission.enums';
+import { MissionAction, MissionStatus, MissionValidationType } from 'modules/api/mission/types/mission.enums';
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
 export class CreateMissionEntities1641234567890 implements MigrationInterface {
@@ -17,11 +17,22 @@ export class CreateMissionEntities1641234567890 implements MigrationInterface {
                     type: 'int',
                 },
                 {
+                    name: 'userId',
+                    type: 'int',
+                },
+                {
                     name: 'validationType',
-                    type: 'varchar',
+                    type: 'enum',
+                    enumName: 'mission_validation_type_enum',
+                    enum: [
+                        MissionValidationType.FOLLOW,
+                        MissionValidationType.JOIN,
+                        MissionValidationType.TAG
+                    ]
                 },
                 {
                     name: 'validationParams',
+                    isNullable: true,
                     type: 'jsonb',
                 },
             ],
@@ -47,14 +58,15 @@ export class CreateMissionEntities1641234567890 implements MigrationInterface {
                 {
                     name: 'action',
                     type: 'enum',
+                    enumName: 'missions_action_enum',
                     enum: [
-                      MissionAction.REFER,
-                      MissionAction.FOLLOW,
-                      MissionAction.TAG,
-                      MissionAction.JOIN,
-                      MissionAction.CONNECT,
-                      MissionAction.MERGE,
-                      MissionAction.CREATE_ACCOUNT
+                        MissionAction.REFER,
+                        MissionAction.FOLLOW,
+                        MissionAction.TAG,
+                        MissionAction.JOIN,
+                        MissionAction.CONNECT,
+                        MissionAction.MERGE,
+                        MissionAction.CREATE_ACCOUNT
                     ],
                     },
                 {
@@ -113,9 +125,9 @@ export class CreateMissionEntities1641234567890 implements MigrationInterface {
                 {
                     name: 'status',
                     type: 'enum',
+                    enumName: 'mission_status_enum',
                     enum: [MissionStatus.TODO, MissionStatus.REVIEW, MissionStatus.DONE],
                     isNullable: true,
-                    default: MissionStatus.TODO,
                 },
                 {
                     name: 'completedAt',
@@ -127,7 +139,6 @@ export class CreateMissionEntities1641234567890 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.dropTable('user_mission_entity');
         await queryRunner.dropTable('user_missions');
         await queryRunner.dropTable('missions');
         await queryRunner.dropTable('mission_validations');

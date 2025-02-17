@@ -1,4 +1,4 @@
-import { MissionAction } from "./mission.enums";
+import { MissionAction } from './mission.enums';
 
 /**
  * Interface representing a mission in the system

@@ -1,3 +1,5 @@
+import { MissionValidationType } from './mission.enums';
+
 /**
  * Interface representing the validation details of a mission.
  */
@@ -15,10 +17,10 @@ export interface IMissionValidation {
     /**
      * Type of validation to be performed.
      */
-    validationType: string;
+    validationType: MissionValidationType;
 
     /**
      * Parameters required for the validation.
      */
-    validationParams: Record<string, string | number | boolean>;
+    validationParams: Record<string, string | number | boolean> | null;
 }

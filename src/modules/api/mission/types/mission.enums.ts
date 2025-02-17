@@ -13,3 +13,9 @@ export enum MissionAction {
   MERGE = 'merge',
   CREATE_ACCOUNT = 'create_account',
 }
+
+export enum MissionValidationType {
+  JOIN = 'join',
+  FOLLOW = 'follow',
+  TAG = 'tag',
+}
