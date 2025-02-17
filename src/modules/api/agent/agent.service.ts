@@ -343,7 +343,10 @@ export class AgentService {
         tweetsForPosting,
       ).catch((e) => {
         error_log('Error posting:', e);
-        return { posts: 0 };
+        return {
+          posts: 0,
+          post_last_interacted_tweet_id: agent.post_last_interacted_tweet_id,
+        };
       });
       console.log('Processed posts', posts);
       console.log(
@@ -357,7 +360,11 @@ export class AgentService {
           tweetsForComments,
         ).catch((e) => {
           error_log('Error posting:', e);
-          return { comments: 0 };
+          return {
+            comments: 0,
+            comment_last_interacted_tweet_id:
+              agent.post_last_interacted_tweet_id,
+          };
         });
       console.log('Processed comments', comments);
       console.log(
