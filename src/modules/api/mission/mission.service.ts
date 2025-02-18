@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { User } from '../user';
 import { UserMissionEntity } from './entites/user-mission.entity';
 import { MissionAction, MissionStatus, MissionValidationType } from './types/mission.enums';
@@ -125,9 +125,23 @@ export class MissionService {
     return missionValidation;
   }
 
-  async getAllMissions(): Promise<IMission[]> {
+  async getAllMissions(user: User): Promise<IMission[]> {
+    const userMissions = await this.userMissionRepository.find({
+      where: { userId: user.id },
+    });
+
+    const completedMissionIds = userMissions
+      .filter((mission) => mission.status === MissionStatus.DONE)
+      .map((mission) => mission.missionId);
+
     return this.missionRepository.find({
-      where: { isActive: true }
+      where: {
+        isActive: true,
+        id: Not(In(completedMissionIds)),
+      },
+      order: {
+        isRepeatable: 'DESC',
+      },
     });
   }
 

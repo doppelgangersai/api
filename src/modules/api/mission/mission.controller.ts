@@ -144,11 +144,11 @@ export class MissionController {
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
     summary: 'Get all missions',
-    description: 'Return all active mission',
+    description: 'Return all active missions that the user has not completed',
   })
   @Get()
-  async getAllMissions() {
-    const missions = await this.missionService.getAllMissions();
+  async getAllMissions(@CurrentUser() user: User) {
+    const missions = await this.missionService.getAllMissions(user);
     return { missions };
   }
 }
