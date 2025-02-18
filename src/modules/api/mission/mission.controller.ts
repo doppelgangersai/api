@@ -122,18 +122,16 @@ export class MissionController {
     @CurrentUser() user: User,
   ) {
     try {
-      const { missionId, validationParams } = updateMissionValidationDto;
-
       const updatedMissionValidation = await this.missionService.updateMissionValidation(
         user,
-        missionId,
-        validationParams,
+        updateMissionValidationDto.missionId,
+        updateMissionValidationDto.validationParams,
       );
 
       return {
         missionValidation: updatedMissionValidation,
       };
-      
+
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
