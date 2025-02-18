@@ -185,10 +185,14 @@ export class User implements IDoppelganger {
   @ApiProperty({
     required: false,
     example: 'eB_JLEYzSYqk-PtxmqDtbf:APA91bHqpNGFN...',
-    description: 'Firebase Cloud Messaging token for push notifications'
+    description: 'Firebase Cloud Messaging token for push notifications',
   })
   @Column({ nullable: true })
   fcmToken: string;
+
+  @ApiResponseProperty()
+  @Column({ default: false, nullable: true })
+  isAdmin: boolean;
 
   toJSON() {
     const {

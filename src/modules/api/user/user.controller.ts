@@ -163,4 +163,15 @@ export class UserController {
   async deleteLoggedInUser(@CurrentUser() user: User): Promise<void> {
     await this.usersService.delete(user.id);
   }
+
+  // // get e-mails (tmp)
+  // @Get('emails/apple')
+  // async getEmails() {
+  //   return this.usersService.getAppleEmails();
+  // }
+  //
+  // @Get('emails/not-apple')
+  // async getNotAppleEmails() {
+  //   return this.usersService.getNotAppleEmails();
+  // }
 }

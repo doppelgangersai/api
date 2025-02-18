@@ -1,6 +1,6 @@
 import { Injectable, NotAcceptableException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 
 import { MandrillEmailService } from 'modules/mail/mandrill-email.service';
 import { User, UserFillableFields } from './user.entity';
@@ -70,17 +70,19 @@ export class UserService {
       );
     }
 
-    return await this.usersRepository.save({
-      ...payload,
-      fcmToken: payload.fcmToken || null,
-    }).then(async(userData) => {
-      await this.sendWelcomeEmail({
-        email: userData.email,
-        userName: userData.fullName
-      });
+    return await this.usersRepository
+      .save({
+        ...payload,
+        fcmToken: payload.fcmToken || null,
+      })
+      .then(async (userData) => {
+        await this.sendWelcomeEmail({
+          email: userData.email,
+          userName: userData.fullName,
+        });
 
-      return userData;
-    });
+        return userData;
+      });
   }
 
   async update(id, user: Partial<User>) {
@@ -128,18 +130,37 @@ export class UserService {
     return await this.usersRepository.softDelete(id);
   }
 
+  // apple subId is not null
+  async getAppleEmails() {
+    const users = await this.usersRepository.find({
+      where: {
+        appleSubId: Not(IsNull()),
+      },
+    });
+    return users.map((user) => user.email);
+  }
+
+  async getNotAppleEmails() {
+    const users = await this.usersRepository.find({
+      where: {
+        appleSubId: null,
+      },
+    });
+    return users.map((user) => user.email);
+  }
+
   private async sendWelcomeEmail({
     email,
     userName,
   }: {
-    email: string,
-    userName: string
+    email: string;
+    userName: string;
   }): Promise<void> {
     await this.emailService.sendEmail({
       to: email,
       subject: 'Welcome to Doppelgangers AI!',
       userName,
-      templateName: 'welcome'
+      templateName: 'welcome',
     });
   }
 }

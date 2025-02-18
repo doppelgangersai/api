@@ -61,6 +61,8 @@ export class TwitterAccountService {
         'user_id',
       ],
     });
+
+    console.log('Account: ', account);
     if (!account) {
       throw new HttpException('Account not found', 404);
     }
@@ -149,7 +151,7 @@ export class TwitterAccountService {
     twitterId: string,
     account: TwitterAccount,
     since_id?: string,
-  ) {
+  ): Promise<TwitterTimelineResponse> {
     console.log(since_id, this.cachedTweets[twitterId]);
     if (
       this.cachedTweets[twitterId] &&
@@ -157,7 +159,7 @@ export class TwitterAccountService {
       since_id &&
       BigInt(this.cachedTweets[twitterId].lastCheckedTweetId) > BigInt(since_id)
     ) {
-      return this.cachedTweets[twitterId].tweets;
+      return this.cachedTweets[twitterId].tweets as TwitterTimelineResponse;
     }
     // fetch tweets, not timeline
     const options = {
@@ -186,6 +188,7 @@ export class TwitterAccountService {
       .catch((err) => console.error(err))) as TwitterTimelineResponse;
 
     if (tweets.status === 429) {
+      console.log(tweets);
       throw new Error('getTweetsByTwitterIdWithCache> Rate limit exceeded');
     }
 
@@ -194,7 +197,7 @@ export class TwitterAccountService {
       tweets,
     };
 
-    return tweets;
+    return tweets as TwitterTimelineResponse;
   }
 
   public mapTweets(

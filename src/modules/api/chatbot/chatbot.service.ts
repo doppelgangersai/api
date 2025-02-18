@@ -93,7 +93,7 @@ export class ChatbotService {
       avatar: user.avatar,
       isPublic: false,
       source,
-      twitterAccountId,
+      ...(twitterAccountId !== 1 ? { twitterAccountId } : {}),
     });
 
     const chatbotId = chatbot.id;

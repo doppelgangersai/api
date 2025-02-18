@@ -1,16 +1,24 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { useContainer } from 'class-validator';
+import * as Sentry from '@sentry/node';
 import { TrimStringsPipe } from './modules/common/transformer/trim-strings.pipe';
 import { AppModule } from './modules/main/app.module';
 import { setupSwagger } from './swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import * as process from 'node:process';
 
 async function bootstrap() {
   const app = await NestFactory.create<
     NestExpressApplication & INestApplication
   >(AppModule);
+
+  process.env.SENTRY_DSN &&
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      environment: process.env.NODE_ENV || 'development',
+    });
 
   setupSwagger(app);
   app.enableCors();

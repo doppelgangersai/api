@@ -22,6 +22,7 @@ import { CurrentUser } from '../../../common/decorator/current-user.decorator';
 import { User } from '../../user';
 import { OptionalAuthGuard } from '../../../../core/guards/optional-auth.guard';
 import { AuthGuard } from '@nestjs/passport';
+import { AdminGuard } from '../../../../core/guards/admin.guard';
 
 class TwitterMobileAuthDto {
   @ApiProperty({
@@ -35,6 +36,17 @@ class TwitterMobileAuthDto {
     required: false,
   })
   twitterAccessToken?: string;
+}
+
+class ForceCreateChatbotDto {
+  @ApiProperty({
+    example: 'doppelgangers_ai',
+  })
+  screenName: string;
+  @ApiProperty({
+    example: 1,
+  })
+  userId: number;
 }
 
 @ApiTags('vault/twitter')
@@ -151,6 +163,22 @@ export class VaultTwitterAuthController {
       user.id,
       twitterRefreshToken,
       twitterAccessToken,
+    );
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
+  @ApiOperation({
+    description: 'Force create chatbot from twitter screen name',
+    summary: 'Force create chatbot from twitter screen name',
+  })
+  @Patch('force-create-chatbot')
+  async forceCreateChatbot(
+    @Body() { screenName, userId }: ForceCreateChatbotDto,
+  ) {
+    return this.vaultTwitterAuthService.forceCreateChatbotByTwitter(
+      screenName,
+      userId,
     );
   }
 }
