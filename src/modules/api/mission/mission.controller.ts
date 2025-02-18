@@ -144,7 +144,7 @@ export class MissionController {
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({
     summary: 'Get all missions',
-    description: 'Возвращает список всех доступных миссий',
+    description: 'Return all active mission',
   })
   @Get()
   async getAllMissions() {
