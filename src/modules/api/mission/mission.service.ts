@@ -101,7 +101,21 @@ export class MissionService {
     return mission;
   }
 
-  // write validation function to update mission validation
+  async updateMissionValidation(user: User, missionId: number, validationParams: any) {
+    const missionValidation = await this.missionValidationRepository.findOne({
+      where: { userId: user.id, missionId },
+    });
+
+    if (!missionValidation) {
+      throw new NotFoundException('Mission validation not found');
+    }
+
+    missionValidation.validationParams = validationParams as Record<string, string | number | boolean>;
+    await this.missionValidationRepository.save(missionValidation);
+
+    return missionValidation;
+  }
+
 
   async getMissionById(missionId: number): Promise<IMission | null> {
     return this.missionRepository.findOne({ where: { id: missionId } }) ?? null;

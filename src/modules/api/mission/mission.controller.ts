@@ -8,8 +8,8 @@ import {
 } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorator/current-user.decorator';
 import { User } from '../user';
+import { StartMissionDto, UpdateMissionValidationDto } from './dto';
 import { MissionService } from './mission.service';
-import { StartMissionDto } from './dto';
 
 @Controller('api/missions')
 @ApiTags('missions')
@@ -96,6 +96,47 @@ export class MissionController {
       }
       if (error instanceof ConflictException) {
         throw new ConflictException(error.message);
+      }
+      throw error;
+    }
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({
+    summary: 'Update mission validation',
+    description: 'Updates the validation parameters for a mission',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Mission validation successfully updated',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Mission validation not found',
+  })
+  @HttpCode(200)
+  @Post('update-validation')
+  async updateMissionValidation(
+    @Body() updateMissionValidationDto: UpdateMissionValidationDto,
+    @CurrentUser() user: User,
+  ) {
+    try {
+      const { missionId, validationParams } = updateMissionValidationDto;
+
+      const updatedMissionValidation = await this.missionService.updateMissionValidation(
+        user,
+        missionId,
+        validationParams,
+      );
+
+      return {
+        missionValidation: updatedMissionValidation,
+      };
+      
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
       }
       throw error;
     }
