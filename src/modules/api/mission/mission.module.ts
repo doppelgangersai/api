@@ -5,12 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserMissionEntity } from './entites/user-mission.entity';
 import { PointsModule } from 'modules/points/points.module';
 import { MissionService } from './mission.service';
+import { MissionEntity } from './entites/mission.entity';
+import { MissionValidationEntity } from './entites/mission-validation.entity';
 
 @Module({
   imports: [
     UserModule,
     PointsModule,
-    TypeOrmModule.forFeature([UserMissionEntity])
+    TypeOrmModule.forFeature([UserMissionEntity, MissionEntity, MissionValidationEntity])
   ],
   controllers: [MissionController],
   providers: [MissionService],
