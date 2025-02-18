@@ -98,6 +98,14 @@ export class MissionService {
       await this.pointsService.reward(user.id, missionDetails.points);
     }
 
+    const missionValidation = await this.missionValidationRepository.findOne({
+      where: { userId: user.id, missionId },
+    });
+
+    if (missionValidation) {
+      await this.missionValidationRepository.remove(missionValidation);
+    }
+
     return mission;
   }
 
