@@ -139,4 +139,16 @@ export class MissionController {
       throw error;
     }
   }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({
+    summary: 'Get all missions',
+    description: 'Возвращает список всех доступных миссий',
+  })
+  @Get()
+  async getAllMissions() {
+    const missions = await this.missionService.getAllMissions();
+    return { missions };
+  }
 }

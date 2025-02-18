@@ -8,6 +8,7 @@ import { PointsService } from 'modules/points/points.service';
 import { IMission } from './types/mission';
 import { MissionEntity } from './entites/mission.entity';
 import { MissionValidationEntity } from './entites/mission-validation.entity';
+import { IUserMission } from './types/user-mission';
 
 @Injectable()
 export class MissionService {
@@ -124,6 +125,11 @@ export class MissionService {
     return missionValidation;
   }
 
+  async getAllMissions(): Promise<IMission[]> {
+    return this.missionRepository.find({
+      where: { isActive: true }
+    });
+  }
 
   async getMissionById(missionId: number): Promise<IMission | null> {
     return this.missionRepository.findOne({ where: { id: missionId } }) ?? null;
